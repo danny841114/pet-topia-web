@@ -1,0 +1,132 @@
+.form-control {
+    color: #908F8D;
+    line-height: normal;
+    letter-spacing: 0.02125rem;
+    text-transform: capitalize;
+    border-radius: 0.25rem;
+    border: 1px solid rgba(65, 64, 62, 0.20);
+    background: #FFF;
+    padding: 0.5rem 1rem;
+    align-self: stretch;
+}
+
+.d-flex {
+    display: flex;
+    align-items: center;
+}
+
+.d-flex input[type="radio"] {
+    margin-right: 5px;
+}
+
+.d-flex .radio-container {
+    margin-bottom: 20px;
+}
+
+.d-flex .radio-container {
+    display: flex;
+    align-items: center;
+}
+
+.radio-container {
+    margin-right: 20px;
+}
+
+/* radio 按鈕設置 */
+input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 18px;
+    height: 18px;
+    max-width: 18px;
+    max-height: 18px;
+    border-radius: 50%;
+    border: 2px solid #dead6e;
+    background-color: #fff6ea;
+    position: relative;
+    vertical-align: middle;
+    box-sizing: border-box;
+    flex-shrink: 0; /* 防止縮小 */
+}
+
+/* 當 radio 被選中時 */
+input[type="radio"]:checked {
+    background-color: #f9e0c0;
+    border-color: #dead6e;
+}
+
+/* 顯示圓形勾選標記 */
+input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #dead6e;
+    transform: translate(-50%, -50%);
+}
+
+/* radio 按鈕容器 */
+.radio-container {
+    margin-right: 20px;
+    display: flex;
+    align-items: center; /* 確保 radio 元素垂直居中 */
+}
+
+/* Modal 背景 */
+.modal.fade.show {
+    display: block;
+}
+
+.modal-dialog {
+    max-width: 500px;
+}
+
+.coupon-btn:hover {
+    background-color: #f4d8b1 !important;
+    /* 這裡可以設置 hover 的顏色 */
+}
+
+.coupon-close-btn {
+    background-color: #f4d8b1 !important;
+    /* 這裡可以設置 hover 的顏色 */
+}
+
+.coupon-close-btn:hover {
+    background-color: #fce8c4 !important;
+    /* 這裡可以設置 hover 的顏色 */
+}
+
+#couponButton {
+    background-color: #f4d8b1 !important;
+}
+
+#couponButton:hover {
+    background-color: #fce8c4 !important;
+    /* 這裡可以設置 hover 的顏色 */
+}
+
+.card {
+    border: none !important;
+}
+
+.coupon-close-btn {
+    border: solid 2px #f4d8b1 !important;
+    border-radius: 10%;
+}
+
+.btn {
+    background-color: #f4d8b1 !important;
+}
+
+.btn:hover {
+    background-color: #ebc37f !important;
+    /* 這裡可以設置 hover 的顏色 */
+}
+
+.phone-message{
+    color: rgb(219, 110, 110) !important;
+}
