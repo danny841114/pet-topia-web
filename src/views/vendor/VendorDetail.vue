@@ -3,13 +3,13 @@
   <div class="padding-medium mt-xl-5">
     <div class="container rounded-4" style="background-color: #f9f3ec; padding: 20px">
       <div class="row align-items-center mt-xl-5">
-        <div class="h-auto offset-md-1 col-md-5" v-if="vendor.logoImgBase64">
+        <div class="h-auto offset-md-1 col-md-5" v-if="vendor.logoImgUrl">
           <img
-            :src="vendor.logoImgBase64"
+            :src="`${apiBase}${vendor.logoImgUrl}`"
             alt="店家圖片"
             class="img-fluid rounded-4"
             width="400"
-            @click="openImage(vendor.logoImgBase64)"
+            @click="openImage(vendor.logoImgUrl)"
           />
         </div>
         <div class="h-auto offset-md-1 col-md-5" v-else>
@@ -24,7 +24,7 @@
         <div class="col-md-5 mt-5 mt-md-0">
           <div class="mb-3">
             <h2 class="display-6 fw-semibold" v-if="vendor.name">{{ vendor.name }}</h2>
-            <h2 class="display-6 fw-semibold" v-else style="color: gray">( 無店家名稱)</h2>
+            <h2 class="display-6 fw-semibold" v-else style="color: gray">(無店家名稱)</h2>
           </div>
           <p>{{ vendor.description }}</p>
           <p>
@@ -167,15 +167,15 @@
             prevEl: '.custom-prev',
           }"
           :slides-per-view="4"
-          :space-between="100"
+          :space-between="500"
           ><SwiperSlide v-for="(image, index) in imageList">
             <img
               :key="index"
-              :src="image.imageBase64"
+              :src="`${apiBase}${image.imgUrl}`"
               class="img-fluid rounded-4"
               alt="image"
               style="max-width: 500px; max-height: 300px; margin: 10px"
-              @click="openImage(image.imageBase64)"
+              @click="openImage(image.imgUrl)"
             /> </SwiperSlide
         ></Swiper>
         <button class="swiper-button-next custom-next"></button>
@@ -198,7 +198,7 @@
               <div class="image-container" v-if="review.profilePhotoBase64">
                 <img
                   class="img-fluid rounded-4"
-                  :src="review.profilePhotoBase64"
+                  :src="review.logoImgUrl"
                   alt="alternative"
                   style="max-width: 200px; max-height: 200px"
                 />
@@ -334,10 +334,10 @@
           :key="vendorEach.id"
         >
           <div class="card position-relative">
-            <span v-if="vendorEach.logoImgBase64">
+            <span v-if="vendorEach.logoImgUrl">
               <a :href="`/vendor/detail/${vendorEach.id}`">
                 <img
-                  :src="vendorEach.logoImgBase64"
+                  :src="vendorEach.logoImgUrl"
                   class="img-fluid rounded-4"
                   alt="image"
                   style="max-width: 200px; max-height: 200px" /></a
@@ -728,6 +728,8 @@ import { Pagination, Autoplay, Navigation } from 'swiper/modules'
 import { ref, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import Swal from 'sweetalert2'
+
+const apiBase = import.meta.env.VITE_API_URL
 
 const authStore = useAuthStore()
 const memberId = authStore.memberId
@@ -1132,9 +1134,9 @@ const submitReviewFinal = async () => {
 const imageSrc = ref()
 const isImageOpen = ref(false)
 
-const openImage = (image) => {
+const openImage = (imagUrl) => {
   isImageOpen.value = true
-  imageSrc.value = image
+  imageSrc.value = apiBase + imagUrl
   document.body.style.overflow = 'hidden'
 }
 
