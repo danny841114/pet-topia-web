@@ -4,21 +4,11 @@
     <div class="container rounded-4" style="background-color: #f9f3ec; padding: 20px">
       <div class="row align-items-center mt-xl-5">
         <div class="h-auto offset-md-1 col-md-5" v-if="vendor.logoImgUrl">
-          <img
-            :src="`${apiBase}${vendor.logoImgUrl}`"
-            alt="店家圖片"
-            class="img-fluid rounded-4"
-            width="400"
-            @click="openImage(vendor.logoImgUrl)"
-          />
+          <img :src="`${apiBase}${vendor.logoImgUrl}`" alt="店家圖片" class="img-fluid rounded-4" width="400"
+            @click="openImage(`${apiBase}${vendor.logoImgUrl}`)" />
         </div>
         <div class="h-auto offset-md-1 col-md-5" v-else>
-          <img
-            src="/user_static/images/tool/no-photo.png"
-            alt="店家圖片"
-            class="img-fluid rounded-4"
-            width="300"
-          />
+          <img src="/user_static/images/tool/no-photo.png" alt="店家圖片" class="img-fluid rounded-4" width="300" />
         </div>
 
         <div class="col-md-5 mt-5 mt-md-0">
@@ -29,26 +19,17 @@
           <p>{{ vendor.description }}</p>
           <p>
             分類：
-            <span v-if="vendor.vendorCategory"
-              ><b style="color: red">{{ vendor.vendorCategory.name }}</b
-              ><button
-                class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-                style="margin-left: 10px"
-                @click="openCategory(vendor.vendorCategory.id)"
-              >
+            <span v-if="vendor.vendorCategory"><b style="color: red">{{ vendor.vendorCategory.name }}</b><button
+                class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin-left: 10px"
+                @click="openCategory(vendor.vendorCategory.id)">
                 查看同類別店家
-              </button></span
-            >
+              </button></span>
             <span v-else style="color: gray">( 無分類 )</span>
           </p>
           <p v-if="tagList.length != 0">
             標籤：
-            <span
-              v-for="(tag, index) in tagList"
-              :key="index"
-              class="border border-primary p-2 tag-item"
-              style="margin-right: 15px; background-color: white"
-              >{{ tag.tag.tagName }}
+            <span v-for="(tag, index) in tagList" :key="index" class="border border-primary p-2 tag-item"
+              style="margin-right: 15px; background-color: white">{{ tag.tag.tagName }}
             </span>
           </p>
           <p>
@@ -67,41 +48,27 @@
             聯絡人：<b>{{ vendor.contactPerson }}</b>
           </p>
           <p>
-            評分：<b
-              ><span style="color: #ffd300; font-size: 24px">⁥★</span> {{ avgRate.totalRating }}</b
-            ><button
-              class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-              style="margin-left: 10px"
-              @click="openRate()"
-            >
+            評分：<b><span style="color: #ffd300; font-size: 24px">⁥★</span> {{ avgRate.totalRating }}</b><button
+              class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin-left: 10px"
+              @click="openRate()">
               完整評分
             </button>
           </p>
 
           <div class="d-flex">
             <div class="d-flex flex-wrap mt-3">
-              <button
-                class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4"
-                @click="toggleLike()"
-              >
+              <button class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" @click="toggleLike()">
                 {{ likeStatus }}
               </button>
-              <button
-                class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4"
-                :disabled="isAddReviewDisabled"
-                @click="openReview"
-              >
+              <button class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" :disabled="isAddReviewDisabled"
+                @click="openReview">
                 {{ addReviewButton }}
               </button>
             </div>
           </div>
           <br />
-          <div
-            @click="openMember()"
-            :style="{ cursor: cursorStyle }"
-            @mouseover="cursorStyle = 'zoom-in'"
-            @mouseleave="cursorStyle = 'default'"
-          >
+          <div @click="openMember()" :style="{ cursor: cursorStyle }" @mouseover="cursorStyle = 'zoom-in'"
+            @mouseleave="cursorStyle = 'default'">
             <b>查看誰收藏</b>
           </div>
         </div>
@@ -160,24 +127,16 @@
     <div class="container rounded-4" style="background-color: #f9f3ec; padding: 20px">
       <div class="container d-flex" style="text-align: center; position: relative">
         <button class="swiper-button-prev custom-prev"></button>
-        <Swiper
-          :modules="[Navigation]"
-          :navigation="{
-            nextEl: '.custom-next',
-            prevEl: '.custom-prev',
-          }"
-          :slides-per-view="4"
-          :space-between="500"
-          ><SwiperSlide v-for="(image, index) in imageList">
-            <img
-              :key="index"
-              :src="`${apiBase}${image.imgUrl}`"
-              class="img-fluid rounded-4"
-              alt="image"
+        <Swiper :modules="[Navigation]" :navigation="{
+          nextEl: '.custom-next',
+          prevEl: '.custom-prev',
+        }" :slides-per-view="4" :space-between="300">
+          <SwiperSlide v-for="(image, index) in imageList">
+            <img :key="index" :src="`${apiBase}${image.imgUrl}`" class="img-fluid rounded-4" alt="image"
               style="max-width: 500px; max-height: 300px; margin: 10px"
-              @click="openImage(image.imgUrl)"
-            /> </SwiperSlide
-        ></Swiper>
+              @click="openImage(`${apiBase}${image.imgUrl}`)" />
+          </SwiperSlide>
+        </Swiper>
         <button class="swiper-button-next custom-next"></button>
       </div>
     </div>
@@ -195,21 +154,12 @@
         <div class="container rounded-3" style="background-color: #f9f3ec; padding: 20px">
           <div class="row">
             <div class="col-lg-3">
-              <div class="image-container" v-if="review.profilePhotoBase64">
-                <img
-                  class="img-fluid rounded-4"
-                  :src="review.logoImgUrl"
-                  alt="alternative"
-                  style="max-width: 200px; max-height: 200px"
-                />
+              <div class="image-container" v-if="review.logoImgUrl">
+                <img class="img-fluid rounded-4" :src="review.logoImgUrl" alt="alternative"
+                  style="max-width: 200px; max-height: 200px" />
               </div>
               <div class="image-container" v-else>
-                <img
-                  src="/user_static/images/tool/no-photo.png"
-                  alt="店家圖片"
-                  class="img-fluid rounded-4"
-                  width="250"
-                />
+                <img src="/user_static/images/tool/no-photo.png" alt="店家圖片" class="img-fluid rounded-4" width="250" />
               </div>
             </div>
 
@@ -222,46 +172,25 @@
 
                 <p>
                   環境評分：
-                  <span
-                    v-for="i in review.ratingEnvironment"
-                    :key="'env-gold-' + i"
-                    style="color: gold"
-                    >★
+                  <span v-for="i in review.ratingEnvironment" :key="'env-gold-' + i" style="color: gold">★
                   </span>
-                  <span
-                    v-for="i in 5 - (review.ratingEnvironment || 0)"
-                    :key="'env-gray-' + i"
-                    style="color: gray"
-                    >★
+                  <span v-for="i in 5 - (review.ratingEnvironment || 0)" :key="'env-gray-' + i" style="color: gray">★
                   </span>
                 </p>
 
                 <p>
                   價格評分：
-                  <span v-for="i in review.ratingPrice" :key="'price-gold-' + i" style="color: gold"
-                    >★
+                  <span v-for="i in review.ratingPrice" :key="'price-gold-' + i" style="color: gold">★
                   </span>
-                  <span
-                    v-for="i in 5 - (review.ratingPrice || 0)"
-                    :key="'price-gray-' + i"
-                    style="color: gray"
-                    >★
+                  <span v-for="i in 5 - (review.ratingPrice || 0)" :key="'price-gray-' + i" style="color: gray">★
                   </span>
                 </p>
 
                 <p>
                   服務評分：
-                  <span
-                    v-for="i in review.ratingService"
-                    :key="'service-gold-' + i"
-                    style="color: gold"
-                    >★
+                  <span v-for="i in review.ratingService" :key="'service-gold-' + i" style="color: gold">★
                   </span>
-                  <span
-                    v-for="i in 5 - (review.ratingService || 0)"
-                    :key="'service-gray-' + i"
-                    style="color: gray"
-                    >★
+                  <span v-for="i in 5 - (review.ratingService || 0)" :key="'service-gray-' + i" style="color: gray">★
                   </span>
                 </p>
 
@@ -277,36 +206,25 @@
                 <div>
                   留言圖片：
                   <span>
-                    <span v-if="review.reviewPhotos.length == 0" style="color: gray"
-                      >( 沒有圖片 )</span
-                    >
+                    <span v-if="review.reviewPhotos.length == 0" style="color: gray">( 沒有圖片 )</span>
                     <span v-else style="display: flex; flex-wrap: wrap">
-                      <img
-                        v-for="(photo, index) in review.reviewPhotos"
-                        :key="index"
-                        :src="photo.photoBase64"
-                        class="img-fluid rounded-4"
-                        alt="image"
+                      <img v-for="(photo, index) in review.reviewPhotos" :key="index" :src="photo.photoBase64"
+                        class="img-fluid rounded-4" alt="image"
                         style="max-width: 150px; max-height: 150px; margin: 10px"
-                        @click="openImage(photo.photoBase64)"
-                      />
+                        @click="openImage(photo.photoBase64)" />
                     </span>
                   </span>
                 </div>
                 <!-- 評論之圖片 -->
 
                 <div class="d-flex flex-wrap mt-3" v-if="review.memberId == memberId">
-                  <button
-                    class="btn btn-outline-dark btn-lg text-uppercase fs-5 rounded-4 me-4"
-                    @click="openRewrite(review.reviewId)"
-                  >
+                  <button class="btn btn-outline-dark btn-lg text-uppercase fs-5 rounded-4 me-4"
+                    @click="openRewrite(review.reviewId)">
                     修改
                   </button>
 
-                  <button
-                    class="btn btn-outline-dark btn-lg text-uppercase fs-5 rounded-4 me-4"
-                    @click="deleteComment(review.reviewId)"
-                  >
+                  <button class="btn btn-outline-dark btn-lg text-uppercase fs-5 rounded-4 me-4"
+                    @click="deleteComment(review.reviewId)">
                     刪除
                   </button>
                 </div>
@@ -328,28 +246,14 @@
       </div>
 
       <div class="row">
-        <div
-          class="item bird col-md-4 col-lg-3 my-4"
-          v-for="vendorEach in vendorList"
-          :key="vendorEach.id"
-        >
+        <div class="item bird col-md-4 col-lg-3 my-4" v-for="vendorEach in vendorList" :key="vendorEach.id">
           <div class="card position-relative">
             <span v-if="vendorEach.logoImgUrl">
               <a :href="`/vendor/detail/${vendorEach.id}`">
-                <img
-                  :src="vendorEach.logoImgUrl"
-                  class="img-fluid rounded-4"
-                  alt="image"
-                  style="max-width: 200px; max-height: 200px" /></a
-            ></span>
-            <span v-else
-              ><a :href="`/vendor/detail/${vendorEach.id}`"
-                ><img
-                  src="/user_static/images/tool/no-photo.png"
-                  class="img-fluid rounded-4"
-                  alt="image"
-                  style="max-width: 200px; max-height: 200px" /></a
-            ></span>
+                <img :src="vendorEach.logoImgUrl" class="img-fluid rounded-4" alt="image"
+                  style="max-width: 200px; max-height: 200px" /></a></span>
+            <span v-else><a :href="`/vendor/detail/${vendorEach.id}`"><img src="/user_static/images/tool/no-photo.png"
+                  class="img-fluid rounded-4" alt="image" style="max-width: 200px; max-height: 200px" /></a></span>
             <div class="card-body p-0">
               <a :href="`/vendor/detail/${vendorEach.id}`" v-if="vendorEach.name">
                 <h2 class="card-title pt-4 m-0">{{ vendorEach.name }}</h2>
@@ -375,95 +279,50 @@
       <h3><b v-if="commentButton">新增評論</b></h3>
       <h3><b v-if="rewriteButton">修改評論</b></h3>
       <form @submit.prevent="handleSubmit()">
-        <textarea
-          v-model="review.content"
-          placeholder="輸入感想"
-          style="width: 400px; height: 100px"
-          required
-        ></textarea>
+        <textarea v-model="review.content" placeholder="輸入感想" style="width: 400px; height: 100px" required></textarea>
         <br />
 
         <!--星星-->
         <div class="stars">
-          <span
-            v-for="star in 5"
-            :key="star"
-            class="star"
-            :class="{
-              active: tempRating1 > 0 ? star <= tempRating1 : star <= rating1, // hover執行順序優於click
-            }"
-            @click="setRating1(star)"
-            @mouseover="hoverRating1(star)"
-            @mouseout="resetHover1"
-          >
+          <span v-for="star in 5" :key="star" class="star" :class="{
+            active: tempRating1 > 0 ? star <= tempRating1 : star <= rating1, // hover執行順序優於click
+          }" @click="setRating1(star)" @mouseover="hoverRating1(star)" @mouseout="resetHover1">
             ★
           </span>
           <span>環境：{{ rating1 }}</span>
         </div>
 
         <div class="stars">
-          <span
-            v-for="star in 5"
-            :key="star"
-            class="star"
-            :class="{
-              active: tempRating2 > 0 ? star <= tempRating2 : star <= rating2, // hover執行順序優於click
-            }"
-            @click="setRating2(star)"
-            @mouseover="hoverRating2(star)"
-            @mouseout="resetHover2"
-          >
+          <span v-for="star in 5" :key="star" class="star" :class="{
+            active: tempRating2 > 0 ? star <= tempRating2 : star <= rating2, // hover執行順序優於click
+          }" @click="setRating2(star)" @mouseover="hoverRating2(star)" @mouseout="resetHover2">
             ★
           </span>
           <span>價格：{{ rating2 }}</span>
         </div>
 
         <div class="stars">
-          <span
-            v-for="star in 5"
-            :key="star"
-            class="star"
-            :class="{
-              active: tempRating3 > 0 ? star <= tempRating3 : star <= rating3, // hover執行順序優於click
-            }"
-            @click="setRating3(star)"
-            @mouseover="hoverRating3(star)"
-            @mouseout="resetHover3"
-          >
+          <span v-for="star in 5" :key="star" class="star" :class="{
+            active: tempRating3 > 0 ? star <= tempRating3 : star <= rating3, // hover執行順序優於click
+          }" @click="setRating3(star)" @mouseover="hoverRating3(star)" @mouseout="resetHover3">
             ★
           </span>
           <span>服務：{{ rating3 }}</span>
         </div>
         <!--星星-->
 
-        <input
-          type="file"
-          multiple
-          @change="handleFileUpload"
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-        />
+        <input type="file" multiple @change="handleFileUpload"
+          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" />
 
         <div class="scroll-container">
           <!-- 原有圖片 -->
           <div v-if="originReviewPhotoList.length != 0">=== 原有圖片 ===</div>
           <div class="image-preview">
-            <div
-              v-for="(photo, index) in originReviewPhotoList"
-              :key="index"
-              class="image-container"
-            >
-              <img
-                :src="photo.photoBase64"
-                alt="選擇的圖片"
-                class="preview-img"
-                v-if="!removeImageList.includes(photo.id)"
-              />
-              <button
-                type="button"
-                class="img-button"
-                @click="removeOriginImage(photo.id)"
-                v-if="!removeImageList.includes(photo.id)"
-              >
+            <div v-for="(photo, index) in originReviewPhotoList" :key="index" class="image-container">
+              <img :src="photo.photoBase64" alt="選擇的圖片" class="preview-img"
+                v-if="!removeImageList.includes(photo.id)" />
+              <button type="button" class="img-button" @click="removeOriginImage(photo.id)"
+                v-if="!removeImageList.includes(photo.id)">
                 刪除
               </button>
             </div>
@@ -482,35 +341,19 @@
         </div>
         <br />
 
-        <button
-          type="button"
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          @click="closeReview"
-        >
+        <button type="button" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" @click="closeReview">
           取消
         </button>
         &emsp;
-        <button
-          v-if="rewriteButton"
-          type="button"
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          @click="resetComment()"
-        >
+        <button v-if="rewriteButton" type="button" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
+          @click="resetComment()">
           重設
         </button>
         &emsp;
-        <button
-          v-if="commentButton"
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          type="submit"
-        >
+        <button v-if="commentButton" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" type="submit">
           新增
         </button>
-        <button
-          v-if="rewriteButton"
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          type="submit"
-        >
+        <button v-if="rewriteButton" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" type="submit">
           修改
         </button>
       </form>
@@ -604,30 +447,19 @@
       <div class="scroll-container" v-if="memberList.length != 0">
         <div v-for="(member, index) in memberList" :key="index" style="font-size: 24px">
           <span v-if="member.profilePhotoBase64">
-            <img
-              :src="member.profilePhotoBase64"
-              class="img-fluid rounded-4"
-              alt="image"
-              style="max-width: 30px; max-height: 30px; margin: 10px"
-            />
+            <img :src="member.profilePhotoBase64" class="img-fluid rounded-4" alt="image"
+              style="max-width: 30px; max-height: 30px; margin: 10px" />
           </span>
           <span v-else>
-            <img
-              src="/user_static/images/tool/no-photo.png"
-              class="img-fluid rounded-4"
-              alt="image"
-              style="max-width: 30px; max-height: 30px; margin: 10px"
-            /> </span
-          ><span v-if="member.name">{{ member.name }}</span>
+            <img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="image"
+              style="max-width: 30px; max-height: 30px; margin: 10px" /> </span><span v-if="member.name">{{ member.name
+              }}</span>
           <span v-else style="color: gray">( 無名稱 )</span>
         </div>
       </div>
       <div v-else style="color: gray; margin: 50px">目前沒有人收藏唷～</div>
-      <button
-        class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-        style="margin: 5px"
-        @click="closeMember()"
-      >
+      <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
+        @click="closeMember()">
         關閉
       </button>
     </div>
@@ -638,39 +470,26 @@
   <div v-if="isPopupCategoryVisible" class="overlay">
     <div class="popup">
       <h3>
-        <b v-if="categoryVendorList.length != 0"
-          >同類別店家：<span style="color: red">{{
-            categoryVendorList[0].vendorCategory.name
-          }}</span></b
-        ><b v-else>同類別店家</b>
+        <b v-if="categoryVendorList.length != 0">同類別店家：<span style="color: red">{{
+          categoryVendorList[0].vendorCategory.name
+            }}</span></b><b v-else>同類別店家</b>
       </h3>
       <div class="scroll-container" v-if="categoryVendorList.length != 0">
         <div v-for="(vendor, index) in categoryVendorList" :key="index" style="font-size: 24px">
           <span v-if="vendor.logoImgBase64">
-            <img
-              :src="vendor.logoImgBase64"
-              class="img-fluid rounded-4"
-              alt="image"
-              style="max-width: 30px; max-height: 30px; margin: 10px"
-            />
+            <img :src="vendor.logoImgBase64" class="img-fluid rounded-4" alt="image"
+              style="max-width: 30px; max-height: 30px; margin: 10px" />
           </span>
           <span v-else>
-            <img
-              src="/user_static/images/tool/no-photo.png"
-              class="img-fluid rounded-4"
-              alt="image"
-              style="max-width: 30px; max-height: 30px; margin: 10px"
-            />
+            <img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="image"
+              style="max-width: 30px; max-height: 30px; margin: 10px" />
           </span>
           <a :href="`/vendor/detail/${vendor.id}`">{{ vendor.name }}</a>
         </div>
       </div>
       <div v-else style="color: gray; margin: 50px">目前沒有其他同類別店家～</div>
-      <button
-        class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-        style="margin: 5px"
-        @click="closeCategory()"
-      >
+      <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
+        @click="closeCategory()">
         關閉
       </button>
     </div>
@@ -707,10 +526,7 @@
             </tr>
           </tbody>
         </table>
-        <button
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          @click="closeRate()"
-        >
+        <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" @click="closeRate()">
           關閉
         </button>
       </h3>
@@ -724,7 +540,7 @@
 import 'swiper/css'
 import 'swiper/css/pagination'
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Pagination, Autoplay, Navigation } from 'swiper/modules'
+import { Navigation } from 'swiper/modules'
 import { ref, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import Swal from 'sweetalert2'
@@ -755,7 +571,7 @@ const vendor = ref({
 
 const fetchVendorData = async () => {
   try {
-    const response = await fetch(`http://localhost:8080/api/vendor/${props.vendorId}`)
+    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}`)
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`) // 確認為ok
 
     const data = await response.json()
@@ -771,7 +587,7 @@ const imageList = ref([])
 
 const fetchVendorImageList = async () => {
   try {
-    const response = await fetch(`http://localhost:8080/api/vendor/${props.vendorId}/image`)
+    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/image`)
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
 
     const data = await response.json()
@@ -799,7 +615,7 @@ const reviewList = ref([
 
 const fetchVendorReviewList = async () => {
   try {
-    const response = await fetch(`http://localhost:8080/api/vendor/${props.vendorId}/review`)
+    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/review`)
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
 
     const data = await response.json()
@@ -822,7 +638,7 @@ const vendorList = ref([
 
 const fetchVendorList = async () => {
   try {
-    const response = await fetch(`http://localhost:8080/api/vendor/all/except/${props.vendorId}`)
+    const response = await fetch(`${apiBase}/api/vendor/all/except/${props.vendorId}`)
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
     const data = await response.json()
     vendorList.value = shuffleList(data)
@@ -838,7 +654,7 @@ const isAddReviewDisabled = ref(false)
 
 const getReviewIsExisied = async () => {
   const response = await fetch(
-    `http://localhost:8080/api/vendor/${props.vendorId}/member/${memberId}/review/exist`,
+    `${apiBase}/api/vendor/${props.vendorId}/member/${memberId}/review/exist`,
     {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
@@ -900,7 +716,7 @@ const resetHover3 = () => {
 const tagList = ref([])
 
 const getTag = async () => {
-  const response = await fetch(`http://localhost:8080/api/vendor/${props.vendorId}/tag`, {
+  const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/tag`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -926,7 +742,7 @@ const formatDate = (dateString) => {
 const activityList = ref()
 
 const getActivities = async () => {
-  const response = await fetch(`http://localhost:8080/api/activity/vendor/${props.vendorId}`, {
+  const response = await fetch(`${apiBase}/api/activity/vendor/${props.vendorId}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -941,7 +757,7 @@ const likeStatus = ref('收藏')
 
 const getLikeStatus = async () => {
   const response = await fetch(
-    `http://localhost:8080/api/vendor/${props.vendorId}/member/${memberId}/like/status`,
+    `${apiBase}/api/vendor/${props.vendorId}/member/${memberId}/like/status`,
     {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
@@ -973,7 +789,7 @@ const toggleLike = async () => {
     memberId: memberId,
   }
   try {
-    const response = await fetch(`http://localhost:8080/api/vendor/${props.vendorId}/like/toggle`, {
+    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/like/toggle`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -1112,7 +928,7 @@ const submitReviewFinal = async () => {
   })
 
   try {
-    await fetch(`http://localhost:8080/api/vendor/${props.vendorId}/review/add/final`, {
+    await fetch(`${apiBase}/api/vendor/${props.vendorId}/review/add/final`, {
       method: 'POST',
       body: formData,
     })
@@ -1136,7 +952,7 @@ const isImageOpen = ref(false)
 
 const openImage = (imagUrl) => {
   isImageOpen.value = true
-  imageSrc.value = apiBase + imagUrl
+  imageSrc.value = imagUrl
   document.body.style.overflow = 'hidden'
 }
 
@@ -1155,7 +971,7 @@ const openRewrite = async (reviewId) => {
   rewriteButton.value = true
   rewriteReviewId.value = reviewId
 
-  const response1 = await fetch(`http://localhost:8080/api/vendor/review/${reviewId}`, {
+  const response1 = await fetch(`${apiBase}/api/vendor/review/${reviewId}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -1165,7 +981,7 @@ const openRewrite = async (reviewId) => {
   rating2.value = result1.review.ratingPrice
   rating3.value = result1.review.ratingService
 
-  const response2 = await fetch(`http://localhost:8080/api/vendor/review/${reviewId}/photo`, {
+  const response2 = await fetch(`${apiBase}/api/vendor/review/${reviewId}/photo`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -1200,7 +1016,7 @@ const submitRewirte = async () => {
 
   try {
     const response = await fetch(
-      `http://localhost:8080/api/vendor/review/${rewriteReviewId.value}/rewrite/final`,
+      `${apiBase}/api/vendor/review/${rewriteReviewId.value}/rewrite/final`,
       {
         method: 'PUT',
         body: formData,
@@ -1240,7 +1056,7 @@ const deleteComment = async (reviewId) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:8080/api/vendor/review/${reviewId}/delete`, {
+    const response = await fetch(`${apiBase}/api/vendor/review/${reviewId}/delete`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -1278,7 +1094,7 @@ const resetComment = async () => {
   }
 
   const response1 = await fetch(
-    `http://localhost:8080/api/vendor/review/${rewriteReviewId.value}`,
+    `${apiBase}/api/vendor/review/${rewriteReviewId.value}`,
     {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
@@ -1291,7 +1107,7 @@ const resetComment = async () => {
   rating3.value = result1.review.ratingService
 
   const response2 = await fetch(
-    `http://localhost:8080/api/vendor/review/${rewriteReviewId.value}/photo`,
+    `${apiBase}/api/vendor/review/${rewriteReviewId.value}/photo`,
     {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
@@ -1328,7 +1144,7 @@ const openMember = async () => {
   isPopupMemberVisible.value = true
 
   try {
-    const response = await fetch(`http://localhost:8080/api/vendor/${props.vendorId}/like`, {
+    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/like`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -1370,7 +1186,7 @@ const openCategory = async (categoryId) => {
 
   try {
     const response = await fetch(
-      `http://localhost:8080/api/vendor/category/${categoryId}/except/vendor/${props.vendorId}`,
+      `${apiBase}/api/vendor/category/${categoryId}/except/vendor/${props.vendorId}`,
       {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -1401,7 +1217,7 @@ watch(isRateVisible, (newValue) => {
 const fetchAvgRate = async () => {
   try {
     const response = await fetch(
-      `http://localhost:8080/api/vendor/${props.vendorId}/update/rating`,
+      `${apiBase}/api/vendor/${props.vendorId}/update/rating`,
       {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -1438,7 +1254,7 @@ const coordinate = ref({
 })
 const fetchCoordinate = async () => {
   try {
-    const response = await fetch(`http://localhost:8080/api/vendor/${props.vendorId}/coordinate`, {
+    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/coordinate`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -1551,23 +1367,30 @@ const initMap = () => {
   font-size: 30px;
   cursor: pointer;
 }
+
 .star {
   color: gray;
   transition: color 0.2s;
 }
+
 .star.active {
   color: gold;
 }
+
 .star.hover {
   color: gold;
 }
 
 /* 列表視窗 */
 .scroll-container {
-  max-height: 240px; /* 設定最大高度，超過則產生滾動條 */
-  overflow-y: auto; /* 當內容超過 max-height 時顯示垂直滾動條 */
-  border: 1px solid #ccc; /* 可選，增加邊框以區分區塊 */
-  padding: 10px; /* 可選，增加內邊距 */
+  max-height: 240px;
+  /* 設定最大高度，超過則產生滾動條 */
+  overflow-y: auto;
+  /* 當內容超過 max-height 時顯示垂直滾動條 */
+  border: 1px solid #ccc;
+  /* 可選，增加邊框以區分區塊 */
+  padding: 10px;
+  /* 可選，增加內邊距 */
 }
 
 /* 上傳圖片預覽 */
@@ -1577,15 +1400,18 @@ const initMap = () => {
   gap: 10px;
   margin-top: 10px;
 }
+
 .image-container {
   position: relative;
 }
+
 .preview-img {
   width: 90px;
   height: 90px;
   object-fit: cover;
   border-radius: 8px;
 }
+
 .img-button {
   position: absolute;
   top: 5px;
@@ -1624,6 +1450,7 @@ const initMap = () => {
   cursor: pointer;
   z-index: 10;
 }
+
 .custom-prev:hover,
 .custom-next:hover {
   background: rgba(0, 0, 0, 0.8);
