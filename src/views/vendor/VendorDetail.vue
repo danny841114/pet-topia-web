@@ -248,12 +248,10 @@
       <div class="row">
         <div class="item bird col-md-4 col-lg-3 my-4" v-for="vendorEach in vendorList" :key="vendorEach.id">
           <div class="card position-relative">
-            <span v-if="vendorEach.logoImgUrl">
-              <a :href="`/vendor/detail/${vendorEach.id}`">
-                <img :src="vendorEach.logoImgUrl" class="img-fluid rounded-4" alt="image"
-                  style="max-width: 200px; max-height: 200px" /></a></span>
-            <span v-else><a :href="`/vendor/detail/${vendorEach.id}`"><img src="/user_static/images/tool/no-photo.png"
-                  class="img-fluid rounded-4" alt="image" style="max-width: 200px; max-height: 200px" /></a></span>
+            <a :href="`/vendor/detail/${vendorEach.id}`">
+              <img :src="`${apiBase}${vendorEach.logoImgUrl}`" class="img-fluid rounded-4" alt="image"
+                style="max-width: 200px; max-height: 200px"
+                onerror="this.src='/user_static/images/tool/no-photo.png';" /></a>
             <div class="card-body p-0">
               <a :href="`/vendor/detail/${vendorEach.id}`" v-if="vendorEach.name">
                 <h2 class="card-title pt-4 m-0">{{ vendorEach.name }}</h2>
@@ -446,14 +444,11 @@
       <h3><b>有誰收藏</b></h3>
       <div class="scroll-container" v-if="memberList.length != 0">
         <div v-for="(member, index) in memberList" :key="index" style="font-size: 24px">
-          <span v-if="member.profilePhotoBase64">
-            <img :src="member.profilePhotoBase64" class="img-fluid rounded-4" alt="image"
-              style="max-width: 30px; max-height: 30px; margin: 10px" />
-          </span>
-          <span v-else>
-            <img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="image"
-              style="max-width: 30px; max-height: 30px; margin: 10px" /> </span><span v-if="member.name">{{ member.name
-              }}</span>
+          <img :src="member.profilePhotoBase64" class="img-fluid rounded-4" alt="image"
+            style="max-width: 30px; max-height: 30px; margin: 10px"
+            onerror="this.src='/user_static/images/tool/no-photo.png';" />
+
+          <span v-if="member.name">{{ member.name }}</span>
           <span v-else style="color: gray">( 無名稱 )</span>
         </div>
       </div>
@@ -476,14 +471,9 @@
       </h3>
       <div class="scroll-container" v-if="categoryVendorList.length != 0">
         <div v-for="(vendor, index) in categoryVendorList" :key="index" style="font-size: 24px">
-          <span v-if="vendor.logoImgBase64">
-            <img :src="vendor.logoImgBase64" class="img-fluid rounded-4" alt="image"
-              style="max-width: 30px; max-height: 30px; margin: 10px" />
-          </span>
-          <span v-else>
-            <img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="image"
-              style="max-width: 30px; max-height: 30px; margin: 10px" />
-          </span>
+          <img :src="vendor.logoImgBase64" class="img-fluid rounded-4" alt="image"
+            style="max-width: 30px; max-height: 30px; margin: 10px"
+            onerror="this.src='/user_static/images/tool/no-photo.png';" />
           <a :href="`/vendor/detail/${vendor.id}`">{{ vendor.name }}</a>
         </div>
       </div>
