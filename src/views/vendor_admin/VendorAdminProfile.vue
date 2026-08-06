@@ -326,7 +326,7 @@ const updateVendor = async () => {
   formData.append('vendorAddress', vendor.value.address)
   formData.append('vendorDescription', vendor.value.description)
   formData.append('contactPerson', vendor.value.contactPerson)
-  formData.append('vendorTaxidNumber', vendor.value.taxidNumber)
+  formData.append('vendorTaxIdNumber', vendor.value.taxidNumber)
   formData.append('category', vendor.value.vendorCategory.id)
 
   // 处理要删除的图片 ID
@@ -348,7 +348,7 @@ const updateVendor = async () => {
   console.log('formData', formData)
   const url = `http://localhost:8080/api/vendor/update/${vendor.value.id}`
   try {
-    const response = await axios.post(url, formData, {
+    const response = await axios.put(url, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     console.log(response.data)

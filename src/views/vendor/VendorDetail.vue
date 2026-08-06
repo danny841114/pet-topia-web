@@ -206,7 +206,7 @@
                 <div>
                   留言圖片：
                   <span>
-                    <span v-if="review.reviewPhotos.length == 0" style="color: gray">( 沒有圖片 )</span>
+                    <span v-if="review.reviewPhotos?.length == 0" style="color: gray">( 沒有圖片 )</span>
                     <span v-else style="display: flex; flex-wrap: wrap">
                       <img v-for="(photo, index) in review.reviewPhotos" :key="index" :src="photo.photoBase64"
                         class="img-fluid rounded-4" alt="image"
@@ -512,7 +512,7 @@
             </tr>
             <tr>
               <td>服務</td>
-              <td>{{ avgRate.avgRatinService }}</td>
+              <td>{{ avgRate.avgRatingService }}</td>
             </tr>
           </tbody>
         </table>
@@ -527,6 +527,7 @@
 </template>
 
 <script setup>
+import axios from 'axios';
 import 'swiper/css'
 import 'swiper/css/pagination'
 import { Swiper, SwiperSlide } from 'swiper/vue'
@@ -779,12 +780,12 @@ const toggleLike = async () => {
     memberId: memberId,
   }
   try {
-    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/like/toggle`, {
-      method: 'POST',
+    const response = await axios.post(`${apiBase}/api/vendor/${props.vendorId}/like/toggle`, data, {
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
     })
-    let likeData = await response.json()
+
+    let likeData = response.data
+
     if (likeData.action) {
       Swal.fire({
         title: '成功收藏',
@@ -795,13 +796,20 @@ const toggleLike = async () => {
     } else {
       Swal.fire({
         title: '取消收藏',
-        icon: 'error',
+        icon: 'success',
         confirmButtonText: '確定',
       })
       likeStatus.value = '收藏'
     }
   } catch (error) {
     console.error('切換收藏失敗:', error)
+
+    Swal.fire({
+        title: '操作失敗',
+        icon: 'error',
+        message: '操作失敗',
+        confirmButtonText: '確定',
+      })
   }
 }
 
