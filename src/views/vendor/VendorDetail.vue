@@ -77,10 +77,6 @@
   </div>
   <!-- 主要內容結束 -->
 
-  <!-- Google Maps -->
-  <div id="map" style="height: 400px; width: 70%; margin: 20px auto; display: block"></div>
-  <!-- Google Maps -->
-
   <!-- 活動列表開始 -->
   <div class="container mt-4">
     <h2 class="display-6 fw-normal">店家活動</h2>
@@ -154,8 +150,8 @@
         <div class="container rounded-3" style="background-color: #f9f3ec; padding: 20px">
           <div class="row">
             <div class="col-lg-3">
-              <div class="image-container" v-if="review.logoImgUrl">
-                <img class="img-fluid rounded-4" :src="review.logoImgUrl" alt="alternative"
+              <div class="image-container" v-if="review.member?.photoUrl">
+                <img class="img-fluid rounded-4" :src="`${apiBase}${review.member.photoUrl}`" alt="alternative"
                   style="max-width: 200px; max-height: 200px" />
               </div>
               <div class="image-container" v-else>
@@ -166,15 +162,15 @@
             <div class="col-lg-9">
               <div class="text-container" style="padding-top: 20px">
                 <h2>
-                  <b v-if="review.name">{{ review.name }}</b>
+                  <b v-if="review.member?.name">{{ review.member.name }}</b>
                   <b v-else style="color: gray">( 無名稱 )</b>
                 </h2>
 
                 <p>
                   環境評分：
-                  <span v-for="i in review.ratingEnvironment" :key="'env-gold-' + i" style="color: gold">★
+                  <span v-for="i in review.ratingEnv" :key="'env-gold-' + i" style="color: gold">★
                   </span>
-                  <span v-for="i in 5 - (review.ratingEnvironment || 0)" :key="'env-gray-' + i" style="color: gray">★
+                  <span v-for="i in 5 - (review.ratingEnv || 0)" :key="'env-gray-' + i" style="color: gray">★
                   </span>
                 </p>
 
@@ -194,11 +190,11 @@
                   </span>
                 </p>
 
-                <p>發表時間：{{ formatDate(review.reviewTime) }}</p>
+                <p>發表時間：{{ formatDate(review.time) }}</p>
 
                 <p>
                   留言內容：
-                  <span v-if="review.reviewContent">{{ review.reviewContent }}</span>
+                  <span v-if="review.content">{{ review.content }}</span>
                   <span style="color: gray" v-else>( 沒有內容 )</span>
                 </p>
 
@@ -206,25 +202,25 @@
                 <div>
                   留言圖片：
                   <span>
-                    <span v-if="review.reviewPhotos?.length == 0" style="color: gray">( 沒有圖片 )</span>
+                    <span v-if="review.photoUrls?.length == 0" style="color: gray">( 沒有圖片 )</span>
                     <span v-else style="display: flex; flex-wrap: wrap">
-                      <img v-for="(photo, index) in review.reviewPhotos" :key="index" :src="photo.photoBase64"
+                      <img v-for="(photo, index) in review.photoUrls" :key="index" :src="`${apiBase}${photo}`"
                         class="img-fluid rounded-4" alt="image"
                         style="max-width: 150px; max-height: 150px; margin: 10px"
-                        @click="openImage(photo.photoBase64)" />
+                        @click="openImage(`${apiBase}${photo}`)" />
                     </span>
                   </span>
                 </div>
                 <!-- 評論之圖片 -->
 
-                <div class="d-flex flex-wrap mt-3" v-if="review.memberId == memberId">
+                <div class="d-flex flex-wrap mt-3" v-if="review.member?.id == memberId">
                   <button class="btn btn-outline-dark btn-lg text-uppercase fs-5 rounded-4 me-4"
-                    @click="openRewrite(review.reviewId)">
+                    @click="openRewrite(review.id)">
                     修改
                   </button>
 
                   <button class="btn btn-outline-dark btn-lg text-uppercase fs-5 rounded-4 me-4"
-                    @click="deleteComment(review.reviewId)">
+                    @click="deleteComment(review.id)">
                     刪除
                   </button>
                 </div>
@@ -317,7 +313,7 @@
           <div v-if="originReviewPhotoList.length != 0">=== 原有圖片 ===</div>
           <div class="image-preview">
             <div v-for="(photo, index) in originReviewPhotoList" :key="index" class="image-container">
-              <img :src="photo.photoBase64" alt="選擇的圖片" class="preview-img"
+              <img :src="`${apiBase}${photo.imgUrl}`" alt="選擇的圖片" class="preview-img"
                 v-if="!removeImageList.includes(photo.id)" />
               <button type="button" class="img-button" @click="removeOriginImage(photo.id)"
                 v-if="!removeImageList.includes(photo.id)">
@@ -364,79 +360,6 @@
     <img :src="imageSrc" alt="Large Image" class="large-image" @click.stop />
   </div>
   <!-- 放大圖片視窗 -->
-
-  <!-- 星星視窗 -->
-  <!-- <div v-if="isPopupStarVisible" class="overlay">
-    <div class="popup">
-      <h3><b>給點評分</b></h3>
-      <div class="stars">
-        <span
-          v-for="star in 5"
-          :key="star"
-          class="star"
-          :class="{
-            active: tempRating1 > 0 ? star <= tempRating1 : star <= rating1, // hover執行順序優於click
-          }"
-          @click="setRating1(star)"
-          @mouseover="hoverRating1(star)"
-          @mouseout="resetHover1"
-        >
-          ★
-        </span>
-        <span>環境：{{ rating1 }}</span>
-      </div>
-
-      <div class="stars">
-        <span
-          v-for="star in 5"
-          :key="star"
-          class="star"
-          :class="{
-            active: tempRating2 > 0 ? star <= tempRating2 : star <= rating2, // hover執行順序優於click
-          }"
-          @click="setRating2(star)"
-          @mouseover="hoverRating2(star)"
-          @mouseout="resetHover2"
-        >
-          ★
-        </span>
-        <span>價格：{{ rating2 }}</span>
-      </div>
-
-      <div class="stars">
-        <span
-          v-for="star in 5"
-          :key="star"
-          class="star"
-          :class="{
-            active: tempRating3 > 0 ? star <= tempRating3 : star <= rating3, // hover執行順序優於click
-          }"
-          @click="setRating3(star)"
-          @mouseover="hoverRating3(star)"
-          @mouseout="resetHover3"
-        >
-          ★
-        </span>
-        <span>服務：{{ rating3 }}</span>
-      </div>
-      <br />
-      <button
-        class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-        @click="closeStar()"
-        style="margin: 5px"
-      >
-        取消
-      </button>
-      <button
-        class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-        @click="sendStar()"
-        style="margin: 5px"
-      >
-        送出
-      </button>
-    </div>
-  </div> -->
-  <!-- 星星視窗 -->
 
   <!-- 收藏名單視窗 -->
   <div v-if="isPopupMemberVisible" class="overlay">
@@ -527,19 +450,54 @@
 </template>
 
 <script setup>
-import axios from 'axios';
 import 'swiper/css'
 import 'swiper/css/pagination'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation } from 'swiper/modules'
 import { ref, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { vendorApi } from '@/api/vendor/vendorApi'
+import { activityApi } from '@/api/vendor/activityApi'
 import Swal from 'sweetalert2'
 
 const apiBase = import.meta.env.VITE_API_URL
-
+const props = defineProps({
+  vendorId: Number,
+})
+const cursorStyle = ref('default')
 const authStore = useAuthStore()
 const memberId = authStore.memberId
+const vendor = ref({});
+const imageList = ref([])
+const reviewList = ref([])
+const vendorList = ref([])
+const addReviewButton = ref('留言')
+const likeStatus = ref('收藏')
+const isAddReviewDisabled = ref(false)
+const rating1 = ref(0)
+const tempRating1 = ref(0)
+const rating2 = ref(0)
+const tempRating2 = ref(0)
+const rating3 = ref(0)
+const tempRating3 = ref(0)
+const tagList = ref([])
+const activityList = ref([])
+const isPopupMemberVisible = ref(false)
+const memberList = ref([])
+const review = ref({})
+const reviewPhotos = ref([])
+const removeImageList = ref([])
+const isPopupReviewVisible = ref(false)
+const commentButton = ref(false)
+const rewriteReviewId = ref(0) // 此全域變數為修改留言送出之使用
+const rewriteButton = ref(false)
+const originReviewPhotoList = ref([])
+const imageSrc = ref()
+const isImageOpen = ref(false)
+const categoryVendorList = ref([])
+const isPopupCategoryVisible = ref(false)
+const isRateVisible = ref(false)
+const avgRate = ref([])
 
 /* 0. 隨機排列 */
 const shuffleList = (array) => {
@@ -547,111 +505,54 @@ const shuffleList = (array) => {
 }
 
 /* 1. vendorId及預設游標 */
-const props = defineProps({
-  vendorId: Number,
-})
-const cursorStyle = ref('default') // 預設游標
+
 
 /* 2. 店家資料 */
-const vendor = ref({
-  name: '載入中...',
-  description: '請稍候，正在獲取店家資訊...',
-  vendorCategory: { name: '載入中...' },
-  logoImgBase64: null,
-})
-
 const fetchVendorData = async () => {
   try {
-    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}`)
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`) // 確認為ok
-
-    const data = await response.json()
-    vendor.value = data
+    vendor.value = await vendorApi.getVendor(props.vendorId);
   } catch (error) {
-    console.error('獲取店家資料失敗:', error)
+    console.error('Get vendor data failed:', error)
   }
 }
-onMounted(fetchVendorData)
+onMounted(() => fetchVendorData());
 
 /* 3. 店家圖片列表 */
-const imageList = ref([])
-
 const fetchVendorImageList = async () => {
   try {
-    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/image`)
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-
-    const data = await response.json()
-    imageList.value = data
+    imageList.value = await vendorApi.getVendorImages(props.vendorId)
   } catch (error) {
     console.error('獲取店家圖片列表失敗:', error)
   }
 }
-onMounted(fetchVendorImageList)
+
+onMounted(() => fetchVendorImageList())
 
 /* 4. 留言區 */
-const reviewList = ref([
-  {
-    reviewId: 1,
-    name: '載入中...',
-    profilePhotoBase64: null,
-    ratingEnvironment: 0,
-    ratingPrice: 0,
-    ratingService: 0,
-    reviewTime: '載入中...',
-    reviewContent: '載入中...',
-    reviewPhotos: '',
-  },
-])
-
 const fetchVendorReviewList = async () => {
   try {
-    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/review`)
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-
-    const data = await response.json()
-    reviewList.value = data
+    reviewList.value = await vendorApi.getVendorReviews(props.vendorId)
   } catch (error) {
     console.error('獲取店家評論清單失敗:', error)
   }
 }
-onMounted(fetchVendorReviewList)
+onMounted(() => fetchVendorReviewList())
 
 /* 5. 其他店家列表 */
-const vendorList = ref([
-  {
-    id: 1,
-    name: '載入中...',
-    description: '請稍候，正在獲取店家資訊...',
-    logoImgBase64: null,
-  },
-])
-
 const fetchVendorList = async () => {
   try {
-    const response = await fetch(`${apiBase}/api/vendor/all/except/${props.vendorId}`)
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-    const data = await response.json()
+    const data = await vendorApi.getOtherVendors(props.vendorId)
     vendorList.value = shuffleList(data)
   } catch (error) {
     console.error('獲取店家清單失敗:', error)
   }
 }
-onMounted(fetchVendorList)
+onMounted(() => fetchVendorList())
 
 /* 6. 是否能留言*/
-const addReviewButton = ref('留言')
-const isAddReviewDisabled = ref(false)
-
 const getReviewIsExisied = async () => {
-  const response = await fetch(
-    `${apiBase}/api/vendor/${props.vendorId}/member/${memberId}/review/exist`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    },
-  )
-  let result = await response.json()
+  let result = await vendorApi.isReviewExisting(props.vendorId, memberId)
+
   if (result.action) {
     addReviewButton.value = '已留言'
     isAddReviewDisabled.value = true
@@ -660,16 +561,9 @@ const getReviewIsExisied = async () => {
     isAddReviewDisabled.value = false
   }
 }
-onMounted(getReviewIsExisied)
+onMounted(() => getReviewIsExisied());
 
 /* 7. 星星評分 */
-const rating1 = ref(0)
-const tempRating1 = ref(0)
-const rating2 = ref(0)
-const tempRating2 = ref(0)
-const rating3 = ref(0)
-const tempRating3 = ref(0)
-
 // 第一組
 const setRating1 = (value) => {
   rating1.value = value
@@ -704,17 +598,10 @@ const resetHover3 = () => {
 }
 
 /* 8. 標籤 */
-const tagList = ref([])
-
 const getTag = async () => {
-  const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/tag`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  })
-  let result = await response.json()
-  tagList.value = result
+  tagList.value = await vendorApi.getVendorTags(props.vendorId)
 }
-onMounted(getTag)
+onMounted(() => getTag())
 
 /* 9. 時間轉換 */
 const formatDate = (dateString) => {
@@ -730,40 +617,17 @@ const formatDate = (dateString) => {
 }
 
 /* 10. 店家活動 */
-const activityList = ref()
-
 const getActivities = async () => {
-  const response = await fetch(`${apiBase}/api/activity/vendor/${props.vendorId}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  })
-
-  let result = await response.json()
-  activityList.value = result
+  activityList.value = await activityApi.getActivitiesByVendorId(props.vendorId)
 }
-onMounted(getActivities)
+onMounted(() => getActivities())
 
 /* 11. 收藏視窗 */
-const likeStatus = ref('收藏')
-
 const getLikeStatus = async () => {
-  const response = await fetch(
-    `${apiBase}/api/vendor/${props.vendorId}/member/${memberId}/like/status`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    },
-  )
-
-  let result = await response.json()
-
-  if (result.action) {
-    likeStatus.value = '已收藏'
-  } else {
-    likeStatus.value = '收藏'
-  }
+  let result = await vendorApi.isLikeExisting(props.vendorId, memberId)
+  likeStatus.value = result.action ? '已收藏' : '收藏'
 }
-onMounted(getLikeStatus)
+onMounted(() => getLikeStatus())
 
 const toggleLike = async () => {
   if (memberId == null) {
@@ -776,15 +640,8 @@ const toggleLike = async () => {
     return
   }
 
-  let data = {
-    memberId: memberId,
-  }
   try {
-    const response = await axios.post(`${apiBase}/api/vendor/${props.vendorId}/like/toggle`, data, {
-      headers: { 'Content-Type': 'application/json' },
-    })
-
-    let likeData = response.data
+    let likeData = await vendorApi.toggleLike(props.vendorId, memberId);
 
     if (likeData.action) {
       Swal.fire({
@@ -805,27 +662,15 @@ const toggleLike = async () => {
     console.error('切換收藏失敗:', error)
 
     Swal.fire({
-        title: '操作失敗',
-        icon: 'error',
-        message: '操作失敗',
-        confirmButtonText: '確定',
-      })
+      title: '操作失敗',
+      icon: 'error',
+      message: '操作失敗',
+      confirmButtonText: '確定',
+    })
   }
 }
 
 /* 12. 留言視窗 */
-const review = ref({
-  memberId: '',
-  content: '',
-  ratingEnvironment: '',
-  ratingPrice: '',
-  ratingService: '',
-  reviewPhotos: [],
-})
-const reviewPhotos = ref([])
-const isPopupReviewVisible = ref(false)
-const commentButton = ref(false)
-
 watch(isPopupReviewVisible, (newValue) => {
   if (newValue) {
     document.body.style.overflow = 'hidden' // 禁止滾動
@@ -894,7 +739,6 @@ const removeImage = (index) => {
   reviewPhotos.value.splice(index, 1)
 }
 
-const removeImageList = ref([])
 
 const removeOriginImage = (photoId) => {
   if (!removeImageList.value.includes(photoId)) {
@@ -913,23 +757,8 @@ const submitReviewFinal = async () => {
     return
   }
 
-  const formData = new FormData()
-  formData.append('memberId', memberId)
-  formData.append('ratingEnv', rating1.value)
-  formData.append('ratingPrice', rating2.value)
-  formData.append('ratingService', rating3.value)
-  formData.append('content', review.value.content)
-
-  // 確保正確讀取圖片
-  reviewPhotos.value.forEach(({ file }) => {
-    formData.append('reviewPhotos', file)
-  })
-
   try {
-    await fetch(`${apiBase}/api/vendor/${props.vendorId}/review/add/final`, {
-      method: 'POST',
-      body: formData,
-    })
+    await vendorApi.addVendorReview(props.vendorId, memberId, rating1.value, rating2.value, rating3.value, review.value.content, reviewPhotos.value)
 
     await Swal.fire({
       title: '提送成功',
@@ -945,9 +774,6 @@ const submitReviewFinal = async () => {
 }
 
 /* 13. 放大圖片視窗 */
-const imageSrc = ref()
-const isImageOpen = ref(false)
-
 const openImage = (imagUrl) => {
   isImageOpen.value = true
   imageSrc.value = imagUrl
@@ -960,31 +786,19 @@ const closeImage = () => {
 }
 
 /* 14. 留言改寫視窗 */
-const rewriteReviewId = ref(0) // 此全域變數為修改留言送出之使用
-const rewriteButton = ref(false)
-const originReviewPhotoList = ref([])
-
 const openRewrite = async (reviewId) => {
   isPopupReviewVisible.value = true
   rewriteButton.value = true
   rewriteReviewId.value = reviewId
 
-  const response1 = await fetch(`${apiBase}/api/vendor/review/${reviewId}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  })
-  const result1 = await response1.json()
-  review.value.content = result1.review.reviewContent
-  rating1.value = result1.review.ratingEnvironment
-  rating2.value = result1.review.ratingPrice
-  rating3.value = result1.review.ratingService
+  // 把內容及評分寫入一個全域變數
+  const res = await vendorApi.getVendorReview(props.vendorId, reviewId)
+  review.value.content = res.review.reviewContent
+  rating1.value = res.review.ratingEnvironment
+  rating2.value = res.review.ratingPrice
+  rating3.value = res.review.ratingService
 
-  const response2 = await fetch(`${apiBase}/api/vendor/review/${reviewId}/photo`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  })
-  const result2 = await response2.json()
-  originReviewPhotoList.value = result2
+  originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(props.vendorId, reviewId)
 }
 
 const submitRewirte = async () => {
@@ -997,35 +811,12 @@ const submitRewirte = async () => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
 
-  const formData = new FormData()
-  formData.append('ratingEnv', rating1.value)
-  formData.append('ratingPrice', rating2.value)
-  formData.append('ratingService', rating3.value)
-  formData.append('content', review.value.content)
-  formData.append('deletePhotoIds', removeImageList.value.length > 0 ? removeImageList.value : [0])
-
-  reviewPhotos.value.forEach(({ file }) => {
-    formData.append('reviewPhotos', file)
-  })
+  if (!ask.isConfirmed) return
 
   try {
-    const response = await fetch(
-      `${apiBase}/api/vendor/review/${rewriteReviewId.value}/rewrite/final`,
-      {
-        method: 'PUT',
-        body: formData,
-      },
-    )
-    // const updatedReview = reviewList.value.find(
-    //   (review) => review.reviewId === rewriteReviewId.value //  find()找到reviewList陣列中符合reviewId的留言
-    // )
-    // if (updatedReview) {
-    //   updatedReview.reviewContent = rewrite.value.reviewContent // 更新留言內容
-    // }
+    await vendorApi.updateVendorReview(props.vendorId, rewriteReviewId.value, rating1.value, rating2.value, rating3.value, review.value.content, reviewPhotos.value, removeImageList.value)
+
     await Swal.fire({
       title: '修改成功',
       icon: 'success',
@@ -1049,34 +840,31 @@ const deleteComment = async (reviewId) => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
+
+  if (!ask.isConfirmed) return
 
   try {
-    const response = await fetch(`${apiBase}/api/vendor/review/${reviewId}/delete`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    Swal.fire({
+    await vendorApi.deleteVendorReview(props.vendorId, reviewId);
+
+    await Swal.fire({
       title: '成功刪除',
       icon: 'success',
       confirmButtonText: '關閉',
     })
 
     reviewList.value = reviewList.value.filter(
-      (review) => review.reviewId !== reviewId, // 過濾reviewId等於reviewId的留言
+      (review) => review.id !== reviewId,
     )
 
-    addReviewButton.value = '留言' // 按鈕文字改變
-    isAddReviewDisabled.value = false // 按鈕可以觸擊
+    addReviewButton.value = '留言'
+    isAddReviewDisabled.value = false
   } catch (error) {
     console.error('提交失敗:', error)
     alert('留言刪除失敗！')
   }
 }
 
-/* 15. 重置視窗 */
+/* 15. 重置留言 */
 const resetComment = async () => {
   const ask = await Swal.fire({
     title: '確定重置？',
@@ -1087,49 +875,22 @@ const resetComment = async () => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
 
-  const response1 = await fetch(
-    `${apiBase}/api/vendor/review/${rewriteReviewId.value}`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    },
-  )
-  const result1 = await response1.json()
-  review.value.content = result1.review.reviewContent
-  rating1.value = result1.review.ratingEnvironment
-  rating2.value = result1.review.ratingPrice
-  rating3.value = result1.review.ratingService
+  if (!ask.isConfirmed) return
 
-  const response2 = await fetch(
-    `${apiBase}/api/vendor/review/${rewriteReviewId.value}/photo`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    },
-  )
-  const result2 = await response2.json()
-  originReviewPhotoList.value = result2
+  const res = await vendorApi.getVendorReview(props.vendorId, rewriteReviewId.value)
+  review.value.content = res.review.reviewContent
+  rating1.value = res.review.ratingEnvironment
+  rating2.value = res.review.ratingPrice
+  rating3.value = res.review.ratingService
+
+  originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(props.vendorId, rewriteReviewId.value)
 
   removeImageList.value = []
   reviewPhotos.value = []
 }
 
 /* 16. 收藏之會員視窗 */
-const isPopupMemberVisible = ref(false)
-const memberList = ref([
-  {
-    memberId: '載入中',
-    name: '',
-    gender: '',
-    profilePhoto: '',
-    profilePhotoBase64: '',
-  },
-])
-
 watch(isPopupMemberVisible, (newValue) => {
   if (newValue) {
     document.body.style.overflow = 'hidden' // 禁止滾動
@@ -1142,12 +903,7 @@ const openMember = async () => {
   isPopupMemberVisible.value = true
 
   try {
-    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/like`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    let members = await response.json()
-    memberList.value = members
+    memberList.value = await vendorApi.getVendorLikes(props.vendorId)
   } catch (error) {
     console.error('讀取會員失敗:', error)
   }
@@ -1158,19 +914,6 @@ const closeMember = () => {
 }
 
 /* 17. 同類別店家視窗 */
-const categoryVendorList = ref([
-  {
-    id: '',
-    name: '',
-    description: '',
-    vendorCategory: {
-      id: '',
-      name: '',
-    },
-  },
-])
-const isPopupCategoryVisible = ref(false)
-
 watch(isPopupCategoryVisible, (newValue) => {
   if (newValue) {
     document.body.style.overflow = 'hidden' // 禁止滾動
@@ -1187,23 +930,20 @@ const openCategory = async (categoryId) => {
       `${apiBase}/api/vendor/category/${categoryId}/except/vendor/${props.vendorId}`,
       {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
       },
     )
-    console.log(response.data)
     let result = await response.json()
     categoryVendorList.value = result
   } catch (error) {
     console.error('讀取同類別店家失敗:', error)
   }
 }
+
 const closeCategory = () => {
   isPopupCategoryVisible.value = false
 }
-/* 18. 評分檢視視窗 */
-const isRateVisible = ref(false)
-const avgRate = ref([])
 
+/* 18. 評分檢視視窗 */
 watch(isRateVisible, (newValue) => {
   if (newValue) {
     document.body.style.overflow = 'hidden' // 禁止滾動
@@ -1214,20 +954,12 @@ watch(isRateVisible, (newValue) => {
 
 const fetchAvgRate = async () => {
   try {
-    const response = await fetch(
-      `${apiBase}/api/vendor/${props.vendorId}/update/rating`,
-      {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      },
-    )
-    let result = await response.json()
-    avgRate.value = result
+    avgRate.value = await vendorApi.getVendorAvgRating(props.vendorId)
   } catch (error) {
     console.error('讀取評分失敗:', error)
   }
 }
-onMounted(fetchAvgRate)
+onMounted(() => fetchAvgRate())
 
 const openRate = () => {
   isRateVisible.value = true
@@ -1238,79 +970,67 @@ const closeRate = () => {
 }
 
 /* 19. 取得店家座標 */
-const coordinate = ref({
-  id: '',
-  name: '',
-  vendorCategory: {
-    id: '',
-    name: '',
-    logoImgBase64: '',
-  },
-  address: '',
-  longitude: '',
-  latitude: '',
-})
-const fetchCoordinate = async () => {
-  try {
-    const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/coordinate`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    let result = await response.json()
-    coordinate.value = result
+// const coordinate = ref({})
+// const fetchCoordinate = async () => {
+//   try {
+//     const response = await fetch(`${apiBase}/api/vendor/${props.vendorId}/coordinate`, {
+//       method: 'GET',
+//     })
+//     let result = await response.json()
+//     coordinate.value = result
 
-    // 確保經緯度是數字，避免 API 回傳的是字串
-    coordinate.value = {
-      ...result,
-      latitude: parseFloat(result.latitude),
-      longitude: parseFloat(result.longitude),
-    }
-  } catch (error) {
-    console.error('讀取座標失敗:', error)
-  }
-}
-onMounted(fetchCoordinate)
+//     // 確保經緯度是數字，避免 API 回傳的是字串
+//     coordinate.value = {
+//       ...result,
+//       latitude: parseFloat(result.latitude),
+//       longitude: parseFloat(result.longitude),
+//     }
+//   } catch (error) {
+//     console.error('讀取座標失敗:', error)
+//   }
+// }
+// onMounted(() => {fetchCoordinate()})
 
 /* 20. Google Maps */
-const loadGoogleMaps = () => {
-  const script = document.createElement('script')
-  script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAdtvNzj4RCUhcxxFuXDpvjXCglqPja6cI&callback=initMap&loading=async`
-  script.async = true
-  script.defer = true
-  document.head.appendChild(script)
-}
+// const loadGoogleMaps = () => {
+//   const script = document.createElement('script')
+//   script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAdtvNzj4RCUhcxxFuXDpvjXCglqPja6cI&callback=initMap&loading=async`
+//   script.async = true
+//   script.defer = true
+//   document.head.appendChild(script)
+// }
 
-const initMap = () => {
-  const map = new google.maps.Map(document.getElementById('map'), {
-    center: { lat: coordinate.value.latitude, lng: coordinate.value.longitude },
-    zoom: 15,
-  })
+// const initMap = () => {
+//   const map = new google.maps.Map(document.getElementById('map'), {
+//     center: { lat: coordinate.value.latitude, lng: coordinate.value.longitude },
+//     zoom: 15,
+//   })
 
-  const marker = new google.maps.Marker({
-    position: { lat: coordinate.value.latitude, lng: coordinate.value.longitude },
-    map: map,
-    title: coordinate.value.name,
-    icon: {
-      url: coordinate.value.vendor.logoImgBase64,
-      scaledSize: new google.maps.Size(50, 50),
-      labelOrigin: new google.maps.Point(25, 60),
-    },
-    label: {
-      text: coordinate.value.name,
-      color: 'black',
-      fontSize: '16px',
-      fontWeight: 'bold',
-    },
-  })
+//   const marker = new google.maps.Marker({
+//     position: { lat: coordinate.value.latitude, lng: coordinate.value.longitude },
+//     map: map,
+//     title: coordinate.value.name,
+//     icon: {
+//       url: coordinate.value.vendor.logoImgBase64,
+//       scaledSize: new google.maps.Size(50, 50),
+//       labelOrigin: new google.maps.Point(25, 60),
+//     },
+//     label: {
+//       text: coordinate.value.name,
+//       color: 'black',
+//       fontSize: '16px',
+//       fontWeight: 'bold',
+//     },
+//   })
 
-  const infoWindow = new google.maps.InfoWindow({
-    content: `<h3>${coordinate.value.name}</h3><p>${coordinate.value.address}</p>`,
-  })
+//   const infoWindow = new google.maps.InfoWindow({
+//     content: `<h3>${coordinate.value.name}</h3><p>${coordinate.value.address}</p>`,
+//   })
 
-  marker.addListener('click', () => {
-    infoWindow.open(map, marker)
-  })
-}
+//   marker.addListener('click', () => {
+//     infoWindow.open(map, marker)
+//   })
+// }
 
 // onMounted(async () => {
 //   window.initMap = initMap // 將 initMap 註冊到全域對象，讓 Google Maps API 可以調用

@@ -12,16 +12,16 @@ export default [
     name: 'Vendor',
     component: Vendor,
     meta: {
-      title: '店家首頁 - PetTopia'
-  }
+      title: '店家首頁 - PetTopia',
+    },
   },
   {
     path: '/vendor/index',
     name: 'VendorIndex',
     component: VendorIndex,
     meta: {
-      title: '店家列表 - PetTopia'
-  }
+      title: '店家列表 - PetTopia',
+    },
   },
 
   {
@@ -30,8 +30,8 @@ export default [
     component: VendorDetail,
     props: (route) => ({ vendorId: Number(route.params.vendorId) }), // 確保vendorId為數字
     meta: {
-      title: '店家詳情 - PetTopia'
-  }
+      title: '店家詳情 - PetTopia',
+    },
   },
 
   {
@@ -45,8 +45,8 @@ export default [
     name: 'ActivityIndex',
     component: ActivityIndex,
     meta: {
-      title: '活動列表 - PetTopia'
-  }
+      title: '活動列表 - PetTopia',
+    },
   },
 
   {
@@ -55,8 +55,8 @@ export default [
     component: ActivityDetail,
     props: (route) => ({ activityId: Number(route.params.activityId) }), // 確保activityId為數字
     meta: {
-      title: '活動詳情 - PetTopia'
-  }
+      title: '活動詳情 - PetTopia',
+    },
   },
 
   {
