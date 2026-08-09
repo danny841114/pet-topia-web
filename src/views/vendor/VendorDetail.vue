@@ -19,9 +19,9 @@
           <p>{{ vendor.description }}</p>
           <p>
             分類：
-            <span v-if="vendor.vendorCategory"><b style="color: red">{{ vendor.vendorCategory.name }}</b><button
+            <span v-if="vendor.categoryName"><b style="color: red">{{ vendor.categoryName }}</b><button
                 class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin-left: 10px"
-                @click="openCategory(vendor.vendorCategory.id)">
+                @click="openCategory(vendor.categoryId)">
                 查看同類別店家
               </button></span>
             <span v-else style="color: gray">( 無分類 )</span>
@@ -641,7 +641,7 @@ const toggleLike = async () => {
   }
 
   try {
-    let likeData = await vendorApi.toggleLike(props.vendorId, memberId);
+    const likeData = await vendorApi.toggleLike(props.vendorId, memberId);
 
     if (likeData.action) {
       Swal.fire({
@@ -932,8 +932,8 @@ const openCategory = async (categoryId) => {
         method: 'GET',
       },
     )
-    let result = await response.json()
-    categoryVendorList.value = result
+    categoryVendorList.value = await response.json()
+    console.log('同類別店家:', categoryVendorList.value)
   } catch (error) {
     console.error('讀取同類別店家失敗:', error)
   }
