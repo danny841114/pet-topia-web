@@ -504,9 +504,6 @@ const shuffleList = (array) => {
   return array.sort(() => Math.random() - 0.5)
 }
 
-/* 1. vendorId及預設游標 */
-
-
 /* 2. 店家資料 */
 const fetchVendorData = async () => {
   try {
@@ -515,7 +512,6 @@ const fetchVendorData = async () => {
     console.error('Get vendor data failed:', error)
   }
 }
-onMounted(() => fetchVendorData());
 
 /* 3. 店家圖片列表 */
 const fetchVendorImageList = async () => {
@@ -526,8 +522,6 @@ const fetchVendorImageList = async () => {
   }
 }
 
-onMounted(() => fetchVendorImageList())
-
 /* 4. 留言區 */
 const fetchVendorReviewList = async () => {
   try {
@@ -536,7 +530,6 @@ const fetchVendorReviewList = async () => {
     console.error('獲取店家評論清單失敗:', error)
   }
 }
-onMounted(() => fetchVendorReviewList())
 
 /* 5. 其他店家列表 */
 const fetchVendorList = async () => {
@@ -547,7 +540,6 @@ const fetchVendorList = async () => {
     console.error('獲取店家清單失敗:', error)
   }
 }
-onMounted(() => fetchVendorList())
 
 /* 6. 是否能留言*/
 const getReviewIsExisied = async () => {
@@ -561,7 +553,6 @@ const getReviewIsExisied = async () => {
     isAddReviewDisabled.value = false
   }
 }
-onMounted(() => getReviewIsExisied());
 
 /* 7. 星星評分 */
 // 第一組
@@ -601,7 +592,6 @@ const resetHover3 = () => {
 const getTag = async () => {
   tagList.value = await vendorApi.getVendorTags(props.vendorId)
 }
-onMounted(() => getTag())
 
 /* 9. 時間轉換 */
 const formatDate = (dateString) => {
@@ -620,14 +610,12 @@ const formatDate = (dateString) => {
 const getActivities = async () => {
   activityList.value = await activityApi.getActivitiesByVendorId(props.vendorId)
 }
-onMounted(() => getActivities())
 
 /* 11. 收藏視窗 */
 const getLikeStatus = async () => {
   let result = await vendorApi.isLikeExisting(props.vendorId, memberId)
   likeStatus.value = result.action ? '已收藏' : '收藏'
 }
-onMounted(() => getLikeStatus())
 
 const toggleLike = async () => {
   if (memberId == null) {
@@ -637,6 +625,7 @@ const toggleLike = async () => {
       icon: 'error',
       confirmButtonText: '確定',
     })
+
     return
   }
 
@@ -649,6 +638,7 @@ const toggleLike = async () => {
         icon: 'success',
         confirmButtonText: '確定',
       })
+
       likeStatus.value = '已收藏'
     } else {
       Swal.fire({
@@ -656,6 +646,7 @@ const toggleLike = async () => {
         icon: 'success',
         confirmButtonText: '確定',
       })
+
       likeStatus.value = '收藏'
     }
   } catch (error) {
@@ -697,8 +688,10 @@ const openReview = async () => {
       icon: 'error',
       confirmButtonText: '確定',
     })
+
     return
   }
+
   isPopupReviewVisible.value = true
   commentButton.value = true
 }
@@ -713,9 +706,9 @@ const closeReview = async () => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
+
+  if (!ask.isConfirmed) return
+
   isPopupReviewVisible.value = false
   removeImageList.value = []
 }
@@ -744,7 +737,6 @@ const removeOriginImage = (photoId) => {
   if (!removeImageList.value.includes(photoId)) {
     removeImageList.value.push(photoId)
   }
-  console.log(removeImageList.value)
 }
 
 const submitReviewFinal = async () => {
@@ -822,6 +814,7 @@ const submitRewirte = async () => {
       icon: 'success',
       confirmButtonText: '確定',
     })
+
     window.location.reload()
   } catch (error) {
     console.error('提交失敗:', error)
@@ -952,7 +945,6 @@ const fetchAvgRate = async () => {
     console.error('讀取評分失敗:', error)
   }
 }
-onMounted(() => fetchAvgRate())
 
 const openRate = () => {
   isRateVisible.value = true
@@ -1030,6 +1022,18 @@ const closeRate = () => {
 //   await fetchCoordinate() // 確保先取得座標
 //   loadGoogleMaps()
 // })
+
+onMounted(() =>
+  fetchVendorData(),
+  fetchVendorImageList(),
+  fetchVendorReviewList(),
+  fetchVendorList(),
+  getReviewIsExisied(),
+  getTag(),
+  getActivities(),
+  getLikeStatus(),
+  fetchAvgRate()
+);
 </script>
 
 <style scoped>

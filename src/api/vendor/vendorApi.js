@@ -22,6 +22,17 @@ export const vendorApi = {
     return apiClient.get(`/all/for/swiper`)
   },
 
+  // this API should be modified
+  getVendorsByKeyword(keyword) {
+    const formData = new FormData()
+
+    formData.append('keyword', keyword)
+
+    return apiClient.post(`/find`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
   getVendorCategories() {
     return apiClient.get(`/category/show`)
   },
