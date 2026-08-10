@@ -6,40 +6,24 @@
         <div class="h-auto offset-md-1 col-md-5">
           <div class="d-flex justify-content-center" v-if="activityImageList.length != 0">
             <button class="swiper-button-prev custom-prev"></button>
-            <Swiper
-              :modules="[Pagination, Navigation]"
-              :pagination="{
-                clickable: true,
-              }"
-              :navigation="{
-                nextEl: '.custom-next',
-                prevEl: '.custom-prev',
-              }"
-            >
-              <SwiperSlide
-                v-for="(image, index) in activityImageList"
-                :key="index"
-                class="thumbnail"
-                width="400"
-                @click="openImage(image.imageBase64)"
-                ><div style="display: flex; justify-content: center; align-items: center">
-                  <img
-                    :src="image.imageBase64"
-                    class="img-fluid rounded-4"
-                    alt="image"
-                    style="max-width: 500px; max-height: 300px; margin: 10px"
-                  />
-                </div> </SwiperSlide
-            ></Swiper>
+            <Swiper :modules="[Pagination, Navigation]" :pagination="{
+              clickable: true,
+            }" :navigation="{
+              nextEl: '.custom-next',
+              prevEl: '.custom-prev',
+            }">
+              <SwiperSlide v-for="(image, index) in activityImageList" :key="index" class="thumbnail" width="400"
+                @click="openImage(image.imageBase64)">
+                <div style="display: flex; justify-content: center; align-items: center">
+                  <img :src="image.imageBase64" class="img-fluid rounded-4" alt="image"
+                    style="max-width: 500px; max-height: 300px; margin: 10px" />
+                </div>
+              </SwiperSlide>
+            </Swiper>
             <button class="swiper-button-next custom-next"></button>
           </div>
           <div class="d-flex justify-content-center" v-else>
-            <img
-              src="/user_static/images/tool/no-photo.png"
-              alt="活動圖片"
-              class="img-fluid rounded-4"
-              width="250"
-            />
+            <img src="/user_static/images/tool/no-photo.png" alt="活動圖片" class="img-fluid rounded-4" width="250" />
           </div>
         </div>
 
@@ -50,31 +34,20 @@
           <p>{{ activity.description }}</p>
           <p>
             分類：
-            <span v-if="activity.activityType"
-              ><b style="color: red">{{ activity.activityType.name }}</b
-              ><button
-                class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-                style="margin-left: 10px"
-                @click="openSameType(activity.activityType.id)"
-              >
+            <span v-if="activity.activityType"><b style="color: red">{{ activity.activityType.name }}</b><button
+                class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin-left: 10px"
+                @click="openSameType(activity.activityType.id)">
                 查看同型別活動
-              </button></span
-            >
+              </button></span>
             <span v-else style="color: gray">( 無分類 )</span>
           </p>
 
           <p>
             主辦店家：<span style="margin: 5px" v-if="activity.vendor.logoImgBase64">
-              <img
-                :src="activity.vendor.logoImgBase64"
-                alt="店家圖片"
-                class="img-fluid rounded-4"
-                width="30" /></span
-            ><a :href="`/vendor/detail/${activity.vendor.id}`" v-if="activity.vendor.name"
-              ><b>{{ activity.vendor.name }}</b></a
-            ><a :href="`/vendor/detail/${activity.vendor.id}`" v-else style="color: gray"
-              ><b>( 無店家名稱 )</b></a
-            >
+              <img :src="activity.vendor.logoImgBase64" alt="店家圖片" class="img-fluid rounded-4" width="30" /></span><a
+              :href="`/vendor/detail/${activity.vendor.id}`" v-if="activity.vendor.name"><b>{{ activity.vendor.name
+                }}</b></a><a :href="`/vendor/detail/${activity.vendor.id}`" v-else style="color: gray"><b>( 無店家名稱
+                )</b></a>
           </p>
           <p>
             開始時間：<b>{{ formatDate(activity.startTime) }}</b>
@@ -88,20 +61,13 @@
           <p>需要報名：<b v-if="activity.isRegistrationRequired">是</b><b v-else>否</b></p>
 
           <p v-if="activity.isRegistrationRequired">
-            報名人數：<b>{{ currentPeople }}</b
-            ><button
-              :disabled="!isAvalible"
-              style="margin-left: 10px"
-              class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4"
-              @click="registActivityConfirm()"
-            >
+            報名人數：<b>{{ currentPeople }}</b><button :disabled="!isAvalible" style="margin-left: 10px"
+              class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" @click="registActivityConfirm()">
               {{ registractionStatus }}
             </button>
 
-            <button
-              class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4"
-              @click="openRegistrationConditon()"
-            >
+            <button class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4"
+              @click="openRegistrationConditon()">
               報名狀態
             </button>
           </p>
@@ -114,34 +80,21 @@
 
           <div class="d-flex">
             <div class="d-flex flex-wrap mt-3">
-              <button
-                class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4"
-                @click="toggleLike()"
-              >
+              <button class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" @click="toggleLike()">
                 {{ likeStatus }}
               </button>
-              <button
-                class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4"
-                :disabled="isAddReviewDisabled"
-                @click="openComment()"
-              >
+              <button class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" :disabled="isAddReviewDisabled"
+                @click="openComment()">
                 {{ addReviewButton }}
               </button>
-              <button
-                class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4"
-                @click="openShare()"
-              >
+              <button class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" @click="openShare()">
                 分享
               </button>
             </div>
           </div>
           <br />
-          <div
-            @click="openMember()"
-            :style="{ cursor: cursorStyle }"
-            @mouseover="cursorStyle = 'zoom-in'"
-            @mouseleave="cursorStyle = 'default'"
-          >
+          <div @click="openMember()" :style="{ cursor: cursorStyle }" @mouseover="cursorStyle = 'zoom-in'"
+            @mouseleave="cursorStyle = 'default'">
             <b>查看誰收藏</b>
           </div>
           <br />
@@ -163,20 +116,12 @@
           <div class="row">
             <div class="col-lg-3">
               <div class="image-container" v-if="review.profilePhotoBase64">
-                <img
-                  class="img-fluid rounded-4"
-                  :src="review.profilePhotoBase64"
-                  alt="alternative"
-                  style="max-width: 200px; max-height: 200px"
-                />
+                <img class="img-fluid rounded-4" :src="review.profilePhotoBase64" alt="alternative"
+                  style="max-width: 200px; max-height: 200px" />
               </div>
               <div class="image-container" v-else>
-                <img
-                  class="img-fluid rounded-4"
-                  src="/user_static/images/tool/no-photo.png"
-                  alt="alternative"
-                  style="max-width: 250px"
-                />
+                <img class="img-fluid rounded-4" src="/user_static/images/tool/no-photo.png" alt="alternative"
+                  style="max-width: 250px" />
               </div>
             </div>
 
@@ -196,17 +141,13 @@
                 </p>
 
                 <div class="d-flex flex-wrap mt-3" v-if="review.memberId == memberId">
-                  <button
-                    class="btn btn-outline-dark btn-lg text-uppercase fs-5 rounded-4 me-4"
-                    @click="openRewirte(review.reviewId)"
-                  >
+                  <button class="btn btn-outline-dark btn-lg text-uppercase fs-5 rounded-4 me-4"
+                    @click="openRewirte(review.reviewId)">
                     修改
                   </button>
 
-                  <button
-                    class="btn btn-outline-dark btn-lg text-uppercase fs-5 rounded-4 me-4"
-                    @click="deleteComment(review.reviewId)"
-                  >
+                  <button class="btn btn-outline-dark btn-lg text-uppercase fs-5 rounded-4 me-4"
+                    @click="deleteComment(review.reviewId)">
                     刪除
                   </button>
                 </div>
@@ -243,10 +184,9 @@
           </td>
           <td>{{ activity.activityType.name }}</td>
           <td>
-            <a :href="`/vendor/detail/${activity.vendor.id}`"
-              ><span v-if="activity.vendor.name">{{ activity.vendor.name }}</span>
-              <span v-else style="color: #c0c0c0">無店家名稱</span></a
-            >
+            <a :href="`/vendor/detail/${activity.vendor.id}`"><span v-if="activity.vendor.name">{{ activity.vendor.name
+                }}</span>
+              <span v-else style="color: #c0c0c0">無店家名稱</span></a>
           </td>
           <td>{{ formatDate(activity.startTime) }}</td>
           <td>{{ formatDate(activity.endTime) }}</td>
@@ -271,60 +211,37 @@
           <h5><b>核准名單</b></h5>
           <div v-for="(confirmed, index) in confirmedList" :key="index" style="font-size: 24px">
             <span v-if="confirmed.member.profilePhotoBase64">
-              <img
-                :src="confirmed.member.profilePhotoBase64"
-                class="img-fluid rounded-4"
-                alt="image"
-                style="max-width: 30px; max-height: 30px; margin: 10px"
-              />
+              <img :src="confirmed.member.profilePhotoBase64" class="img-fluid rounded-4" alt="image"
+                style="max-width: 30px; max-height: 30px; margin: 10px" />
             </span>
             <span v-else>
-              <img
-                src="/user_static/images/tool/no-photo.png"
-                class="img-fluid rounded-4"
-                alt="image"
-                style="max-width: 30px; max-height: 30px; margin: 10px"
-              />
+              <img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="image"
+                style="max-width: 30px; max-height: 30px; margin: 10px" />
             </span>
-            <span v-if="confirmed.member.name">{{ confirmed.member.name }}</span
-            ><span v-else style="color: gray">( 無名稱 )</span>
+            <span v-if="confirmed.member.name">{{ confirmed.member.name }}</span><span v-else style="color: gray">( 無名稱
+              )</span>
           </div>
         </div>
 
         <div v-if="pendingList.length != 0">
           <h5><b>待核准名單</b></h5>
           <div v-for="(pending, index) in pendingList" :key="index" style="font-size: 24px">
-            <span v-if="pending.member.profilePhotoBase64"
-              ><img
-                :src="pending.member.profilePhotoBase64"
-                class="img-fluid rounded-4"
-                alt="image"
-                style="max-width: 30px; max-height: 30px; margin: 10px"
-            /></span>
-            <span v-else
-              ><img
-                src="/user_static/images/tool/no-photo.png"
-                class="img-fluid rounded-4"
-                alt="image"
-                style="max-width: 30px; max-height: 30px; margin: 10px"
-            /></span>
-            <span v-if="pending.member.name">{{ pending.member.name }}</span
-            ><span v-else style="color: gray">( 無名稱 )</span>
+            <span v-if="pending.member.profilePhotoBase64"><img :src="pending.member.profilePhotoBase64"
+                class="img-fluid rounded-4" alt="image"
+                style="max-width: 30px; max-height: 30px; margin: 10px" /></span>
+            <span v-else><img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="image"
+                style="max-width: 30px; max-height: 30px; margin: 10px" /></span>
+            <span v-if="pending.member.name">{{ pending.member.name }}</span><span v-else style="color: gray">( 無名稱
+              )</span>
           </div>
         </div>
 
-        <div
-          v-if="confirmedList.length == 0 && pendingList.length == 0"
-          style="color: gray; margin: 50px"
-        >
+        <div v-if="confirmedList.length == 0 && pendingList.length == 0" style="color: gray; margin: 50px">
           目前沒有人報名唷
         </div>
       </div>
-      <button
-        class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-        style="margin: 5px"
-        @click="closeRegistrationConditon()"
-      >
+      <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
+        @click="closeRegistrationConditon()">
         關閉
       </button>
     </div>
@@ -337,39 +254,21 @@
       <h3>
         <b>
           <span v-if="commentButton">新增留言</span>
-          <span v-else-if="rewriteButton">修改留言</span></b
-        >
+          <span v-else-if="rewriteButton">修改留言</span></b>
       </h3>
-      <textarea
-        placeholder="輸入感想"
-        rows="5"
-        col="10"
-        style="resize: none"
-        v-model="commentForm.content"
-        required
-      ></textarea>
+      <textarea placeholder="輸入感想" rows="5" col="10" style="resize: none" v-model="commentForm.content"
+        required></textarea>
       <div>
-        <button
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          style="margin: 5px"
-          @click="closeComment()"
-        >
+        <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
+          @click="closeComment()">
           關閉
         </button>
-        <button
-          v-if="commentButton"
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          style="margin: 5px"
-          @click="submitComment()"
-        >
+        <button v-if="commentButton" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
+          style="margin: 5px" @click="submitComment()">
           送出
         </button>
-        <button
-          v-if="rewriteButton"
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          style="margin: 5px"
-          @click="submitRewrite(reviewIdForRewrite)"
-        >
+        <button v-if="rewriteButton" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
+          style="margin: 5px" @click="submitRewrite(reviewIdForRewrite)">
           修改
         </button>
       </div>
@@ -381,11 +280,9 @@
   <div v-if="isPopupTypeVisible" class="overlay">
     <div class="popup">
       <h3>
-        <b v-if="typeActivityList.length != 0"
-          >同類別活動：<span style="color: red">{{
-            typeActivityList[0].activityType.name
-          }}</span></b
-        ><b v-else>同類別活動</b>
+        <b v-if="typeActivityList.length != 0">同類別活動：<span style="color: red">{{
+          typeActivityList[0].activityType.name
+            }}</span></b><b v-else>同類別活動</b>
       </h3>
       <div class="scroll-container" v-if="typeActivityList.length != 0">
         <div v-for="(activity, index) in typeActivityList" :key="index" style="font-size: 24px">
@@ -400,11 +297,8 @@
         </div>
       </div>
       <div v-else style="color: gray; margin: 50px">目前沒有其他同類別活動～</div>
-      <button
-        class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-        style="margin: 5px"
-        @click="closeSameType()"
-      >
+      <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
+        @click="closeSameType()">
         關閉
       </button>
     </div>
@@ -417,30 +311,16 @@
       <h3><b>有誰收藏</b></h3>
       <div class="scroll-container" v-if="memberList.length != 0">
         <div v-for="(member, index) in memberList" :key="index" style="font-size: 24px">
-          <span v-if="member.profilePhotoBase64"
-            ><img
-              :src="member.profilePhotoBase64"
-              class="img-fluid rounded-4"
-              alt="image"
-              style="max-width: 30px; max-height: 30px; margin: 10px"
-          /></span>
-          <span v-else
-            ><img
-              src="/user_static/images/tool/no-photo.png"
-              class="img-fluid rounded-4"
-              alt="image"
-              style="max-width: 30px; max-height: 30px; margin: 10px"
-          /></span>
-          <span v-if="member.name">{{ member.name }}</span
-          ><span v-else style="color: gray">( 無名稱 )</span>
+          <span v-if="member.profilePhotoBase64"><img :src="member.profilePhotoBase64" class="img-fluid rounded-4"
+              alt="image" style="max-width: 30px; max-height: 30px; margin: 10px" /></span>
+          <span v-else><img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="image"
+              style="max-width: 30px; max-height: 30px; margin: 10px" /></span>
+          <span v-if="member.name">{{ member.name }}</span><span v-else style="color: gray">( 無名稱 )</span>
         </div>
       </div>
       <div v-else style="color: gray; margin: 50px">目前沒有人收藏唷～</div>
-      <button
-        class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-        style="margin: 5px"
-        @click="closeMember()"
-      >
+      <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
+        @click="closeMember()">
         關閉
       </button>
     </div>
@@ -459,54 +339,34 @@
       <h3><b>分享</b></h3>
       <div class="container d-flex justify-content-center">
         <div @click="shareOnFacebook()">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="100"
-            height="100"
-            viewBox="0 0 24 24"
-            fill="blue"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="blue">
             <path
-              d="M22.675 0h-21.35C.597 0 0 .598 0 1.333v21.333C0 23.402.597 24 1.325 24h11.5v-9.3h-3.1v-3.6h3.1v-2.7c0-3.1 1.9-4.8 4.7-4.8 1.3 0 2.5.1 2.8.1v3.3h-1.9c-1.5 0-1.9.7-1.9 1.8v2.3h3.8l-.5 3.6h-3.3V24h6.5c.7 0 1.3-.598 1.3-1.333V1.333C24 .598 23.402 0 22.675 0z"
-            />
+              d="M22.675 0h-21.35C.597 0 0 .598 0 1.333v21.333C0 23.402.597 24 1.325 24h11.5v-9.3h-3.1v-3.6h3.1v-2.7c0-3.1 1.9-4.8 4.7-4.8 1.3 0 2.5.1 2.8.1v3.3h-1.9c-1.5 0-1.9.7-1.9 1.8v2.3h3.8l-.5 3.6h-3.3V24h6.5c.7 0 1.3-.598 1.3-1.333V1.333C24 .598 23.402 0 22.675 0z" />
           </svg>
         </div>
         &emsp;
         <div @click="shareOnLine()">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/LINE_logo.svg/480px-LINE_logo.svg.png"
-            alt="LINE Logo"
-            width="100px"
-            height="100px"
-          />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/LINE_logo.svg/480px-LINE_logo.svg.png"
+            alt="LINE Logo" width="100px" height="100px" />
         </div>
         &emsp;
         <div @click="shareOnX()">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/X_logo_2023.svg/450px-X_logo_2023.svg.png"
-            alt="LINE Logo"
-            width="100px"
-            height="100px"
-          />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/X_logo_2023.svg/450px-X_logo_2023.svg.png"
+            alt="LINE Logo" width="100px" height="100px" />
         </div>
       </div>
       <br />
 
       <div>
         <input class="share-url" v-model="shareUrl" readonly />&emsp;<button
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          @click="copyUrl()"
-        >
+          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" @click="copyUrl()">
           複製
         </button>
       </div>
       <div>{{ copyMessage || `&nbsp;` }}</div>
 
-      <button
-        class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-        style="margin: 5px"
-        @click="closeShare()"
-      >
+      <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
+        @click="closeShare()">
         關閉
       </button>
     </div>
@@ -515,150 +375,101 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Pagination } from 'swiper/modules'
-import { Navigation } from 'swiper/modules'
-import Swal from 'sweetalert2'
-
 import 'swiper/css'
 import 'swiper/css/pagination'
-
+import { ref, onMounted, watch } from 'vue'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Pagination, Navigation } from 'swiper/modules'
 import { useAuthStore } from '@/stores/auth'
+import { activityApi } from '@/api/vendor/activityApi'
+import Swal from 'sweetalert2'
+
 const authStore = useAuthStore()
 const memberId = authStore.memberId
+const props = defineProps({
+  activityId: Number,
+})
+const cursorStyle = ref('default')
+const activity = ref({})
+const activityImageList = ref([])
+const reviewList = ref([])
+const activityList = ref([])
+const activityForNumberOfVisitor = ref([])
+const currentPeople = ref()
+const maxPeople = ref()
+const addReviewButton = ref('留言')
+const isAddReviewDisabled = ref(false)
+const imageSrc = ref()
+const isImageOpen = ref(false)
+const registractionStatus = ref()
+const isAvalible = ref(true)
 
 /* 0. 隨機排列 */
 const shuffleList = (array) => {
   return array.sort(() => Math.random() - 0.5)
 }
 
-/* 1. activityId及預設游標 */
-const props = defineProps({
-  activityId: Number,
-})
-const cursorStyle = ref('default') // 預設游標
-
 /* 2. 活動資料 */
-const activity = ref({
-  id: 1,
-  vendor: {
-    id: 1,
-    name: '毛孩天堂寵物美容',
-  },
-})
 const fetchActivityData = async () => {
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/${props.activityId}`)
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-
-    const data = await response.json()
-    activity.value = data
+    activity.value = await activityApi.getActivity(props.activityId)
   } catch (error) {
     console.error('獲取活動資料失敗:', error)
   }
 }
-onMounted(fetchActivityData)
 
 /* 3. 活動圖片列表 */
-const activityImageList = ref({ id: '', imageBase64: '' })
-
-const fetchActivityImageList = async () => {
+const fetchActivityImages = async () => {
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/${props.activityId}/image`)
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-
-    const data = await response.json()
-    activityImageList.value = data
+    activityImageList.value = await activityApi.getActivityPhotos(props.activityId);
   } catch (error) {
     console.error('獲取活動圖片列表失敗:', error)
   }
 }
-onMounted(fetchActivityImageList)
 
 /* 4. 留言區 */
-const reviewList = ref([])
-
-const fetchReviewList = async () => {
+const fetchReviews = async () => {
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/${props.activityId}/review`)
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-
-    const data = await response.json()
-    reviewList.value = data
+    reviewList.value = await activityApi.getActivityReviews(props.activityId);
   } catch (error) {
     console.error('獲取活動留言清單失敗:', error)
   }
 }
-onMounted(fetchReviewList)
 
 /* 5. 其他活動列表 */
-const activityList = ref([])
-
-const fetchActivityList = async () => {
+const fetchActivities = async () => {
   try {
-    const response = await fetch(
-      `http://localhost:8080/api/activity/all/except/${props.activityId}`
-    )
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-
-    const data = await response.json()
+    const data = await activityApi.getOtherActivities(props.activityId);
     activityList.value = shuffleList(data)
   } catch (error) {
     console.error('獲取店家清單失敗:', error)
   }
 }
-onMounted(fetchActivityList)
 
 /* 6. 瀏覽人數 */
-const activityForNumberOfVisitor = ref([])
-
-const increaseNumberOfVisitor = async () => {
+const getViewCount = async () => {
   try {
-    const response = await fetch(
-      `http://localhost:8080/api/activity/${props.activityId}/increase/number/visitor`
-    )
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-    const data = await response.json()
-    activityForNumberOfVisitor.value = data
+    activityForNumberOfVisitor.value = await activityApi.getViewCount(props.activityId)
   } catch {
     console.error('瀏覽人數增加失敗:', error)
   }
 }
-onMounted(increaseNumberOfVisitor)
 
 /* 7. 報名人數 */
-const currentPeople = ref()
-const maxPeople = ref()
-
-const getActivityPeople = async () => {
+const getParticipantCount = async () => {
   try {
-    const response = await fetch(
-      `http://localhost:8080/api/activity/${props.activityId}/registration/people/number`
-    )
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-    const data = await response.json()
+    const data = await activityApi.getParticipantCount(props.activityId)
     currentPeople.value = data.currentParticipants
     maxPeople.value = data.maxParticipants
   } catch {
     console.error('瀏覽人數增加失敗:', error)
   }
 }
-onMounted(getActivityPeople)
 
 /* 8. 是否能留言*/
-const addReviewButton = ref('留言')
-const isAddReviewDisabled = ref(false)
+const isReviewExisting = async () => {
+  let result = await activityApi.isReviewExisting(props.activityId, memberId);
 
-const getReviewIsExisied = async () => {
-  const response = await fetch(
-    `http://localhost:8080/api/activity/${props.activityId}/member/${memberId}/review/exist`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
-  let result = await response.json()
   if (result.action) {
     addReviewButton.value = '已留言'
     isAddReviewDisabled.value = true
@@ -667,7 +478,6 @@ const getReviewIsExisied = async () => {
     isAddReviewDisabled.value = false
   }
 }
-onMounted(getReviewIsExisied)
 
 /* 9. 時間轉換 */
 const formatDate = (dateString) => {
@@ -683,9 +493,6 @@ const formatDate = (dateString) => {
 }
 
 /* 10. 圖片放大 */
-const imageSrc = ref()
-const isImageOpen = ref(false)
-
 const openImage = (image) => {
   isImageOpen.value = true
   imageSrc.value = image
@@ -698,38 +505,20 @@ const closeImage = () => {
 }
 
 /* 11. 活動報名 */
-const registractionStatus = ref()
-const isAvalible = ref(true)
 
 const isActivityAvalible = async () => {
   // 判斷人數是否達上限，達到上限true，未達上限true
-  const response1 = await fetch(
-    `http://localhost:8080/api/activity/${props.activityId}/registration/status`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
-  let result1 = await response1.json()
+  const isAvalible = await activityApi.isActivityAvalible(props.activityId)
+  isAvalible.value = isAvalible
 
   // 判斷報名狀態
-  const response2 = await fetch(
-    `http://localhost:8080/api/activity/${props.activityId}/member/${memberId}/regist/status`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
-  let result2 = await response2.json()
-
-  isAvalible.value = result1
+  const isRegistered = await activityApi.isActivityRegistered(props.activityId, memberId)
 
   // 報名達上限還可以取消報名
-  if (result1 == false && result2.action == true) {
+  if (isAvalible == false && isRegistered.action == true) {
     isAvalible.value = true
   }
 }
-onMounted(isActivityAvalible)
 
 const getRegistractionStatus = async () => {
   const response = await fetch(
@@ -961,6 +750,7 @@ const openComment = async () => {
       icon: 'error',
       confirmButtonText: '確定',
     })
+
     return
   }
 
@@ -983,9 +773,8 @@ const submitComment = async () => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
+
+  if (!ask.isConfirmed) return
 
   try {
     const response = await fetch(
@@ -1048,9 +837,8 @@ const submitRewrite = async (reviewId) => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
+
+  if (!ask.isConfirmed) return
 
   try {
     const response = await fetch(`http://localhost:8080/api/activity/review/${reviewId}/rewrite`, {
@@ -1235,6 +1023,17 @@ function copyUrl() {
   navigator.clipboard.writeText(shareUrl.value)
   copyMessage.value = '複製成功'
 }
+
+onMounted(() =>
+  fetchActivityData(),
+  fetchActivityImages(),
+  fetchReviews(),
+  fetchActivities(),
+  getViewCount(),
+  getParticipantCount(),
+  isReviewExisting(),
+  isActivityAvalible()
+)
 </script>
 
 <style scoped>
@@ -1267,10 +1066,14 @@ function copyUrl() {
 
 /* 列表視窗 */
 .scroll-container {
-  max-height: 240px; /* 設定最大高度，超過則產生滾動條 */
-  overflow-y: auto; /* 當內容超過 max-height 時顯示垂直滾動條 */
-  border: 1px solid #ccc; /* 可選，增加邊框以區分區塊 */
-  padding: 10px; /* 可選，增加內邊距 */
+  max-height: 240px;
+  /* 設定最大高度，超過則產生滾動條 */
+  overflow-y: auto;
+  /* 當內容超過 max-height 時顯示垂直滾動條 */
+  border: 1px solid #ccc;
+  /* 可選，增加邊框以區分區塊 */
+  padding: 10px;
+  /* 可選，增加內邊距 */
 }
 
 /* 圖片自訂按鈕樣式 */
@@ -1285,12 +1088,15 @@ function copyUrl() {
   cursor: pointer;
   z-index: 10;
 }
+
 .custom-prev {
   left: -5px;
 }
+
 .custom-next {
   left: 5px;
 }
+
 .custom-prev:hover,
 .custom-next:hover {
   background: rgba(0, 0, 0, 0.8);
@@ -1298,7 +1104,8 @@ function copyUrl() {
 
 /* Sweet Alert */
 .swal2-container {
-  z-index: 9999 !important; /* 設定比你的自定義視窗更高 */
+  z-index: 9999 !important;
+  /* 設定比你的自定義視窗更高 */
 }
 
 /* 圖片放大 */
@@ -1306,6 +1113,7 @@ function copyUrl() {
   max-width: 90%;
   max-height: 90%;
 }
+
 .thumbnail {
   width: 200px;
   cursor: zoom-in;
