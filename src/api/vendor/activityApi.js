@@ -22,6 +22,19 @@ export const activityApi = {
     return apiClient.get(`/vendor/${vendorId}`)
   },
 
+  // API要修改
+  getByKeyword(keyword) {
+    return apiClient.post(
+      `/find`,
+      {
+        keyword: keyword,
+      },
+      {
+        headers: { 'Content-Type': 'application/json' },
+      }
+    )
+  },
+
   getActivityTypes() {
     return apiClient.get(`/type/show`)
   },
