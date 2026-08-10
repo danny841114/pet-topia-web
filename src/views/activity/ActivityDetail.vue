@@ -46,7 +46,7 @@
             主辦店家：<span style="margin: 5px" v-if="activity.vendor.logoImgBase64">
               <img :src="activity.vendor.logoImgBase64" alt="店家圖片" class="img-fluid rounded-4" width="30" /></span><a
               :href="`/vendor/detail/${activity.vendor.id}`" v-if="activity.vendor.name"><b>{{ activity.vendor.name
-                }}</b></a><a :href="`/vendor/detail/${activity.vendor.id}`" v-else style="color: gray"><b>( 無店家名稱
+              }}</b></a><a :href="`/vendor/detail/${activity.vendor.id}`" v-else style="color: gray"><b>( 無店家名稱
                 )</b></a>
           </p>
           <p>
@@ -185,7 +185,7 @@
           <td>{{ activity.activityType.name }}</td>
           <td>
             <a :href="`/vendor/detail/${activity.vendor.id}`"><span v-if="activity.vendor.name">{{ activity.vendor.name
-                }}</span>
+            }}</span>
               <span v-else style="color: #c0c0c0">無店家名稱</span></a>
           </td>
           <td>{{ formatDate(activity.startTime) }}</td>
@@ -403,6 +403,22 @@ const imageSrc = ref()
 const isImageOpen = ref(false)
 const registractionStatus = ref()
 const isAvalible = ref(true)
+const isPopupConditionVisible = ref(false)
+const pendingList = ref([])
+const confirmedList = ref([])
+const likeStatus = ref('收藏')
+const isPopupCommentVisible = ref(false)
+const commentButton = ref(false)
+const commentForm = ref({})
+const reviewIdForRewrite = ref()
+const rewriteButton = ref(false)
+const isPopupMemberVisible = ref(false)
+const memberList = ref([])
+const typeActivityList = ref([])
+const isPopupTypeVisible = ref(false)
+const isPopupShareVisible = ref(false)
+const shareUrl = ref(window.location.href)
+const copyMessage = ref()
 
 /* 0. 隨機排列 */
 const shuffleList = (array) => {
@@ -451,7 +467,7 @@ const getViewCount = async () => {
   try {
     activityForNumberOfVisitor.value = await activityApi.getViewCount(props.activityId)
   } catch {
-    console.error('瀏覽人數增加失敗:', error)
+    console.error('獲取瀏覽人數失敗:', error)
   }
 }
 
@@ -462,7 +478,7 @@ const getParticipantCount = async () => {
     currentPeople.value = data.currentParticipants
     maxPeople.value = data.maxParticipants
   } catch {
-    console.error('瀏覽人數增加失敗:', error)
+    console.error('獲取報名人數失敗:', error)
   }
 }
 
@@ -521,15 +537,7 @@ const isActivityAvalible = async () => {
 }
 
 const getRegistractionStatus = async () => {
-  const response = await fetch(
-    `http://localhost:8080/api/activity/${props.activityId}/member/${memberId}/regist/status`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
-
-  let result = await response.json()
+  let result = await activityApi.isActivityRegistered(props.activityId, memberId)
 
   if (result.action) {
     registractionStatus.value = '已報名'
@@ -537,7 +545,6 @@ const getRegistractionStatus = async () => {
     registractionStatus.value = '報名'
   }
 }
-onMounted(getRegistractionStatus)
 
 const registActivityConfirm = async () => {
   if (memberId == null) {
@@ -547,18 +554,11 @@ const registActivityConfirm = async () => {
       icon: 'error',
       confirmButtonText: '確定',
     })
+
     return
   }
 
-  const response = await fetch(
-    `http://localhost:8080/api/activity/${props.activityId}/member/${memberId}/regist/status`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
-
-  let regisitrationStatus = await response.json()
+  let regisitrationStatus = await activityApi.isActivityRegistered(props.activityId, memberId)
 
   if (regisitrationStatus.action) {
     const result = await Swal.fire({
@@ -570,9 +570,8 @@ const registActivityConfirm = async () => {
       confirmButtonText: '確認',
       reverseButtons: true,
     })
-    if (result.isConfirmed) {
-      registActivity()
-    }
+
+    if (result.isConfirmed) toggleRegistration()
   } else {
     const result = await Swal.fire({
       title: '執行報名？',
@@ -583,23 +582,13 @@ const registActivityConfirm = async () => {
       confirmButtonText: '確認',
       reverseButtons: true,
     })
-    if (result.isConfirmed) {
-      registActivity()
-    }
+
+    if (result.isConfirmed) toggleRegistration()
   }
 }
 
-const registActivity = async () => {
-  const data = {
-    memberId: memberId,
-  }
-
-  const response = await fetch(`http://localhost:8080/api/activity/${props.activityId}/regist`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  let regisitrationStatus = await response.json()
+const toggleRegistration = async () => {
+  let regisitrationStatus = await activityApi.toggleRegistration(props.activityId, memberId)
 
   if (!isActivityAvalible.value) {
     isActivityAvalible.value = true
@@ -612,23 +601,21 @@ const registActivity = async () => {
       icon: 'success',
       confirmButtonText: '確定',
     })
+
     registractionStatus.value = '已報名'
   } else {
     currentPeople.value -= 1
     Swal.fire({
       title: '報名取消',
-      icon: 'error',
+      icon: 'success',
       confirmButtonText: '確定',
     })
+
     registractionStatus.value = '報名'
   }
 }
 
 /* 12. 報名狀況 */
-const isPopupConditionVisible = ref(false)
-const pendingList = ref([])
-const confirmedList = ref([])
-
 watch(isPopupConditionVisible, (newValue) => {
   if (newValue) {
     document.body.style.overflow = 'hidden' // 禁止滾動
@@ -639,42 +626,17 @@ watch(isPopupConditionVisible, (newValue) => {
 
 const openRegistrationConditon = async () => {
   isPopupConditionVisible.value = true
-
-  const response1 = await fetch(
-    `http://localhost:8080/api/activity/${props.activityId}/registration/pending`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
-  pendingList.value = await response1.json()
-
-  const response2 = await fetch(
-    `http://localhost:8080/api/activity/${props.activityId}/registration/confirmed`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
-  confirmedList.value = await response2.json()
+  pendingList.value = await activityApi.getPendingMembers(props.activityId)
+  confirmedList.value = await activityApi.getConfirmedMembers(props.activityId)
 }
+
 const closeRegistrationConditon = () => {
   isPopupConditionVisible.value = false
 }
 
 /* 13. 切換收藏 */
-const likeStatus = ref('收藏')
-
 const getLikeStatus = async () => {
-  const response = await fetch(
-    `http://localhost:8080/api/activity/${props.activityId}/member/${memberId}/like/status`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
-
-  let result = await response.json()
+  let result = await activityApi.isLikeExisting(props.activityId, memberId)
 
   if (result.action) {
     likeStatus.value = '已收藏'
@@ -682,7 +644,6 @@ const getLikeStatus = async () => {
     likeStatus.value = '收藏'
   }
 }
-onMounted(getLikeStatus)
 
 const toggleLike = async () => {
   if (memberId == null) {
@@ -692,22 +653,11 @@ const toggleLike = async () => {
       icon: 'error',
       confirmButtonText: '確定',
     })
+
     return
   }
 
-  const data = {
-    memberId: memberId,
-  }
-
-  const response = await fetch(
-    `http://localhost:8080/api/activity/${props.activityId}/like/toggle`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }
-  )
-  let result = await response.json()
+  const result = await activityApi.toggleLike(props.activityId, memberId)
 
   if (result.action) {
     Swal.fire({
@@ -715,25 +665,20 @@ const toggleLike = async () => {
       icon: 'success',
       confirmButtonText: '確定',
     })
+
     likeStatus.value = '已收藏'
   } else {
     Swal.fire({
       title: '取消收藏',
-      icon: 'error',
+      icon: 'success',
       confirmButtonText: '確定',
     })
+
     likeStatus.value = '收藏'
   }
 }
 
 /* 14. 新增留言 */
-const isPopupCommentVisible = ref(false)
-const commentButton = ref(false)
-const commentForm = ref({
-  memberId: memberId,
-  content: '',
-})
-
 watch(isPopupCommentVisible, (newValue) => {
   if (newValue) {
     document.body.style.overflow = 'hidden' // 禁止滾動
@@ -757,6 +702,7 @@ const openComment = async () => {
   isPopupCommentVisible.value = true
   commentButton.value = true
 }
+
 const closeComment = () => {
   isPopupCommentVisible.value = false
   commentButton.value = false
@@ -776,6 +722,7 @@ const submitComment = async () => {
 
   if (!ask.isConfirmed) return
 
+  // 參數拆分出來
   try {
     const response = await fetch(
       `http://localhost:8080/api/activity/${props.activityId}/review/add`,
@@ -785,21 +732,22 @@ const submitComment = async () => {
         body: JSON.stringify(commentForm.value),
       }
     )
-    let result = await response.json()
+
+    const result = response.json()
+
     if (result.success) {
       const ask = await Swal.fire({
         title: '成功送出',
         icon: 'success',
         confirmButtonText: '關閉',
       })
+
       closeComment()
 
       addReviewButton.value = '已留言'
       isAddReviewDisabled.value = true
 
-      if (ask.isConfirmed) {
-        window.location.reload()
-      }
+      if (ask.isConfirmed) window.location.reload()
     }
   } catch (error) {
     console.error('新增留言失敗:', error)
@@ -807,20 +755,13 @@ const submitComment = async () => {
 }
 
 /* 15. 修改留言 */
-const reviewIdForRewrite = ref()
-const rewriteButton = ref(false)
-
 const openRewirte = async (reviewId) => {
   isPopupCommentVisible.value = true
   rewriteButton.value = true
   reviewIdForRewrite.value = reviewId
 
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/review/${reviewId}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    let result = await response.json()
+    const result = await activityApi.getReview(props.activityId, reviewId)
     commentForm.value.content = result.review.reviewContent
   } catch (error) {
     console.error('獲取留言失敗:', error)
@@ -840,13 +781,15 @@ const submitRewrite = async (reviewId) => {
 
   if (!ask.isConfirmed) return
 
+  // 參數拆分出來
   try {
     const response = await fetch(`http://localhost:8080/api/activity/review/${reviewId}/rewrite`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(commentForm.value),
     })
-    let result = await response.json()
+
+    const result = response.json()
 
     Swal.fire({
       title: '成功送出',
@@ -879,16 +822,11 @@ const deleteComment = async (reviewId) => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
+
+  if (!ask.isConfirmed) return
 
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/review/${reviewId}/delete`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    let result = await response.json()
+    await activityApi.deleteReview(props.activityId, reviewId)
 
     Swal.fire({
       title: '成功刪除',
@@ -908,17 +846,6 @@ const deleteComment = async (reviewId) => {
 }
 
 /* 17. 收藏之會員視窗 */
-const isPopupMemberVisible = ref(false)
-const memberList = ref([
-  {
-    memberId: '載入中',
-    name: '',
-    gender: '',
-    profilePhoto: '',
-    profilePhotoBase64: '',
-  },
-])
-
 watch(isPopupMemberVisible, (newValue) => {
   if (newValue) {
     document.body.style.overflow = 'hidden' // 禁止滾動
@@ -931,12 +858,7 @@ const openMember = async () => {
   isPopupMemberVisible.value = true
 
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/${props.activityId}/like`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    let members = await response.json()
-    memberList.value = members
+    memberList.value = await activityApi.getAcitivityLikes(props.activityId);
   } catch (error) {
     console.error('讀取會員失敗:', error)
   }
@@ -947,19 +869,6 @@ const closeMember = () => {
 }
 
 /* 18. 同類別活動視窗 */
-const typeActivityList = ref([
-  {
-    id: '',
-    name: '',
-    description: '',
-    activityType: {
-      id: '',
-      name: '',
-    },
-  },
-])
-const isPopupTypeVisible = ref(false)
-
 watch(isPopupTypeVisible, (newValue) => {
   if (newValue) {
     document.body.style.overflow = 'hidden' // 禁止滾動
@@ -969,15 +878,7 @@ watch(isPopupTypeVisible, (newValue) => {
 })
 
 const fetchSameTypeActivitiesExceptOne = async (typeId) => {
-  const response = await fetch(
-    `http://localhost:8080/api/activity/type/${typeId}/except/activity/${props.activityId}`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
-  let result = await response.json()
-  typeActivityList.value = result
+  typeActivityList.value = await activityApi.getOtherActivitiesByType(props.activityId, typeId)
 }
 
 const openSameType = (typeId) => {
@@ -990,10 +891,6 @@ const closeSameType = () => {
 }
 
 /* 19. 分享視窗 */
-const isPopupShareVisible = ref(false)
-const shareUrl = ref(window.location.href)
-const copyMessage = ref()
-
 const openShare = () => {
   isPopupShareVisible.value = true
 }
@@ -1003,23 +900,23 @@ const closeShare = () => {
   copyMessage.value = ''
 }
 
-function shareOnFacebook() {
+const shareOnFacebook = () => {
   const urlChange = window.location.href.replace('localhost', '127.0.0.1') // FB沒辦法直接分享localhost
   const url = encodeURIComponent(urlChange) // 取得當前網址
   window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank')
 }
 
-function shareOnLine() {
+const shareOnLine = () => {
   const url = encodeURIComponent(shareUrl.value) // 取得當前網址
   window.open(`https://social-plugins.line.me/lineit/share?url=${url}`, '_blank')
 }
 
-function shareOnX() {
+const shareOnX = () => {
   const url = encodeURIComponent(shareUrl.value) // 取得當前網址
   window.open(`https://x.com/intent/tweet?url=${url}`, '_blank')
 }
 
-function copyUrl() {
+const copyUrl = () => {
   navigator.clipboard.writeText(shareUrl.value)
   copyMessage.value = '複製成功'
 }
@@ -1032,7 +929,9 @@ onMounted(() =>
   getViewCount(),
   getParticipantCount(),
   isReviewExisting(),
-  isActivityAvalible()
+  isActivityAvalible(),
+  getRegistractionStatus(),
+  getLikeStatus()
 )
 </script>
 
