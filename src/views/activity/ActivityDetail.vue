@@ -858,7 +858,7 @@ const openMember = async () => {
   isPopupMemberVisible.value = true
 
   try {
-    memberList.value = await activityApi.getAcitivityLikes(props.activityId);
+    memberList.value = await activityApi.getActivityLikes(props.activityId);
   } catch (error) {
     console.error('讀取會員失敗:', error)
   }

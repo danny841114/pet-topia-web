@@ -14,8 +14,16 @@ apiClient.interceptors.response.use(
 )
 
 export const activityApi = {
+  getActivities() {
+    return apiClient.get(`/all`)
+  },
+
   getActivitiesByVendorId(vendorId) {
     return apiClient.get(`/vendor/${vendorId}`)
+  },
+
+  getActivityTypes() {
+    return apiClient.get(`/type/show`)
   },
 
   getActivity(activityId) {
@@ -98,11 +106,31 @@ export const activityApi = {
     return apiClient.delete(`/review/${reviewId}/delete`)
   },
 
-  getAcitivityLikes(activityId) {
+  getActivityLikes(activityId) {
     return apiClient.get(`/${activityId}/like`)
   },
 
   getOtherActivitiesByType(activityId, typeId) {
     return apiClient.get(`/type/${typeId}/except/activity/${activityId}`)
+  },
+
+  getActivityLikesByMemberId(memberId) {
+    return apiClient.get(`/member/${memberId}/like`)
+  },
+
+  getActivityReviewsByMemberId(memberId) {
+    return apiClient.get(`/member/${memberId}/review`)
+  },
+
+  getActivityRegistrationsByMemberId(memberId) {
+    return apiClient.get(`/member/${memberId}/registration`)
+  },
+
+  deleteActivityLike(likeId) {
+    return apiClient.delete(`/like/${likeId}/delete`)
+  },
+
+  deleteRegistrationById(registrationId) {
+    return apiClient.delete(`/registration/${likeId}/delete`)
   },
 }

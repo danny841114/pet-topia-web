@@ -82,37 +82,22 @@
                   <td>
                     <!-- 編輯模式 -->
                     <template v-if="editIndex === index">
-                      <button
-                        class="btn btn-success btn-sm"
-                        @click="confirmEdit(review.id, editedContent, index)"
-                      >
+                      <button class="btn btn-success btn-sm" @click="confirmEdit(review.id, editedContent, index)">
                         確認
                       </button>
-                      <button
-                        class="btn btn-secondary btn-sm"
-                        @click="cancelEdit"
-                        style="margin-left: 5px"
-                      >
+                      <button class="btn btn-secondary btn-sm" @click="cancelEdit" style="margin-left: 5px">
                         取消
                       </button>
                     </template>
                     <!-- 編輯模式 -->
 
                     <!-- 非編輯模式 -->
-                    <button
-                      v-else
-                      class="btn btn-primary btn-sm"
-                      @click="editReview(index, review.reviewContent)"
-                    >
+                    <button v-else class="btn btn-primary btn-sm" @click="editReview(index, review.reviewContent)">
                       修改
                     </button>
                     <!-- 非編輯模式 -->
 
-                    <button
-                      class="btn btn-danger btn-sm"
-                      @click="deleteReview(review.id)"
-                      style="margin-left: 10px"
-                    >
+                    <button class="btn btn-danger btn-sm" @click="deleteReview(review.id)" style="margin-left: 10px">
                       刪除
                     </button>
                   </td>
@@ -148,10 +133,7 @@
                   <td v-else>審核中</td>
 
                   <td>
-                    <button
-                      class="btn btn-danger btn-sm"
-                      @click="deleteRegistration(registration.id)"
-                    >
+                    <button class="btn btn-danger btn-sm" @click="deleteRegistration(registration.id)">
                       取消
                     </button>
                   </td>
@@ -170,137 +152,48 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { activityApi } from '@/api/vendor/activityApi'
 import Swal from 'sweetalert2'
 import ProfileSidebar from '@/components/ProfileSidebar.vue'
+
 const authStore = useAuthStore()
 const authMemberId = authStore.memberId
-let memberId = ref(authMemberId)
-
-const likeList = ref([
-  {
-    id: 1,
-    vendorActivity: {
-      id: 3,
-      name: '新品試吃會',
-      description: '提供新款寵物食品試吃，讓毛孩找到最愛的口味',
-      startTime: '2025-04-03T02:35:12.593+00:00',
-      endTime: '2025-04-03T02:35:12.593+00:00',
-      isRegistrationRequired: false,
-      activityType: {
-        id: 4,
-        name: '聚餐',
-      },
-      registrationDate: '2025-03-24T02:35:12.593+00:00',
-      numberVisitor: 2,
-      address: '台中市西屯區台灣大道三段200號',
-      activityPeopleNumber: {
-        id: 3,
-        maxParticipants: 40,
-        currentParticipants: 0,
-      },
-    },
-  },
-])
-
-const reviewList = ref([
-  {
-    id: 14,
-    memberId: 11,
-    reviewTime: '2024-05-18T16:00:00.000+00:00',
-    reviewContent: '場地很大，寵物可以自由奔跑，非常適合。',
-    vendorActivity: {
-      id: 13,
-      name: '水族設備體驗會',
-      description: '介紹最新水族設備並提供試用',
-      startTime: '2025-04-04T02:35:12.593+00:00',
-      endTime: '2025-04-04T02:35:12.593+00:00',
-      isRegistrationRequired: false,
-      activityType: {
-        id: 7,
-        name: '其他',
-      },
-      registrationDate: '2025-03-24T02:35:12.593+00:00',
-      numberVisitor: 0,
-      address: '台南市中西區民族路77號',
-      activityPeopleNumber: {
-        id: 13,
-        maxParticipants: 60,
-        currentParticipants: 33,
-      },
-    },
-  },
-])
-
-const registrationList = ref([
-  {
-    id: 4,
-    vendorActivity: {
-      id: 11,
-      name: '狗狗行為訓練體驗',
-      description: '體驗基礎狗狗行為訓練課程',
-      startTime: '2025-03-30T02:35:12.593+00:00',
-      endTime: '2025-03-30T02:35:12.593+00:00',
-      isRegistrationRequired: true,
-      activityType: {
-        id: 7,
-        name: '其他',
-      },
-      registrationDate: '2025-03-24T02:35:12.593+00:00',
-      numberVisitor: 25,
-      address: '新竹市東區光復路200號',
-      activityPeopleNumber: {
-        id: 11,
-        maxParticipants: 5,
-        currentParticipants: 5,
-      },
-    },
-    registrationTime: '2025-03-24T03:52:36.433+00:00',
-    status: 'confirmed',
-  },
-])
+const memberId = ref(authMemberId)
+const likeList = ref([])
+const reviewList = ref([])
+const registrationList = ref([])
+const editIndex = ref(null) // 當前編輯行
+const editedContent = ref('') // 存儲臨時內容
+const isLikeVisible = ref(true)
+const isReviewVisible = ref(false)
+const isRegistrationVisible = ref(false)
 
 /* 1. 獲取收藏列表 */
-const fetchActivityLike = async () => {
+const getActivityLikes = async () => {
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/member/${memberId.value}/like`)
-
-    const data = await response.json()
-    likeList.value = data
+    likeList.value = await activityApi.getActivityLikesByMemberId(memberId.value)
   } catch (error) {
     console.error('獲取收藏資料失敗:', error)
   }
 }
-onMounted(fetchActivityLike)
 
 /* 2. 獲取評論列表 */
-const fetchActivityReview = async () => {
+const getActivityReviews = async () => {
   try {
-    const response = await fetch(
-      `http://localhost:8080/api/activity/member/${memberId.value}/review`
-    )
-
-    const data = await response.json()
-    reviewList.value = data
+    reviewList.value = await activityApi.getActivityReviewsByMemberId(memberId.value)
   } catch (error) {
     console.error('獲取評論資料失敗:', error)
   }
 }
-onMounted(fetchActivityReview)
 
 /* 3. 獲取報名列表 */
-const fetchActivityRegistration = async () => {
+const getActivityRegistrations = async () => {
   try {
-    const response = await fetch(
-      `http://localhost:8080/api/activity/member/${memberId.value}/registration`
-    )
-
-    const data = await response.json()
-    registrationList.value = data
+    registrationList.value = await activityApi.getActivityRegistrationsByMemberId(memberId.value)
   } catch (error) {
     console.error('獲取報名資料失敗:', error)
   }
 }
-onMounted(fetchActivityRegistration)
 
 /* 4. 取消收藏 */
 const deleteLike = async (likeId) => {
@@ -313,18 +206,11 @@ const deleteLike = async (likeId) => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
+
+  if (!ask.isConfirmed) return
 
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/like/${likeId}/delete`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-    })
-
-    const data = await response.json()
-
+    await activityApi.deleteActivityLike(likeId)
     likeList.value = likeList.value.filter((like) => like.id !== likeId)
   } catch (error) {
     console.error('取消收藏失敗:', error)
@@ -332,11 +218,6 @@ const deleteLike = async (likeId) => {
 }
 
 /* 5. 修改評論 */
-
-// 狀態控制
-const editIndex = ref(null) // 當前編輯行
-const editedContent = ref('') // 存儲臨時內容
-
 // 進入編輯模式
 const editReview = (index, content) => {
   editIndex.value = index
@@ -354,21 +235,20 @@ const confirmEdit = async (reviewId, content, index) => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
+
+  if (!ask.isConfirmed) return
 
   const review = ref({
     content: content,
   })
 
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/review/${reviewId}/rewrite`, {
+    // 將參數拆分出來
+    await fetch(`http://localhost:8080/api/activity/review/${reviewId}/rewrite`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(review.value),
     })
-    let result = await response.json()
 
     reviewList.value[index].reviewContent = editedContent.value
     editIndex.value = null
@@ -388,9 +268,9 @@ const cancelEdit = async () => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
+
+  if (!ask.isConfirmed) return
+
   editIndex.value = null
 }
 
@@ -405,18 +285,11 @@ const deleteReview = async (reviewId) => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
+
+  if (!ask.isConfirmed) return
 
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/review/${reviewId}/delete`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-    })
-
-    const data = await response.json()
-
+    await activityApi.deleteReview(null, reviewId)
     reviewList.value = reviewList.value.filter((review) => review.id !== reviewId)
   } catch (error) {
     console.error('刪除評論失敗:', error)
@@ -434,20 +307,11 @@ const deleteRegistration = async (registrationId) => {
     cancelButtonText: '返回',
     reverseButtons: true,
   })
-  if (!ask.isConfirmed) {
-    return
-  }
+
+  if (!ask.isConfirmed) return
 
   try {
-    const response = await fetch(
-      `http://localhost:8080/api/activity/registration/${registrationId}/delete`,
-      {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-      }
-    )
-
-    const data = await response.json()
+    await activityApi.deleteRegistrationById(registrationId)
 
     registrationList.value = registrationList.value.filter(
       (registration) => registration.id !== registrationId
@@ -471,10 +335,6 @@ const formatDate = (dateString) => {
 }
 
 /* 9. 頁面切換按鈕 */
-const isLikeVisible = ref(true)
-const isReviewVisible = ref(false)
-const isRegistrationVisible = ref(false)
-
 const switchLikePage = () => {
   isLikeVisible.value = true
   isReviewVisible.value = false
@@ -492,6 +352,12 @@ const switchRegistrationPage = () => {
   isReviewVisible.value = false
   isRegistrationVisible.value = true
 }
+
+onMounted(() =>
+  getActivityLikes(),
+  getActivityReviews(),
+  getActivityRegistrations()
+)
 </script>
 
 <style>
@@ -526,7 +392,8 @@ const switchRegistrationPage = () => {
 .main-container {
   position: relative;
   flex: 1;
-  min-width: 0; /* 防止flex子項溢出 */
+  min-width: 0;
+  /* 防止flex子項溢出 */
   background: rgba(255, 255, 255, 0.95);
   padding: 2rem;
   border-radius: 10px;
