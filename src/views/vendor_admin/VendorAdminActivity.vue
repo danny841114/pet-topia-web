@@ -31,27 +31,27 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import axios from 'axios'
-import 'datatables.net-dt/css/dataTables.dataTables.css'
-import DataTable from 'datatables.net-dt'
 import { nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { activityAdminApi } from '@/api/vendor/activityAdminApi'
+import axios from 'axios'
 import * as XLSX from 'xlsx'
 import Swal from 'sweetalert2'
+import DataTable from 'datatables.net-dt'
+import 'datatables.net-dt/css/dataTables.dataTables.css'
+
+const authStore = useAuthStore()
+const userId = authStore.userId
 const router = useRouter()
 const imageCache = ref({})
 const events = ref([])
 const eventFilter = ref('all')
 let dataTableInstance = null
 
-import { useAuthStore } from '@/stores/auth'
-const authStore = useAuthStore()
-const userId = authStore.userId
-
 const exportToExcel = async () => {
   try {
-    const response = await axios.get('/api/vendor_admin/activity/top5') // 請求後端 API
-    const activities = response.data
+    const activities = await activityAdminApi.getTop5Activities();
 
     if (!activities || activities.length === 0) {
       Swal.fire({
@@ -79,6 +79,7 @@ const exportToExcel = async () => {
     XLSX.writeFile(wb, '熱門活動報表.xlsx')
   } catch (error) {
     console.error('匯出失敗', error)
+
     Swal.fire({
       icon: 'error',
       title: '匯出失敗',
@@ -88,34 +89,34 @@ const exportToExcel = async () => {
   }
 }
 
-
-// 🚀 獲取活動列表
+// 獲取活動列表
 const fetchEvents = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/vendor_admin/activity/${userId}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    events.value = response.data || [] // 确保 events 是数组
-    console.log('活動數據:', response.data) // 打印获取的数据
+    const token = localStorage.getItem('token');
+    const res = await activityAdminApi.getActivitiesByUserId(userId, token);
+    events.value = res || []
+    console.log('活動數據:', response.data)
     await loadEventImages()
   } catch (error) {
     console.error('獲取活動數據失敗', error)
-    events.value = [] // 捕获错误时，确保 events 为空数组
+    events.value = []
   }
 }
+
 // 获取活动图片
+// API prefix is different
 const loadEventImages = async () => {
   for (let event of events.value) {
     try {
-      let response = await axios.get(
-        `http://localhost:8080/photos/ids?vendorActivityId=${event.id}`, {
+      let response = await axios.get(`http://localhost:8080/photos/ids`, {
+        params: {
+          vendorActivityId: event.id
+        },
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      }
-      )
+      })
+
       let imageIds = response.data
       if (imageIds.length > 0) {
         event.imageUrl = await getImageBlob(imageIds[0]) // 獲取圖片 Blob 並轉換
@@ -130,9 +131,13 @@ const loadEventImages = async () => {
 }
 
 // 使用 axios 獲取圖片的二進制數據，並轉換成 Blob URL
+// API prefix is different
 const getImageBlob = async (photoId) => {
   try {
-    let response = await axios.get(`http://localhost:8080/photos/download?photoId=${photoId}`, {
+    let response = await axios.get(`http://localhost:8080/photos/download`, {
+      params: {
+        vendorActivityId: photoId
+      },
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
@@ -147,10 +152,11 @@ const getImageBlob = async (photoId) => {
   }
 }
 
-// 🎯 過濾活動
+// 過濾活動
 const filteredEvents = computed(() => {
   console.log('過濾後的活動:', events.value)
   let currentDate = new Date()
+
   return (events.value || []).filter((event) => {
     let startTime = new Date(event.startTime)
     let endTime = new Date(event.endTime)
@@ -179,7 +185,10 @@ const getEventImageUrl = async (eventId) => {
   // 如果缓存没有，从服务器请求
   try {
     // 请求图片 ID 列表
-    const response = await axios.get(`http://localhost:8080/photos/ids?vendorActivityId=${eventId}`, {
+    const response = await axios.get(`http://localhost:8080/photos/ids`, {
+      params: {
+        vendorActivityId: eventId
+      },
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
@@ -204,7 +213,7 @@ const getEventImageUrl = async (eventId) => {
   }
 }
 
-// 📅 日期格式化函數
+// 日期格式化函數
 const formatDate = (dateString) => {
   let date = new Date(dateString)
   return (
@@ -214,11 +223,10 @@ const formatDate = (dateString) => {
   )
 }
 
-// ⏳ 初始化 DataTable
+// 初始化 DataTable
 const initDataTable = () => {
-  if (dataTableInstance) {
-    dataTableInstance.destroy()
-  }
+  if (dataTableInstance) dataTableInstance.destroy()
+
   dataTableInstance = new DataTable('#eventTable', {
     destroy: true,
     autoWidth: false,
@@ -341,11 +349,10 @@ const updateDataTable = async () => {
   dataTableInstance.draw() // 刷新 DataTable
 }
 
-// ❌ 刪除活動
+// 刪除活動
 const deleteEvent = async (activityId) => {
   try {
     await axios.delete(`http://localhost:8080/${activityId}`)
-
     events.value = events.value.filter((event) => event.id !== activityId)
 
     // 更新 DataTable
@@ -361,7 +368,7 @@ watch(filteredEvents, () => {
   updateDataTable()
 })
 
-// 🔥 當組件載入時，獲取活動並初始化 DataTables
+// 當組件載入時，獲取活動並初始化 DataTables
 onMounted(async () => {
   await fetchEvents()
 
