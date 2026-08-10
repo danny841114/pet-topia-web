@@ -82,6 +82,7 @@ import 'swiper/css/pagination'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination, Autoplay } from 'swiper/modules'
 import { ref, onMounted } from 'vue'
+import { vendorApi } from '@/api/vendor/vendorApi'
 
 /* 0. 隨機排列 */
 const shuffleList = (array) => {
@@ -89,29 +90,10 @@ const shuffleList = (array) => {
 }
 
 /* 1. 店家列表 */
-const vendorList = ref([
-  {
-    id: 1,
-    name: '毛孩天堂寵物美容',
-    description: '專業寵物美容與SPA，讓毛孩擁有最舒適的體驗',
-    totalRating: 2.9,
-    logoImag: null,
-    logoImgBase64: '',
-    activityDtoList: [
-      {
-        activityId: 1,
-        activityName: '毛孩美容日',
-        activityDescription: '提供免費寵物美容體驗，讓毛孩煥然一新',
-      },
-    ],
-  },
-])
+const vendorList = ref([])
 const fetchVendorList = async () => {
   try {
-    const response = await fetch(`http://localhost:8080/api/vendor/all/for/swiper`)
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-
-    const data = await response.json()
+    const data = await vendorApi.getVendors();
     vendorList.value = shuffleList(data)
   } catch (error) {
     console.error('獲取店家清單失敗:', error)

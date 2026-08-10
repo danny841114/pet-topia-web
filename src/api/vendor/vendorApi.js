@@ -10,10 +10,22 @@ apiClient.interceptors.response.use(
   (error) => {
     console.error('API Error:', error)
     return Promise.reject(error)
-  },
+  }
 )
 
 export const vendorApi = {
+  getAllVendors() {
+    return apiClient.get(`/all`)
+  },
+
+  getVendors() {
+    return apiClient.get(`/all/for/swiper`)
+  },
+
+  getVendorCategories() {
+    return apiClient.get(`/category/show`)
+  },
+
   getVendor(vendorId) {
     return apiClient.get(`/${vendorId}`)
   },
@@ -34,6 +46,10 @@ export const vendorApi = {
     return apiClient.get(`/all/except/${vendorId}`)
   },
 
+  getOtherVendorsByCategorty(vendorId, categoryId) {
+    return apiClient.get(`/category/${categoryId}/except/vendor/${vendorId}`)
+  },
+
   isReviewExisting(vendorId, memberId) {
     return apiClient.get(`/${vendorId}/member/${memberId}/review/exist`)
   },
@@ -50,7 +66,7 @@ export const vendorApi = {
       },
       {
         headers: { 'Content-Type': 'application/json' },
-      },
+      }
     )
   },
 
@@ -61,7 +77,7 @@ export const vendorApi = {
     ratingPrice,
     ratingService,
     content,
-    reviewPhotos,
+    reviewPhotos
   ) {
     const formData = new FormData()
 
@@ -97,7 +113,7 @@ export const vendorApi = {
     ratingService,
     content,
     reviewPhotos,
-    removeImageList,
+    removeImageList
   ) {
     const formData = new FormData()
 
@@ -126,5 +142,5 @@ export const vendorApi = {
 
   getVendorAvgRating(vendorId) {
     return apiClient.get(`/${vendorId}/update/rating`)
-  }
+  },
 }

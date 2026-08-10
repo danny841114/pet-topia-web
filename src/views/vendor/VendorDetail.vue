@@ -926,14 +926,7 @@ const openCategory = async (categoryId) => {
   isPopupCategoryVisible.value = true
 
   try {
-    const response = await fetch(
-      `${apiBase}/api/vendor/category/${categoryId}/except/vendor/${props.vendorId}`,
-      {
-        method: 'GET',
-      },
-    )
-    categoryVendorList.value = await response.json()
-    console.log('同類別店家:', categoryVendorList.value)
+    categoryVendorList.value = await vendorApi.getOtherVendorsByCategorty(props.vendorId, categoryId);
   } catch (error) {
     console.error('讀取同類別店家失敗:', error)
   }
