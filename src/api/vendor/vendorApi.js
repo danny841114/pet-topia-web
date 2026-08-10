@@ -143,4 +143,16 @@ export const vendorApi = {
   getVendorAvgRating(vendorId) {
     return apiClient.get(`/${vendorId}/update/rating`)
   },
+
+  getVendorLikesByMemberId(memberId) {
+    return apiClient.get(`/member/${memberId}/like`)
+  },
+
+  getVendorReviewsByMemberId(memberId) {
+    return apiClient.get(`/member/${memberId}/like`)
+  },
+
+  deleteLike(likeId) {
+    return apiClient.delete(`/like/${likeId}/delete`)
+  },
 }
