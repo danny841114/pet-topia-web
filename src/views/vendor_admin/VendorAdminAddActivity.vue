@@ -88,10 +88,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
 import Swal from 'sweetalert2'
-import { useAuthStore } from '@/stores/auth'
+import { activityAdminApi } from '@/api/vendor/activityAdminApi'
+
 const authStore = useAuthStore()
 const userId = authStore.userId
 
@@ -109,46 +111,44 @@ const imagePreviews = ref([])
 
 const checkTimeConflict = async (vendorId, startTime, endTime) => {
   try {
-    const response = await axios.get('/api/vendor_admin/activity/checkConflict', {
-      params: { vendorId, startTime, endTime }
-    });
-    console.log(response.data)
-    if (response.data) {
-      return true
-    }
+    const res = await activityAdminApi.checkTimeConflicts(vendorId, startTime, endTime)
+
+    console.log(res)
+
+    if (res) return true
   } catch (error) {
-    console.error('檢查時間衝突失敗', error);
+    console.error('檢查時間衝突失敗', error)
   }
 };
 
-const validateTimeConflict = async () => {
-  if (startTime.value && endTime.value) {
-    // 輸出原始的 startTime 和 endTime
-    console.log(startTime.value, endTime.value);
+// const validateTimeConflict = async () => {
+//   if (startTime.value && endTime.value) {
+//     // 輸出原始的 startTime 和 endTime
+//     console.log(startTime.value, endTime.value);
 
-    // 將時間轉換為 SQL 支援的格式
-    const formatDate = (dateStr) => {
-      const date = new Date(dateStr);
-      const year = date.getFullYear();
-      const month = ('0' + (date.getMonth() + 1)).slice(-2);
-      const day = ('0' + date.getDate()).slice(-2);
-      const hours = ('0' + date.getHours()).slice(-2);
-      const minutes = ('0' + date.getMinutes()).slice(-2);
-      const seconds = ('0' + date.getSeconds()).slice(-2);
+//     // 將時間轉換為 SQL 支援的格式
+//     const formatDate = (dateStr) => {
+//       const date = new Date(dateStr);
+//       const year = date.getFullYear();
+//       const month = ('0' + (date.getMonth() + 1)).slice(-2);
+//       const day = ('0' + date.getDate()).slice(-2);
+//       const hours = ('0' + date.getHours()).slice(-2);
+//       const minutes = ('0' + date.getMinutes()).slice(-2);
+//       const seconds = ('0' + date.getSeconds()).slice(-2);
 
-      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    };
+//       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+//     };
 
-    const formattedStartTime = formatDate(startTime.value);
-    const formattedEndTime = formatDate(endTime.value);
+//     const formattedStartTime = formatDate(startTime.value);
+//     const formattedEndTime = formatDate(endTime.value);
 
-    // 輸出轉換後的時間
-    console.log(formattedStartTime, formattedEndTime);
+//     // 輸出轉換後的時間
+//     console.log(formattedStartTime, formattedEndTime);
 
-    // 呼叫檢查時間衝突的方法，傳入轉換後的時間
-    await checkTimeConflict(vendorId.value, formattedStartTime, formattedEndTime);
-  }
-};
+//     // 呼叫檢查時間衝突的方法，傳入轉換後的時間
+//     await checkTimeConflict(vendorId.value, formattedStartTime, formattedEndTime);
+//   }
+// };
 
 
 // Demo 按鈕的點擊事件處理函數
@@ -161,8 +161,6 @@ const demoButtonClicked = () => {
   endTime.value = new Date(new Date().getTime() + 100000000).toISOString().slice(0, 16) // 假設結束時間比開始時間晚一小時
   isRegistrationRequired.value = "true"
   maxParticipants.value = 20
-
-
 }
 
 // 取得當前日期時間的函數
@@ -214,56 +212,54 @@ const submitForm = async () => {
 
     // 如果有衝突，直接返回，不提交表單
     if (conflictExists) {
-      Swal.fire({
+      await Swal.fire({
         icon: 'warning',
         title: '時間有衝突',
         text: '請修改時間！',
         confirmButtonText: 'OK'
       })
+
       return;
     }
   }
 
-  const formdata = new FormData()
-  formdata.append('vendor_id', vendorId.value)
-  formdata.append('activity_name', activityName.value)
-  formdata.append('activity_type_id', activityTypeId.value)
-  formdata.append('activity_description', activityDescription.value)
-  formdata.append('activity_address', activityAddress.value)
-  formdata.append('start_time', startTime.value)
-  formdata.append('end_time', endTime.value)
-  formdata.append('is_registration_required', isRegistrationRequired.value)
-  formdata.append('max_participants', maxParticipants.value)
-  imagePreviews.value.forEach((preview, index) => {
-    formdata.append('files', preview.file)
-  })
+  try {
+    await activityAdminApi.addActivity(
+      vendorId.value,
+      activityName.value,
+      activityTypeId.value,
+      activityDescription.value,
+      activityAddress.value,
+      startTime.value,
+      endTime.value,
+      isRegistrationRequired.value,
+      maxParticipants.value,
+      imagePreviews.value
+    )
 
-  axios
-    .post('http://localhost:8080/api/vendor_activity/add', formdata)
-    .then((response) => {
-      Swal.fire({
-        icon: 'success',
-        title: '新增成功！',
-        showConfirmButton: false,
-        timer: 1000
-      })
-      window.location.reload()
+    await Swal.fire({
+      icon: 'success',
+      title: '新增成功！',
+      showConfirmButton: false,
+      timer: 1000
     })
-    .catch((error) => {
-      Swal.fire({
-        icon: 'error',
-        title: '新增失敗',
-        text: '請稍後再試或檢查欄位內容',
-        confirmButtonText: 'OK'
-      })
+
+    window.location.reload()
+  } catch (e) {
+    await Swal.fire({
+      icon: 'error',
+      title: '新增失敗',
+      text: '請稍後再試或檢查欄位內容',
+      confirmButtonText: 'OK'
     })
+  }
 }
 
 // 處理圖片預覽
 const handleFileChange = (event) => {
   const files = event.target.files
   imagePreviews.value = [] // 清空現有的預覽
-  Array.from(files).forEach((file, index) => {
+  Array.from(files).forEach((file) => {
     const reader = new FileReader()
     reader.onload = (e) => {
       imagePreviews.value.push({ preview: e.target.result, file })
@@ -313,17 +309,17 @@ function toggleMaxParticipants() {
   }
 }
 
+const getActivityTypes = async () => {
+  try {
+    activityTypes.value = await activityAdminApi.getActivityTypes();
+  } catch (e) {
+    console.error('獲取活動類型失敗：', e)
+  }
+}
+
 // 設定開始時間不能選過去的日期和結束時間不能早於開始時間
 onMounted(() => {
-  axios
-    .get('http://localhost:8080/api/vendor_admin/activity/allTypes') // 確保端點正確
-    .then((response) => {
-      activityTypes.value = response.data
-    })
-    .catch((error) => {
-      console.error('獲取活動類型失敗：', error)
-    })
-
+  getActivityTypes()
   toggleMaxParticipants()
 })
 </script>

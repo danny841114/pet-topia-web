@@ -52,6 +52,16 @@ export const activityAdminApi = {
     })
   },
 
+  checkTimeConflicts(vendorId, startTime, endTime) {
+    return apiClient.get(`/activity/checkConflict`, {
+      params: {
+        vendorId,
+        startTime,
+        endTime,
+      },
+    })
+  },
+
   getActivity(activityId) {
     return apiClient.get(`/vendor_admin_activityDetail`, {
       params: {
@@ -94,5 +104,96 @@ export const activityAdminApi = {
 
   deleteRegister(registerId) {
     return apiClient.delete(`/registration/deleteById/${registerId}`)
+  },
+
+  getActivitiesByUserIdWithoutToken(userId) {
+    return apiClient.get(`/activity/${userId}`, {
+      headers: {
+        Accept: `application/json`,
+      },
+    })
+  },
+
+  addActivity(
+    vendorId,
+    activityName,
+    activityTypeId,
+    activityDescription,
+    activityAddress,
+    startTime,
+    endTime,
+    isRegistrationRequired,
+    maxParticipants,
+    imagePreviews
+  ) {
+    const formdata = new FormData()
+
+    formdata.append('vendor_id', vendorId)
+    formdata.append('activity_name', activityName)
+    formdata.append('activity_type_id', activityTypeId)
+    formdata.append('activity_description', activityDescription)
+    formdata.append('activity_address', activityAddress)
+    formdata.append('start_time', startTime)
+    formdata.append('end_time', endTime)
+    formdata.append('is_registration_required', isRegistrationRequired)
+    formdata.append('max_participants', maxParticipants)
+    imagePreviews.forEach((preview) => {
+      formdata.append('files', preview.file)
+    })
+
+    return apiClient.post(`/add`, formdata)
+  },
+
+  getActivityTypes() {
+    return apiClient.get(`/activity/allTypes`)
+  },
+
+  updateEvent(id, eventId, eventTitle, startTime, endTime, color) {
+    return apiClient.put(`/calendar/update/${eventId}`, null, {
+      params: {
+        id, // 重複
+        eventId, // 重複
+        eventTitle,
+        start_time: startTime,
+        end_time: endTime,
+        color,
+      },
+    })
+  },
+
+  getCalendarByVendor(vendorId) {
+    return apiClient.get(`/calendar/${vendorId}`)
+  },
+
+  addCalendar(vendorId, eventTitle, startTime, endTime, color) {
+    const formData = new FormData()
+
+    formData.append('vendorId', vendorId)
+    formData.append('eventTitle', eventTitle)
+    formData.append('start_time', startTime)
+    formData.append('end_time', endTime)
+    formData.append('color', color)
+
+    return apiClient.post(`/calendar/add`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+  },
+
+  // API 需要修改
+  updateCalendar(eventId, eventTitle, startTime, endTime, color) {
+    return apiClient.put(`/calendar/update/${eventId}`, null, {
+      params: {
+        eventTitle,
+        start_time: startTime,
+        end_time: endTime,
+        color: color,
+      },
+    })
+  },
+
+  deleteCalendar(eventId) {
+    return apiClient.delete(`/calendar/delete/${eventId}`)
   },
 }

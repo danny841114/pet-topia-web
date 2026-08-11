@@ -53,6 +53,8 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useAuthStore } from '@/stores/auth'
+import { activityAdminApi } from '@/api/vendor/activityAdminApi';
 import axios from 'axios';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -61,8 +63,8 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
 import moment from "moment";
-import { useAuthStore } from '@/stores/auth'
 import Swal from 'sweetalert2'
+
 const authStore = useAuthStore()
 const userId = authStore.userId
 const vendorId = userId
@@ -135,29 +137,23 @@ const calendarOptions = ref({
   },
   eventDrop: async (info) => {
     try {
-      const updatedEvent = {
-        eventId: info.event.id,
-        eventTitle: info.event.title,
-        start_time: moment(info.event.start).format("YYYY-MM-DDTHH:mm"),
-        end_time: info.event.end ? moment(info.event.end).format("YYYY-MM-DDTHH:mm") : moment(info.event.start).format("YYYY-MM-DDTHH:mm"),
-        color: info.event.backgroundColor
-      };
+      await activityAdminApi.updateEvent(
+        updatedEvent.eventId,
+        info.event.id,
+        info.event.title,
+        moment(info.event.start).format("YYYY-MM-DDTHH:mm"),
+        info.event.end ? moment(info.event.end).format("YYYY-MM-DDTHH:mm") : moment(info.event.start).format("YYYY-MM-DDTHH:mm"),
+        info.event.backgroundColor
+      )
 
-      // 调用后端 API 更新数据库
-      const response = await axios.put(`http://localhost:8080/api/vendor_admin/calendar/update/${updatedEvent.eventId}`, null, {
-        params: updatedEvent
+      await Swal.fire({
+        icon: 'success',
+        title: '活動已更新！',
+        showConfirmButton: true
       });
-
-      if (response.status === 200) {
-        Swal.fire({
-          icon: 'success',
-          title: '活動已更新！',
-          showConfirmButton: true
-        });
-      }
     } catch (error) {
       console.error("活動更新失敗", error);
-      Swal.fire({
+      await Swal.fire({
         icon: 'error',
         title: '活動更新失敗',
         showConfirmButton: true
@@ -169,11 +165,7 @@ const calendarOptions = ref({
 
 const loadEvents = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/vendor_admin/calendar/${vendorId}`);
-    console.log("後端回傳數據:", response.data);
-
-    // 確保 Vue 能偵測變更，直接修改 ref([]) 內的值
-    events.value = response.data;
+    events.value = activityAdminApi.getCalendarByVendor(vendorId)
 
     const calendarApi = calendar.value?.getApi();
     if (calendarApi) {
@@ -234,64 +226,61 @@ const addEvent = async () => {
     return;
   }
 
-
-  const formData = new FormData();
-  formData.append("vendorId", vendorId);  // 你需要用正確的 vendor_id
-  formData.append("eventTitle", eventTitle.value);
-  formData.append("start_time", `${eventStartDate.value}T${eventStartTime.value}`);
-  formData.append("end_time", eventEndDate.value && eventEndTime.value
-    ? `${eventEndDate.value}T${eventEndTime.value}`
-    : `${eventStartDate.value}T${eventStartTime.value}`);
-  formData.append("color", eventColor.value);  // 发送颜色;
   try {
-    const response = await axios.post("http://localhost:8080/api/vendor_admin/calendar/add", formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',  // 发送表单数据时需要设置此头部
-      },
+    const startTime = `${eventStartDate.value}T${eventStartTime.value}`
+
+    const endTime = eventEndDate.value && eventEndTime.value
+      ? `${eventEndDate.value}T${eventEndTime.value}`
+      : `${eventStartDate.value}T${eventStartTime.value}`
+
+    const res = await activityAdminApi.addCalendar(
+      vendorId,
+      eventTitle.value,
+      startTime,
+      endTime,
+      eventColor.value
+    )
+
+    await Swal.fire({
+      icon: 'success',
+      title: '活動新增成功！',
+      showConfirmButton: true
     });
 
-    if (response.status === 201) {
-      Swal.fire({
-        icon: 'success',
-        title: '活動新增成功！',
-        showConfirmButton: true
-      });
+    events.value = [];
 
-      events.value = [];
+    // 你可以根据需要在日历中添加新事件
+    const savedEvent = res
+    console.log(savedEvent)
 
-      // 你可以根据需要在日历中添加新事件
-      const savedEvent = response.data;
-      console.log(savedEvent)
-      // **直接更新 FullCalendar**
-      const calendarApi = calendar.value.getApi();
-      calendarApi.addEvent({
-        id: savedEvent.eventId,
-        title: savedEvent.eventTitle,
-        start: savedEvent.startTime,
-        end: savedEvent.endTime,
-        backgroundColor: savedEvent.color || "#ffffff",
-      });
+    // **直接更新 FullCalendar**
+    const calendarApi = calendar.value.getApi();
+    calendarApi.addEvent({
+      id: savedEvent.eventId,
+      title: savedEvent.eventTitle,
+      start: savedEvent.startTime,
+      end: savedEvent.endTime,
+      backgroundColor: savedEvent.color || "#ffffff",
+    });
 
-      // **手動更新 `events.value` (可選)**
-      events.value.push({
-        id: savedEvent.eventId,
-        title: savedEvent.eventTitle,
-        start: savedEvent.startTime,
-        end: savedEvent.endTime,
-        backgroundColor: savedEvent.color || "#ffffff",
-      });
+    // **手動更新 `events.value` (可選)**
+    events.value.push({
+      id: savedEvent.eventId,
+      title: savedEvent.eventTitle,
+      start: savedEvent.startTime,
+      end: savedEvent.endTime,
+      backgroundColor: savedEvent.color || "#ffffff",
+    });
 
-      console.log(savedEvent);
+    console.log(savedEvent);
 
-      calendarApi.refetchEvents();
-      clearEventForm();
-      showEventModal.value = false;
-      events.value = [];
-
-    }
+    calendarApi.refetchEvents();
+    clearEventForm();
+    showEventModal.value = false;
+    events.value = [];
   } catch (error) {
     console.error("新增活動失敗", error);
-    Swal.fire({
+    await Swal.fire({
       icon: 'error',
       title: '新增活動失敗',
       text: '請稍後再試。',
@@ -300,61 +289,62 @@ const addEvent = async () => {
   }
 };
 
-
-
 const updateEvent = async () => {
-  if (!editEventId.value || !editEventTitle.value || !editEventStartDate.value || !editEventStartTime.value) {
+  if (!editEventId.value
+    || !editEventTitle.value
+    || !editEventStartDate.value
+    || !editEventStartTime.value) {
     Swal.fire({
       icon: 'warning',
       title: '請填寫完整的活動資訊',
       showConfirmButton: true
     });
+
     return;
   }
 
-
   if (editEventEndDate.value < editEventStartDate.value ||
-    (editEventEndDate.value === editEventStartDate.value && editEventEndTime.value < editEventStartTime.value)) {
+    (editEventEndDate.value === editEventStartDate.value
+      && editEventEndTime.value < editEventStartTime.value)) {
     Swal.fire({
       icon: 'error',
       title: '結束時間不能早於開始時間！',
       showConfirmButton: true
     });
+
     return;
   }
 
   try {
-    const response = await axios.put(`http://localhost:8080/api/vendor_admin/calendar/update/${editEventId.value}`, null, {
-      params: {
-        eventTitle: editEventTitle.value,
-        start_time: `${editEventStartDate.value}T${editEventStartTime.value}`,
-        end_time: `${editEventEndDate.value}T${editEventEndTime.value}`,
-        color: editEventColor.value
-      }
+    const res = await activityAdminApi.updateCalendar(
+      editEventId.value,
+      editEventTitle.value,
+      `${editEventStartDate.value}T${editEventStartTime.value}`,
+      `${editEventEndDate.value}T${editEventEndTime.value}`,
+      editEventColor.value
+    )
+
+    await Swal.fire({
+      icon: 'success',
+      title: '活動更新成功！',
+      showConfirmButton: false,
+      timer: 1000
     });
 
-    if (response.status === 200) {
-      Swal.fire({
-        icon: 'success',
-        title: '活動更新成功！',
-        showConfirmButton: false,
-        timer: 1000
-      });
-      const calendarApi = calendar.value?.getApi();
-      const event = calendarApi?.getEventById(editEventId.value);
-      if (event) {
-        event.setProp("title", editEventTitle.value);
-        event.setStart(`${editEventStartDate.value}T${editEventStartTime.value}`);
-        event.setEnd(`${editEventEndDate.value}T${editEventEndTime.value}`);
-        event.setProp("backgroundColor", editEventColor.value);
-      }
-
-      showEditEventModal.value = false;
-      clearEditEventForm();
+    const calendarApi = calendar.value?.getApi();
+    const event = calendarApi?.getEventById(editEventId.value);
+    if (event) {
+      event.setProp("title", editEventTitle.value);
+      event.setStart(`${editEventStartDate.value}T${editEventStartTime.value}`);
+      event.setEnd(`${editEventEndDate.value}T${editEventEndTime.value}`);
+      event.setProp("backgroundColor", editEventColor.value);
     }
+
+    showEditEventModal.value = false;
+    clearEditEventForm();
   } catch (error) {
     console.error("更新活動失敗", error);
-    Swal.fire({
+    awaitSwal.fire({
       icon: 'error',
       title: '更新活動失敗',
       text: '請稍後再試。',
@@ -366,22 +356,22 @@ const updateEvent = async () => {
 const deleteEvent = async () => {
   if (!editEventId.value) return;
   try {
-    await axios.delete(`http://localhost:8080/api/vendor_admin/calendar/delete/${editEventId.value}`);
+    await activityAdminApi.deleteCalendar(editEventId.value)
+
     const calendarApi = calendar.value?.getApi();
-    const event = calendarApi?.getEventById(editEventId.value);
-    if (event) {
-      event.remove();
-    }
-    clearEditEventForm();
-    showEditEventModal.value = false;
-    Swal.fire({
+    const event = calendarApi?.getEventById(editEventId.value)
+    if (event) event.remove()
+
+    clearEditEventForm()
+    showEditEventModal.value = false
+    await Swal.fire({
       icon: 'success',
       title: '活動已刪除',
       showConfirmButton: true
     });
   } catch (error) {
-    console.error("刪除活動失敗", error);
-    Swal.fire({
+    console.error("刪除活動失敗", error)
+    await Swal.fire({
       icon: 'error',
       title: '刪除活動失敗',
       showConfirmButton: true
