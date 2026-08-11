@@ -325,23 +325,23 @@ const formatReviewDate = (dateString) => {
   )
 }
 
+const getAllPhotos = async () => {
+  try {
+    const urls = await Promise.all(
+      reviewPhotos.value.map(photoId => getImageSrc(photoId))
+    );
+    photoUrls.value = urls;
+  } catch (error) {
+    console.error('圖片加載失敗:', error);
+  }
+};
+
 onMounted(async () => {
   // 等待評論資料抓取完成
   await fetchReviews();
 
-  // 加載圖片
-  try {
-    // 使用 Promise.all 來並行處理所有圖片的請求
-    const urls = await Promise.all(
-      reviewPhotos.value.map(photoId => getImageSrc(photoId))
-    );
-
-    // 將結果儲存到 photoUrls 中
-    photoUrls.value = urls;
-    console.log(photoUrls.value)
-  } catch (error) {
-    console.error('圖片加載失敗:', error);
-  }
+  // 加載所有圖片
+  await getAllPhotos();
 
   // 初始化資料表
   initializeDataTable();
