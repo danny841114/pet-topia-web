@@ -34,7 +34,7 @@
                   <td>
                     <a :href="`/activity/detail/${like.vendorActivity.id}`">{{
                       like.vendorActivity.name
-                    }}</a>
+                      }}</a>
                   </td>
                   <td>{{ like.vendorActivity.activityType.name }}</td>
                   <td>{{ formatDate(like.vendorActivity.startTime) }}</td>
@@ -67,7 +67,7 @@
                   <td>
                     <a :href="`/activity/detail/${review.vendorActivity.id}`">{{
                       review.vendorActivity.name
-                    }}</a>
+                      }}</a>
                   </td>
 
                   <!-- 判斷是否在編輯模式 -->
@@ -126,7 +126,7 @@
                   <td>
                     <a :href="`/activity/detail/${registration.vendorActivity.id}`">{{
                       registration.vendorActivity.name
-                    }}</a>
+                      }}</a>
                   </td>
                   <td>{{ formatDate(registration.registrationTime) }}</td>
                   <td v-if="registration.status == 'confirmed'">成功</td>
@@ -353,10 +353,11 @@ const switchRegistrationPage = () => {
   isRegistrationVisible.value = true
 }
 
-onMounted(() =>
-  getActivityLikes(),
-  getActivityReviews(),
+onMounted(() => {
+  getActivityLikes()
+  getActivityReviews()
   getActivityRegistrations()
+}
 )
 </script>
 

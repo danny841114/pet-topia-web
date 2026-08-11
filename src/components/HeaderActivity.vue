@@ -929,14 +929,14 @@ onMounted(async () => {
   }, 5 * 60 * 1000)
 
   // 組件卸載時清理
-  onUnmounted(() => {
-    window.removeEventListener('profile-updated', handleProfileUpdate)
-    clearInterval(avatarUpdateInterval)
-    // 清理 blob URL
-    if (avatarUrl.value && avatarUrl.value.startsWith('blob:')) {
-      URL.revokeObjectURL(avatarUrl.value)
-    }
-  })
+  // onUnmounted(() => {
+  //   window.removeEventListener('profile-updated', handleProfileUpdate)
+  //   clearInterval(avatarUpdateInterval)
+  //   // 清理 blob URL
+  //   if (avatarUrl.value && avatarUrl.value.startsWith('blob:')) {
+  //     URL.revokeObjectURL(avatarUrl.value)
+  //   }
+  // })
 })
 
 // 修改監聽認證狀態變化

@@ -29,7 +29,7 @@
                   <td>{{ index + 1 }}</td>
                   <td>
                     <a :href="`/vendor/detail/${like.vendorId}`"><span v-if="like.vendorName">{{ like.vendorName
-                    }}</span>
+                        }}</span>
                       <span v-else style="color: #cfcfcf"> 無店家名稱 </span></a>
                   </td>
                   <td>{{ like.vendorCategory }}</td>
@@ -65,7 +65,7 @@
                   <td>{{ index + 1 }}</td>
                   <td>
                     <a :href="`/vendor/detail/${review.vendorId}`"><span v-if="review.vendorName">{{ review.vendorName
-                    }}</span>
+                        }}</span>
                       <span v-else style="color: #cfcfcf"> 無店家名稱 </span></a>
                   </td>
                   <td>{{ review.reviewContent }}</td>
@@ -423,7 +423,10 @@ const closePhoto = () => {
   isPopupPhotoVisible.value = false
 }
 
-onMounted(() => fetchVendorLikes(), fetchVendorReviews())
+onMounted(() => {
+  fetchVendorLikes()
+  fetchVendorReviews()
+})
 </script>
 
 <style scoped>

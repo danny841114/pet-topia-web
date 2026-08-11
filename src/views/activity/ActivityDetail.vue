@@ -521,17 +521,16 @@ const closeImage = () => {
 }
 
 /* 11. 活動報名 */
-
 const isActivityAvalible = async () => {
   // 判斷人數是否達上限，達到上限true，未達上限true
-  const isAvalible = await activityApi.isActivityAvalible(props.activityId)
-  isAvalible.value = isAvalible
+  const res = await activityApi.isActivityAvalible(props.activityId)
+  isAvalible.value = res
 
   // 判斷報名狀態
   const isRegistered = await activityApi.isActivityRegistered(props.activityId, memberId)
 
   // 報名達上限還可以取消報名
-  if (isAvalible == false && isRegistered.action == true) {
+  if (res == false && isRegistered.action == true) {
     isAvalible.value = true
   }
 }
@@ -733,7 +732,7 @@ const submitComment = async () => {
       }
     )
 
-    const result = response.json()
+    const result = await response.json()
 
     if (result.success) {
       const ask = await Swal.fire({
@@ -921,17 +920,19 @@ const copyUrl = () => {
   copyMessage.value = '複製成功'
 }
 
-onMounted(() =>
-  fetchActivityData(),
-  fetchActivityImages(),
-  fetchReviews(),
-  fetchActivities(),
-  getViewCount(),
-  getParticipantCount(),
-  isReviewExisting(),
-  isActivityAvalible(),
-  getRegistractionStatus(),
+onMounted(() => {
+  console.log('活動ID:', props.activityId)
+  fetchActivityData()
+  fetchActivityImages()
+  fetchReviews()
+  fetchActivities()
+  getViewCount()
+  getParticipantCount()
+  isReviewExisting()
+  isActivityAvalible()
+  getRegistractionStatus()
   getLikeStatus()
+}
 )
 </script>
 

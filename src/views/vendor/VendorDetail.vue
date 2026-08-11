@@ -508,6 +508,7 @@ const shuffleList = (array) => {
 const fetchVendorData = async () => {
   try {
     vendor.value = await vendorApi.getVendor(props.vendorId);
+    console.log('test test test test test ',vendor.value)
   } catch (error) {
     console.error('Get vendor data failed:', error)
   }
@@ -1023,7 +1024,7 @@ const closeRate = () => {
 //   loadGoogleMaps()
 // })
 
-onMounted(() =>
+onMounted(() =>{
   fetchVendorData(),
   fetchVendorImageList(),
   fetchVendorReviewList(),
@@ -1033,6 +1034,7 @@ onMounted(() =>
   getActivities(),
   getLikeStatus(),
   fetchAvgRate()
+}
 );
 </script>
 

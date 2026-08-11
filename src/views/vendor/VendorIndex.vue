@@ -351,7 +351,10 @@ const filteredVendors = computed(() => {
 //   }
 // }
 
-onMounted(() => fetchVendorList(), fetchVendorCategory())
+onMounted(() => {
+  fetchVendorList()
+  fetchVendorCategory()
+})
 </script>
 
 <style>

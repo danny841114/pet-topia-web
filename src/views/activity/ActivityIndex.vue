@@ -181,9 +181,10 @@ const formatDate = (dateString) => {
   return `${year}年${month}月${day}日 ${period} ${hours}:${minutes < 10 ? '0' + minutes : minutes}`
 }
 
-onMounted(() =>
-  fetchActivities(),
+onMounted(() => {
+  fetchActivities()
   getActivityTypes()
+}
 )
 </script>
 
