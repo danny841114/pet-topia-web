@@ -343,8 +343,8 @@ watch(filteredEvents, () => {
 })
 
 // 當組件載入時，獲取活動並初始化 DataTables
-onMounted(() => {
-  fetchEvents()
+onMounted(async () => {
+  await fetchEvents()
   initDataTable()
   updateDataTable()
 })
