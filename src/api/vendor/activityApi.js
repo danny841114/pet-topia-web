@@ -24,15 +24,9 @@ export const activityApi = {
 
   // API要修改
   getByKeyword(keyword) {
-    return apiClient.post(
-      `/find`,
-      {
-        keyword: keyword,
-      },
-      {
-        headers: { 'Content-Type': 'application/json' },
-      }
-    )
+    return apiClient.post(`/find`, {
+      keyword,
+    })
   },
 
   getActivityTypes() {
@@ -76,15 +70,9 @@ export const activityApi = {
   },
 
   toggleRegistration(activityId, memberId) {
-    return apiClient.post(
-      `/${activityId}/regist`,
-      {
-        memberId: memberId,
-      },
-      {
-        headers: { 'Content-Type': 'application/json' },
-      }
-    )
+    return apiClient.post(`/${activityId}/regist`, {
+      memberId,
+    })
   },
 
   getPendingMembers(activityId) {
@@ -100,15 +88,9 @@ export const activityApi = {
   },
 
   toggleLike(activityId, memberId) {
-    return apiClient.post(
-      `/${activityId}/like/toggle`,
-      {
-        memberId: memberId,
-      },
-      {
-        headers: { 'Content-Type': 'application/json' },
-      }
-    )
+    return apiClient.post(`/${activityId}/like/toggle`, {
+      memberId,
+    })
   },
 
   getReview(activityId, reviewId) {

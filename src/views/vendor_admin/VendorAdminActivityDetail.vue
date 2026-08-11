@@ -100,7 +100,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth'
-import { activityAdminApi } from '@/api/vendor/activityAdminApi'
+import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 import axios from 'axios';
 import moment from "moment";
 import Swal from 'sweetalert2'
@@ -127,7 +127,7 @@ const imageUrls = ref([]);
 
 const checkTimeConflict = async (vendorId, activityId, startTime, endTime) => {
   try {
-    const res = await activityAdminApi.checkTimeConflict(vendorId, activityId, startTime, endTime);
+    const res = await vendorAdminApi.checkTimeConflict(vendorId, activityId, startTime, endTime);
 
     console.log(res)
 
@@ -201,7 +201,7 @@ function toggleMaxParticipants() {
 async function fetchActivityDetail() {
   const activityId = route.params.id; // 假設你的路由是 /vendor/admin/activity/:id
   try {
-    const data = await activityAdminApi.getActivity(activityId)
+    const data = await vendorAdminApi.getActivity(activityId)
     console.log(data)
 
     vendorActivity.value = data.vendorActivity;

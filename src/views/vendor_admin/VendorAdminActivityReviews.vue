@@ -41,7 +41,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
 import { useAuthStore } from '@/stores/auth'
-import { activityAdminApi } from '@/api/vendor/activityAdminApi.js';
+import { vendorAdminApi } from '@/api/vendor/vendorAdminApi.js';
 import activityreviews from './activityreviews.vue'; // 引入子組件
 import DataTable from 'datatables.net-dt'
 import 'datatables.net-dt/css/dataTables.dataTables.css'
@@ -85,7 +85,7 @@ const initializeDataTable = () => {
 
 const loadActivities = async () => {
   try {
-    activities.value = await activityAdminApi.getActivitiesByUserIdWithoutToken(userId);
+    activities.value = await vendorAdminApi.getActivitiesByUserIdWithoutToken(userId);
     initializeDataTable()
   } catch (error) {
     console.error('Error fetching activities:', error);
@@ -94,7 +94,7 @@ const loadActivities = async () => {
 
 const loadReviews = async (activityId) => {
   try {
-    reviews.value[activityId] = await activityAdminApi.getActivityReviews(activityId);
+    reviews.value[activityId] = await vendorAdminApi.getActivityReviews(activityId);
   } catch (error) {
     console.error('Error fetching reviews:', error);
   }

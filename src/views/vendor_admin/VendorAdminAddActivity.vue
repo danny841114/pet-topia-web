@@ -90,9 +90,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import axios from 'axios'
 import Swal from 'sweetalert2'
-import { activityAdminApi } from '@/api/vendor/activityAdminApi'
+import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 
 const authStore = useAuthStore()
 const userId = authStore.userId
@@ -111,7 +110,7 @@ const imagePreviews = ref([])
 
 const checkTimeConflict = async (vendorId, startTime, endTime) => {
   try {
-    const res = await activityAdminApi.checkTimeConflicts(vendorId, startTime, endTime)
+    const res = await vendorAdminApi.checkTimeConflicts(vendorId, startTime, endTime)
 
     console.log(res)
 
@@ -224,7 +223,7 @@ const submitForm = async () => {
   }
 
   try {
-    await activityAdminApi.addActivity(
+    await vendorAdminApi.addActivity(
       vendorId.value,
       activityName.value,
       activityTypeId.value,
@@ -311,7 +310,7 @@ function toggleMaxParticipants() {
 
 const getActivityTypes = async () => {
   try {
-    activityTypes.value = await activityAdminApi.getActivityTypes();
+    activityTypes.value = await vendorAdminApi.getActivityTypes();
   } catch (e) {
     console.error('獲取活動類型失敗：', e)
   }

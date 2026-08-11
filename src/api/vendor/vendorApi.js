@@ -25,12 +25,9 @@ export const vendorApi = {
   // this API should be modified
   getVendorsByKeyword(keyword) {
     const formData = new FormData()
-
     formData.append('keyword', keyword)
 
-    return apiClient.post(`/find`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    return apiClient.post(`/find`, formData)
   },
 
   getVendorCategories() {
@@ -70,15 +67,9 @@ export const vendorApi = {
   },
 
   toggleLike(vendorId, memberId) {
-    return apiClient.post(
-      `/${vendorId}/like/toggle`,
-      {
-        memberId: memberId,
-      },
-      {
-        headers: { 'Content-Type': 'application/json' },
-      }
-    )
+    return apiClient.post(`/${vendorId}/like/toggle`, {
+      memberId,
+    })
   },
 
   addVendorReview(
@@ -91,21 +82,16 @@ export const vendorApi = {
     reviewPhotos
   ) {
     const formData = new FormData()
-
     formData.append('memberId', memberId)
     formData.append('ratingEnv', ratingEnv)
     formData.append('ratingPrice', ratingPrice)
     formData.append('ratingService', ratingService)
     formData.append('content', content)
-
-    // 確保正確讀取圖片
     reviewPhotos.forEach(({ file }) => {
       formData.append('reviewPhotos', file)
     })
 
-    return apiClient.post(`/${vendorId}/review/add/final`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    return apiClient.post(`/${vendorId}/review/add/final`, formData)
   },
 
   getVendorReview(vendorId, reviewId) {
@@ -127,7 +113,6 @@ export const vendorApi = {
     removeImageList
   ) {
     const formData = new FormData()
-
     formData.append('ratingEnv', ratingEnv)
     formData.append('ratingPrice', ratingPrice)
     formData.append('ratingService', ratingService)
@@ -138,9 +123,7 @@ export const vendorApi = {
       formData.append('reviewPhotos', file)
     })
 
-    return apiClient.put(`/review/${reviewId}/rewrite/final`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    return apiClient.put(`/review/${reviewId}/rewrite/final`, formData)
   },
 
   deleteVendorReview(vendorId, reviewId) {
@@ -165,5 +148,56 @@ export const vendorApi = {
 
   deleteLike(likeId) {
     return apiClient.delete(`/like/${likeId}/delete`)
+  },
+
+  // By Liou
+  getSlogans(vendorId, token) {
+    return apiClient.get(`/${vendorId}/slogans`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  },
+
+  // By Liou
+  updateVendor(
+    vendorId,
+    vendorName,
+    contactEmail,
+    vendorPhone,
+    vendorAddress,
+    vendorDescription,
+    contactPerson,
+    vendorTaxIdNumber,
+    category,
+    deletedImageIds,
+    imagePreviews,
+    logoInput
+  ) {
+    const formData = new FormData()
+
+    formData.append('vendorId', vendorId) // 與path重複
+    formData.append('vendorName', vendorName)
+    formData.append('contactEmail', contactEmail)
+    formData.append('vendorPhone', vendorPhone)
+    formData.append('vendorAddress', vendorAddress)
+    formData.append('vendorDescription', vendorDescription)
+    formData.append('contactPerson', contactPerson)
+    formData.append('vendorTaxIdNumber', vendorTaxIdNumber)
+    formData.append('category', category)
+
+    deletedImageIds.forEach((imgId) => {
+      formData.append('deletedImageIds', imgId)
+    })
+
+    imagePreviews.forEach((img) => {
+      formData.append('files', img.file)
+    })
+
+    if (logoInput.length > 0) {
+      formData.append('vendorLogoImg', logoInput.files[0])
+    }
+
+    return apiClient.put(`/update/${vendorId}`, formData)
   },
 }

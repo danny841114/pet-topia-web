@@ -13,7 +13,7 @@ apiClient.interceptors.response.use(
   }
 )
 
-export const activityAdminApi = {
+export const vendorAdminApi = {
   getActivityReviews(activityId) {
     return apiClient.get(`/activityreviews`, {
       params: {
@@ -36,7 +36,7 @@ export const activityAdminApi = {
   getActivitiesByUserId(userId, token) {
     return apiClient.get(`/activity/${userId}`, {
       headers: {
-        Authorization: `Bearer ${token}}`,
+        Authorization: `Bearer ${token}`,
       },
     })
   },
@@ -127,7 +127,6 @@ export const activityAdminApi = {
     imagePreviews
   ) {
     const formdata = new FormData()
-
     formdata.append('vendor_id', vendorId)
     formdata.append('activity_name', activityName)
     formdata.append('activity_type_id', activityTypeId)
@@ -148,6 +147,7 @@ export const activityAdminApi = {
     return apiClient.get(`/activity/allTypes`)
   },
 
+  // API要修改
   updateEvent(id, eventId, eventTitle, startTime, endTime, color) {
     return apiClient.put(`/calendar/update/${eventId}`, null, {
       params: {
@@ -167,18 +167,13 @@ export const activityAdminApi = {
 
   addCalendar(vendorId, eventTitle, startTime, endTime, color) {
     const formData = new FormData()
-
     formData.append('vendorId', vendorId)
     formData.append('eventTitle', eventTitle)
     formData.append('start_time', startTime)
     formData.append('end_time', endTime)
     formData.append('color', color)
 
-    return apiClient.post(`/calendar/add`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
+    return apiClient.post(`/calendar/add`, formData)
   },
 
   // API 需要修改
@@ -195,5 +190,32 @@ export const activityAdminApi = {
 
   deleteCalendar(eventId) {
     return apiClient.delete(`/calendar/delete/${eventId}`)
+  },
+
+  getCertificationByVendorId(vendorId) {
+    return apiClient.get(`/certification/${vendorId}`)
+  },
+
+  isCertificationExisiting(vendorId, tagId) {
+    return apiClient.get(`/certification/exists/${vendorId}/${tagId}`)
+  },
+
+  addCertification(vendorId, tagId) {
+    const formData = new FormData()
+    formData.append('vendorId', vendorId)
+    formData.append('tagId', tagId)
+
+    return apiClient.post(`/certification/add`, formData)
+  },
+
+  deleteCertification(recordId) {
+    return apiClient.get(`/certification/delete/${recordId}`)
+  },
+
+  getProfile(vendorId, token) {
+    return apiClient.get(`/profile`, {
+      params: vendorId,
+      headers: { Authorization: `Bearer ${token}` },
+    })
   },
 }

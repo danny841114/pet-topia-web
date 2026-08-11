@@ -148,10 +148,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import axios from 'axios'
-// import VendorAdminSidebar from '@/components/VendorAdminSidebar.vue';
 import { useAuthStore } from '@/stores/auth'
+import { vendorApi } from '@/api/vendor/vendorApi'
+import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
+import { adminApi } from '@/api/vendor/AdminApi'
 import Swal from 'sweetalert2'
+
 const authStore = useAuthStore()
 const userId = authStore.userId
 
@@ -209,7 +211,6 @@ const updateDemoData = () => {
   vendor.value.contactPerson = '陳小姐';
   vendor.value.taxidNumber = '1234567789';
 };
-
 
 const deleteImage = (imageId, event) => {
   if (event) {
@@ -313,150 +314,104 @@ const previewImage = (event) => (vendorLogoImg.value = URL.createObjectURL(event
 
 // 更新店家資料
 const updateVendor = async () => {
+  if (!validateForm()) return; // 如果验证失败，停止提交
 
-  if (!validateForm()) {
-
-    return; // 如果验证失败，停止提交
-  }
-  const formData = new FormData()
-  formData.append('vendorId', vendor.value.id)
-  formData.append('vendorName', vendor.value.name)
-  formData.append('contactEmail', vendor.value.contactEmail)
-  formData.append('vendorPhone', vendor.value.phone)
-  formData.append('vendorAddress', vendor.value.address)
-  formData.append('vendorDescription', vendor.value.description)
-  formData.append('contactPerson', vendor.value.contactPerson)
-  formData.append('vendorTaxIdNumber', vendor.value.taxidNumber)
-  formData.append('category', vendor.value.vendorCategory.id)
-
-  // 处理要删除的图片 ID
-  deletedImageIds.value.forEach((id) => {
-    formData.append('deletedImageIds', id)
-  })
-
-  console.log(imagePreviews.value)
-  // 附加新上传的图片
-  imagePreviews.value.forEach((file) => {
-    console.log(file.file)
-    formData.append('files', file.file)
-  })
-  // 檢查是否有選擇 logo 圖片
-  const logoInput = imageUpload.value
-  if (logoInput.files.length > 0) {
-    formData.append('vendorLogoImg', logoInput.files[0])
-  }
-  console.log('formData', formData)
-  const url = `http://localhost:8080/api/vendor/update/${vendor.value.id}`
   try {
-    const response = await axios.put(url, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    const res = await vendorApi.updateVendor(
+      vendor.value.id,
+      vendor.value.name,
+      vendor.value.contactEmail,
+      vendor.value.phone,
+      vendor.value.address,
+      vendor.value.description,
+      vendor.value.contactPerson,
+      vendor.value.taxidNumber,
+      vendor.value.vendorCategory.id,
+      deletedImageIds.value,
+      imagePreviews.value,
+      imageUpload.value
+    )
+
+    console.log(res)
+
+    await Swal.fire({
+      icon: 'success',
+      title: '商家資料更新成功',
+      confirmButtonText: 'OK'
     })
-    console.log(response.data)
-    if (response.data.success) {
-      Swal.fire({
-        icon: 'success',
-        title: '商家資料更新成功',
-        confirmButtonText: 'OK'
-      }).then(() => {
-        window.location.reload(); // 成功后重新加载页面
-      });
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: '更新失敗',
-        text: '請稍後再試。',
-        confirmButtonText: 'OK'
-      });
-    }
+
+    window.location.reload(); // 成功后重新加载页面
   } catch (error) {
     console.error('更新商家資料時發生錯誤：', error)
+
+    await Swal.fire({
+      icon: 'error',
+      title: '更新失敗',
+      text: '請稍後再試。',
+      confirmButtonText: 'OK'
+    });
   }
 }
 
 onMounted(async () => {
-
+  const token = localStorage.getItem('token')
   try {
-    const email = encodeURIComponent('1234@gmail.com') // 將 email 編碼
-    const password = '1234'
-    const url = `http://localhost:8080/api/vendor_admin/profile?id=${vendor.value.id}` //mail的@會跑掉，所以後端先改用id
-
     // 獲取商家資料和類別
-    const response = await axios.get(url, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    console.log(response.data)
+    const res = await vendorAdminApi.getProfile(vendor.value.id, token)
+    console.log(res)
+
     // 當返回成功時，將資料存入 `vendor` 和 `allcategory`
-    vendor.value = response.data.vendor
-    allcategory.value = response.data.allcategory
+    vendor.value = res.vendor
+    allcategory.value = res.allcategory
     console.log(allcategory.value)
     // 确保 vendor.category 被正确赋值
-    if (response.data.vendor) {
-      vendor.value = response.data.vendor
+    if (res.vendor) {
+      vendor.value = res.vendor
       // 赋一个默认值，防止 vendorCategory 为 undefined
-      vendor.value.vendorCategory = response.data.vendor.vendorCategory || { id: null, name: '' }
+      vendor.value.vendorCategory = res.vendor.vendorCategory || { id: null, name: '' }
     }
 
     // 處理 base64 格式的圖片
-    if (response.data.vendorLogoImgBase64) {
-      vendorLogoImg.value = response.data.vendorLogoImgBase64
+    if (res.vendorLogoImgBase64) {
+      vendorLogoImg.value = res.vendorLogoImgBase64
     } else {
       vendorLogoImg.value = ''
     }
 
     // 格式化註冊日期
-    const formattedDate = formatReviewDate(response.data.vendor.registrationDate)
+    const formattedDate = formatReviewDate(res.vendor.registrationDate)
     vendor.value.registrationDate = formattedDate
-  } catch (error) {
-    console.error('獲取商家資料時發生錯誤：', error)
+  } catch (e) {
+    console.error('獲取商家資料時發生錯誤：', e)
   }
 
   try {
-    const url = `http://localhost:8080/profile_photos/ids?vendorId=${vendor.value.id}`
-    const response = await axios.get(url, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
+    const res = await adminApi.getProfilePhotos(vendor.value.id, token)
 
-    if (response.status === 200) {
-      // 根據圖片 ID 請求圖片文件
-      vendorImages.value = await Promise.all(
-        response.data.map(async (imageId) => {
-          try {
-            const imageResponse = await axios.get(`http://localhost:8080/profile_photos/download?photoId=${imageId}`, {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-              },
-              responseType: 'blob'
-            })
-            const imageUrl = URL.createObjectURL(imageResponse.data)
-            return { id: imageId, url: imageUrl }
-          } catch (error) {
-            console.error(`獲取圖片 ${imageId} 失敗：`, error)
-            return { id: imageId, url: null }
-          }
-        })
-      )
-    }
-  } catch (error) {
-    console.error('獲取店家圖片時發生錯誤：', error)
+    // 根據圖片 ID 請求圖片文件
+    vendorImages.value = await Promise.all(
+      res.map(async (imageId) => {
+        try {
+          const imgRes = await adminApi.getProfilePhotoById(imageId, token)
+          const imageUrl = URL.createObjectURL(imgRes)
+          return { id: imageId, url: imageUrl }
+        } catch (e) {
+          console.error(`獲取圖片 ${imageId} 失敗：`, e)
+          return { id: imageId, url: null }
+        }
+      })
+    )
+  } catch (e) {
+    console.error('獲取店家圖片時發生錯誤：', e)
   }
 
   // 假設你有一個 API 請求來獲取標語
-  axios.get(`http://localhost:8080/api/vendor/${vendor.value.id}/slogans`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`
-    }
-  })
-    .then((response) => {
-      console.log(response.data)
-      storeSlogans.value = response.data // 更新標語
-    })
-    .catch((error) => {
-      console.log('取得標語錯誤：', error)
-    })
+  try {
+    storeSlogans.value = await vendorApi.getSlogans(vendor.value.id, token)
+    console.log(storeSlogans.value)
+  } catch (e) {
+    console.log('取得標語錯誤：', e)
+  }
 })
 </script>
 

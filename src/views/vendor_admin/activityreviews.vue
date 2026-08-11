@@ -21,7 +21,7 @@
 
 <script setup>
 import Swal from 'sweetalert2';
-import { activityAdminApi } from '@/api/vendor/activityAdminApi'
+import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 
 const props = defineProps({
   activity: Object,
@@ -30,7 +30,7 @@ const props = defineProps({
 
 const loadReviews = async () => {
   try {
-    props.reviews[props.activity.id] = await activityAdminApi.getActivityReviews(props.activity.id)
+    props.reviews[props.activity.id] = await vendorAdminApi.getActivityReviews(props.activity.id)
   } catch (error) {
     console.error('Error fetching reviews:', error);
   }
@@ -38,7 +38,7 @@ const loadReviews = async () => {
 
 const deleteReview = async (reviewId, activityId) => {
   try {
-    const response = await activityAdminApi.deleteActivityReview(activityId, reviewId)
+    const response = await vendorAdminApi.deleteActivityReview(activityId, reviewId)
 
     if (response.data.message === '刪除成功') {
       Swal.fire({

@@ -34,7 +34,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { activityAdminApi } from '@/api/vendor/activityAdminApi'
+import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 import axios from 'axios'
 import * as XLSX from 'xlsx'
 import Swal from 'sweetalert2'
@@ -51,7 +51,7 @@ let dataTableInstance = null
 
 const exportToExcel = async () => {
   try {
-    const activities = await activityAdminApi.getTop5Activities();
+    const activities = await vendorAdminApi.getTop5Activities();
 
     if (!activities || activities.length === 0) {
       Swal.fire({
@@ -93,7 +93,7 @@ const exportToExcel = async () => {
 const fetchEvents = async () => {
   try {
     const token = localStorage.getItem('token');
-    const res = await activityAdminApi.getActivitiesByUserId(userId, token);
+    const res = await vendorAdminApi.getActivitiesByUserId(userId, token);
     events.value = res || []
     console.log('活動數據:', response.data)
     await loadEventImages()

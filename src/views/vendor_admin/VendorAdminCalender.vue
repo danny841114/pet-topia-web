@@ -54,8 +54,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth'
-import { activityAdminApi } from '@/api/vendor/activityAdminApi';
-import axios from 'axios';
+import { vendorAdminApi } from '@/api/vendor/vendorAdminApi';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -137,8 +136,8 @@ const calendarOptions = ref({
   },
   eventDrop: async (info) => {
     try {
-      await activityAdminApi.updateEvent(
-        updatedEvent.eventId,
+      await vendorAdminApi.updateEvent(
+        updatedEvent.eventId, // somewhere wrong
         info.event.id,
         info.event.title,
         moment(info.event.start).format("YYYY-MM-DDTHH:mm"),
@@ -165,7 +164,7 @@ const calendarOptions = ref({
 
 const loadEvents = async () => {
   try {
-    events.value = activityAdminApi.getCalendarByVendor(vendorId)
+    events.value = vendorAdminApi.getCalendarByVendor(vendorId)
 
     const calendarApi = calendar.value?.getApi();
     if (calendarApi) {
@@ -233,7 +232,7 @@ const addEvent = async () => {
       ? `${eventEndDate.value}T${eventEndTime.value}`
       : `${eventStartDate.value}T${eventStartTime.value}`
 
-    const res = await activityAdminApi.addCalendar(
+    const res = await vendorAdminApi.addCalendar(
       vendorId,
       eventTitle.value,
       startTime,
@@ -316,7 +315,7 @@ const updateEvent = async () => {
   }
 
   try {
-    const res = await activityAdminApi.updateCalendar(
+    const res = await vendorAdminApi.updateCalendar(
       editEventId.value,
       editEventTitle.value,
       `${editEventStartDate.value}T${editEventStartTime.value}`,
@@ -356,7 +355,7 @@ const updateEvent = async () => {
 const deleteEvent = async () => {
   if (!editEventId.value) return;
   try {
-    await activityAdminApi.deleteCalendar(editEventId.value)
+    await vendorAdminApi.deleteCalendar(editEventId.value)
 
     const calendarApi = calendar.value?.getApi();
     const event = calendarApi?.getEventById(editEventId.value)

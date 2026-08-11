@@ -130,8 +130,7 @@ import 'datatables.net-dt/css/dataTables.dataTables.css'
 import { onMounted, ref, nextTick, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { Chart as ChartJS, LinearScale, BarController, BarElement, CategoryScale, Title, Tooltip, Legend, PieController, LineController } from 'chart.js';
-import { activityAdminApi } from '@/api/vendor/activityAdminApi'
-import axios from 'axios';
+import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import * as XLSX from 'xlsx';
 import DataTable from 'datatables.net-dt'
@@ -268,7 +267,7 @@ watch(registerFilter, async () => {
 });
 
 const fetchRegistration = async () => {
-  activityAdminApi.getActivityRegistrations(activityId)
+  vendorAdminApi.getActivityRegistrations(activityId)
     .then(response => {
       console.log('獲取的活動報名:', response.data);  // 應該是評論數組
       registers.value = response.data;
@@ -562,17 +561,17 @@ const handleSubmit = async () => {
   try {
     if (operationType.value === 'confirm') {
       // 执行确认操作
-      await activityAdminApi.acceptRegister(selectedRegister.value.id)
+      await vendorAdminApi.acceptRegister(selectedRegister.value.id)
       selectedRegister.value.status = "confirmed";
     } else if (operationType.value === 'cancel') {
       // 执行取消操作
-      await activityAdminApi.rejectRegister(selectedRegister.value.id)
+      await vendorAdminApi.rejectRegister(selectedRegister.value.id)
       selectedRegister.value.status = "canceled";
     }
 
     // 发送通知
     const token = localStorage.getItem('token');
-    await activityAdminApi.notifyMember(
+    await vendorAdminApi.notifyMember(
       selectedRegister.value.member.id,
       activityId,
       notificationTitle.value,
@@ -620,16 +619,16 @@ const handleBatchSubmit = async () => {
   try {
     const requests = selectedRegisters.value.map(async (register) => {
       if (operationType.value === 'confirm') {
-        await activityAdminApi.acceptRegister(register.id)
+        await vendorAdminApi.acceptRegister(register.id)
         register.status = "confirmed";
       } else if (operationType.value === 'cancel') {
-        await activityAdminApi.rejectRegister(register.id)
+        await vendorAdminApi.rejectRegister(register.id)
         register.status = "canceled";
       }
 
       // 發送通知
       const token = localStorage.getItem('token');
-      return activityAdminApi.notifyMember(
+      return vendorAdminApi.notifyMember(
         register.member.id,
         register.vendorActivity.id,
         notificationTitle.value,
@@ -649,7 +648,7 @@ const handleBatchSubmit = async () => {
 const deleteRegistration = async (registerId) => {
   // showModal("确定要刪除该报名吗？", async () => {
   try {
-    activityAdminApi.deleteRegister(registerId)
+    vendorAdminApi.deleteRegister(registerId)
       .then(() => {
         // 先销毁 DataTable（如果已初始化）
         if (dataTable) {

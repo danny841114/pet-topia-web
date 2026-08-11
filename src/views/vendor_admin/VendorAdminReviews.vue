@@ -100,17 +100,12 @@ const authStore = useAuthStore()
 const userId = authStore.userId
 // 計算平均評分
 const calculateAverageRating = (review) => {
-
   return ((review.ratingEnvironment + review.ratingPrice + review.ratingService) / 3).toFixed(1)
 }
 
-
-
 const fetchReviews = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/vendor_admin/review?vendorId=${userId}`, {
-      headers: { 'Accept': 'application/json' }
-    })
+    const response = await axios.get(`http://localhost:8080/api/vendor_admin/review?vendorId=${userId}`)
     ratingsData.value.reviews = response.data
     console.log("獲取的評論資料:", ratingsData.value.reviews)
 
