@@ -19,9 +19,6 @@ export const vendorAdminApi = {
       params: {
         vendorActivityId: activityId,
       },
-      headers: {
-        Accept: 'application/json',
-      },
     })
   },
 
@@ -75,9 +72,6 @@ export const vendorAdminApi = {
       params: {
         activityId,
       },
-      headers: {
-        Accept: 'application/json',
-      },
     })
   },
 
@@ -107,11 +101,7 @@ export const vendorAdminApi = {
   },
 
   getActivitiesByUserIdWithoutToken(userId) {
-    return apiClient.get(`/activity/${userId}`, {
-      headers: {
-        Accept: `application/json`,
-      },
-    })
+    return apiClient.get(`/activity/${userId}`)
   },
 
   addActivity(
@@ -209,7 +199,7 @@ export const vendorAdminApi = {
   },
 
   deleteCertification(recordId) {
-    return apiClient.get(`/certification/delete/${recordId}`)
+    return apiClient.delete(`/certification/delete/${recordId}`)
   },
 
   getProfile(vendorId, token) {
@@ -217,5 +207,13 @@ export const vendorAdminApi = {
       params: vendorId,
       headers: { Authorization: `Bearer ${token}` },
     })
+  },
+
+  getVendorReviews(vendorId) {
+    return apiClient.get(`/review`, { params: { vendorId } })
+  },
+
+  deleteVendorReview(reviewId) {
+    return apiClient.delete(`/review/delete/${reviewId}`)
   },
 }

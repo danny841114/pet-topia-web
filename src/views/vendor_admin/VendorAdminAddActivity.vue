@@ -90,8 +90,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import Swal from 'sweetalert2'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
+import Swal from 'sweetalert2'
 
 const authStore = useAuthStore()
 const userId = authStore.userId

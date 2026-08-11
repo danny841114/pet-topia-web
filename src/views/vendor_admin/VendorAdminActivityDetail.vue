@@ -101,7 +101,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
-import axios from 'axios';
+import { adminApi } from '@/api/vendor/AdminApi';
 import moment from "moment";
 import Swal from 'sweetalert2'
 
@@ -127,7 +127,12 @@ const imageUrls = ref([]);
 
 const checkTimeConflict = async (vendorId, activityId, startTime, endTime) => {
   try {
-    const res = await vendorAdminApi.checkTimeConflict(vendorId, activityId, startTime, endTime);
+    const res = await vendorAdminApi.checkTimeConflict(
+      vendorId,
+      activityId,
+      startTime,
+      endTime
+    );
 
     console.log(res)
 
@@ -239,24 +244,15 @@ async function fetchActivityDetail() {
 
 // 下載圖片的函式
 const loadImages = () => {
-  vendorActivityImageIdList.value.forEach((imageId, index) => {
-    axios.get(`http://localhost:8080/photos/download`, {
-      params: {
-        photoId: imageId
-      },
-      headers: {
-        'Authorization': `Bearer ${userToken}`
-      },
-      responseType: 'blob'  // 以二進位格式下載圖片
+  try {
+    vendorActivityImageIdList.value.forEach(async (imageId, index) => {
+      const res = await adminApi.getActivityPhotoById(imageId, userToken)
+      const url = URL.createObjectURL(res);
+      imageUrls.value[index] = url;
     })
-      .then(response => {
-        const url = URL.createObjectURL(response.data);  // 創建圖片 URL
-        imageUrls.value[index] = url;  // 更新圖片的 URL
-      })
-      .catch(error => {
-        console.error('圖片下載失敗', error);
-      });
-  });
+  } catch (e) {
+    console.error('圖片下載失敗', e);
+  }
 };
 
 // 处理文件上传预览
@@ -338,7 +334,12 @@ const submitForm = async () => {
     console.log(formattedStartTime, formattedEndTime);
 
     // 檢查時間衝突
-    const conflictExists = await checkTimeConflict(vendorId, activityId, formattedStartTime, formattedEndTime);
+    const conflictExists = await checkTimeConflict(
+      vendorId,
+      activityId,
+      formattedStartTime,
+      formattedEndTime
+    );
 
     // 如果有衝突，直接返回，不提交表單
     if (conflictExists) {
@@ -353,50 +354,38 @@ const submitForm = async () => {
     }
   }
 
-  const formData = new FormData();
-  formData.append('vendor_id', 1);
-  formData.append('activity_id', vendorActivity.value.id);
-  formData.append('activity_name', vendorActivity.value.name);
-  formData.append('activity_type_id', vendorActivity.value.activityType.id);
-  formData.append('activity_description', vendorActivity.value.description);
-  formData.append('activity_address', vendorActivity.value.address);
-  formData.append('start_time', vendorActivity.value.startTime);
-  formData.append('end_time', vendorActivity.value.endTime);
-  formData.append('is_registration_required', vendorActivity.value.isRegistrationRequired);
-  formData.append('max_participants', activityPeopleNumber.value.maxParticipants);
+  try {
+    await adminApi.updateActivity(
+      1, // 疑似錯誤
+      vendorActivity.value.id,
+      vendorActivity.value.name,
+      vendorActivity.value.activityType.id,
+      vendorActivity.value.description,
+      vendorActivity.value.address,
+      vendorActivity.value.startTime,
+      vendorActivity.value.endTime,
+      vendorActivity.value.isRegistrationRequired,
+      activityPeopleNumber.value.maxParticipants,
+      deletedImageIds.value,
+      imagePreviews.value
+    )
 
-  // 附加已删除的图片 ID
-  deletedImageIds.value.forEach(id => formData.append('deletedImageIds', id));
-
-  // 附加新上传的图片
-  imagePreviews.value.forEach(file => formData.append('files', file.file));
-
-  axios({
-    method: 'post',
-    url: 'http://localhost:8080/api/vendor_activity/update',
-    data: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  })
-    .then(response => {
-      Swal.fire({
-        icon: 'success',
-        title: '更新成功',
-        showConfirmButton: false,
-        timer: 1000
-      }).then(() => {
-        window.location.reload()
-      })
+    await Swal.fire({
+      icon: 'success',
+      title: '更新成功',
+      showConfirmButton: false,
+      timer: 1000
     })
-    .catch(error => {
-      Swal.fire({
-        icon: 'error',
-        title: '更新失敗',
-        text: '請稍後再試或檢查表單資料',
-        confirmButtonText: 'OK'
-      })
-    });
+
+    window.location.reload()
+  } catch (e) {
+    await Swal.fire({
+      icon: 'error',
+      title: '更新失敗',
+      text: '請稍後再試或檢查表單資料',
+      confirmButtonText: 'OK'
+    })
+  }
 }
 
 // 页面加载时初始化状态

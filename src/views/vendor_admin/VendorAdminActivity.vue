@@ -35,7 +35,7 @@ import { nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
-import axios from 'axios'
+import { adminApi } from '@/api/vendor/AdminApi'
 import * as XLSX from 'xlsx'
 import Swal from 'sweetalert2'
 import DataTable from 'datatables.net-dt'
@@ -54,12 +54,13 @@ const exportToExcel = async () => {
     const activities = await vendorAdminApi.getTop5Activities();
 
     if (!activities || activities.length === 0) {
-      Swal.fire({
+      await Swal.fire({
         icon: 'info',
         title: '沒有活動數據可匯出',
         text: '請確認目前有活動資料',
         confirmButtonText: '確定'
       })
+
       return
     }
 
@@ -77,10 +78,10 @@ const exportToExcel = async () => {
 
     // 下載 Excel
     XLSX.writeFile(wb, '熱門活動報表.xlsx')
-  } catch (error) {
-    console.error('匯出失敗', error)
+  } catch (e) {
+    console.error('匯出失敗', e)
 
-    Swal.fire({
+    await Swal.fire({
       icon: 'error',
       title: '匯出失敗',
       text: '請檢查 API 是否正常',
@@ -95,59 +96,41 @@ const fetchEvents = async () => {
     const token = localStorage.getItem('token');
     const res = await vendorAdminApi.getActivitiesByUserId(userId, token);
     events.value = res || []
-    console.log('活動數據:', response.data)
+    console.log('活動數據:', res)
     await loadEventImages()
-  } catch (error) {
-    console.error('獲取活動數據失敗', error)
+  } catch (e) {
+    console.error('獲取活動數據失敗', e)
     events.value = []
   }
 }
 
-// 获取活动图片
 // API prefix is different
 const loadEventImages = async () => {
   for (let event of events.value) {
     try {
-      let response = await axios.get(`http://localhost:8080/photos/ids`, {
-        params: {
-          vendorActivityId: event.id
-        },
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
+      const token = localStorage.getItem('token')
+      const imageIds = await adminApi.getActivityPhotos(event.id)
 
-      let imageIds = response.data
       if (imageIds.length > 0) {
         event.imageUrl = await getImageBlob(imageIds[0]) // 獲取圖片 Blob 並轉換
       } else {
         event.imageUrl = null
       }
-    } catch (error) {
-      console.error('獲取活動圖片失敗', error)
+    } catch (e) {
+      console.error('獲取活動圖片失敗', e)
       event.imageUrl = null // 如果获取失败，设置为默认图片
     }
   }
 }
 
-// 使用 axios 獲取圖片的二進制數據，並轉換成 Blob URL
 // API prefix is different
 const getImageBlob = async (photoId) => {
   try {
-    let response = await axios.get(`http://localhost:8080/photos/download`, {
-      params: {
-        vendorActivityId: photoId
-      },
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      responseType: 'blob'  // 設置返回的數據格式為 blob
-    })
-
-    // 創建一個 Blob URL
-    return URL.createObjectURL(response.data)
-  } catch (error) {
-    console.error('圖片下載失敗', error)
+    const token = localStorage.getItem('token')
+    const res = await adminApi.getActivityPhotoById(photoId, token)
+    return URL.createObjectURL(res)
+  } catch (e) {
+    console.error('圖片下載失敗', e)
     return 'https://via.placeholder.com/100' // 預設圖片
   }
 }
@@ -184,17 +167,8 @@ const getEventImageUrl = async (eventId) => {
 
   // 如果缓存没有，从服务器请求
   try {
-    // 请求图片 ID 列表
-    const response = await axios.get(`http://localhost:8080/photos/ids`, {
-      params: {
-        vendorActivityId: eventId
-      },
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-
-    const imageIds = response.data
+    const token = localStorage.getItem('token')
+    const imageIds = await adminApi.getActivityPhotos(eventId, token)
     const firstImageId = imageIds.length > 0 ? imageIds[0] : null
 
     if (firstImageId) {
@@ -352,14 +326,14 @@ const updateDataTable = async () => {
 // 刪除活動
 const deleteEvent = async (activityId) => {
   try {
-    await axios.delete(`http://localhost:8080/${activityId}`)
+    await adminApi.deleteActivity(activityId)
     events.value = events.value.filter((event) => event.id !== activityId)
 
     // 更新 DataTable
     fetchEvents()
     initDataTable()
-  } catch (error) {
-    console.error('刪除活動失敗', error)
+  } catch (e) {
+    console.error('刪除活動失敗', e)
   }
 }
 
@@ -369,9 +343,8 @@ watch(filteredEvents, () => {
 })
 
 // 當組件載入時，獲取活動並初始化 DataTables
-onMounted(async () => {
-  await fetchEvents()
-
+onMounted(() => {
+  fetchEvents()
   initDataTable()
   updateDataTable()
 })

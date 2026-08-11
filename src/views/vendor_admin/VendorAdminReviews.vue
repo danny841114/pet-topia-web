@@ -75,17 +75,19 @@
 
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue'
-import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
+import { adminApi } from '@/api/vendor/AdminApi'
+import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 import { Chart as ChartJS, LinearScale, BarController, BarElement, CategoryScale, Title, Tooltip, Legend, ArcElement } from 'chart.js'
 import DataTable from 'datatables.net-dt'
-import 'datatables.net-dt/css/dataTables.dataTables.css'
 import Swal from 'sweetalert2'
+import 'datatables.net-dt/css/dataTables.dataTables.css'
 ChartJS.register(LinearScale, ArcElement, BarController, BarElement, CategoryScale, Title, Tooltip, Legend)
 
-const ratingsData = ref({ reviews: [] })
-const overallRating = ref('-')
 let myChart = null
 let dataTable = null
+const ratingsData = ref({ reviews: [] })
+const overallRating = ref('-')
 const reviews = ref([]);
 const photoUrls = ref([]);
 const reviewDetailVisible = ref(false)
@@ -95,9 +97,9 @@ const photoModalVisible = ref(false)
 const selectedPhoto = ref('')
 const searchQuery = ref('')
 const filteredReviews = ref([])
-import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 const userId = authStore.userId
+
 // 計算平均評分
 const calculateAverageRating = (review) => {
   return ((review.ratingEnvironment + review.ratingPrice + review.ratingService) / 3).toFixed(1)
@@ -105,15 +107,12 @@ const calculateAverageRating = (review) => {
 
 const fetchReviews = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/vendor_admin/review?vendorId=${userId}`)
-    ratingsData.value.reviews = response.data
+    ratingsData.value.reviews = await vendorAdminApi.getVendorReviews(userId)
     console.log("獲取的評論資料:", ratingsData.value.reviews)
-
 
     calculateOverallRating()
     updateChart()
     initializeDataTable()  // 初始化 DataTable
-
   } catch (error) {
     console.error('獲取評論資料失敗:', error)
   }
@@ -156,7 +155,12 @@ const updateChart = () => {
       datasets: [{
         label: '平均評分',
         data: [avgEnv, avgPrice, avgService, avgOverall],
-        backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 159, 64, 0.5)', 'rgba(75, 192, 192, 0.5)', 'rgba(153, 102, 255, 0.5)'],
+        backgroundColor: [
+          'rgba(54, 162, 235, 0.5)',
+          'rgba(255, 159, 64, 0.5)',
+          'rgba(75, 192, 192, 0.5)',
+          'rgba(153, 102, 255, 0.5)'
+        ],
         borderWidth: 1
       }]
     },
@@ -206,7 +210,7 @@ watch(ratingsData, () => {
 })
 
 // 顯示評論詳情
-const toggleReviewDetails = (review) => {
+const toggleReviewDetails = async (review) => {
   if (selectedReview.value && selectedReview.value.id === review.id) {
     reviewDetailVisible.value = false
     selectedReview.value = null
@@ -217,121 +221,93 @@ const toggleReviewDetails = (review) => {
   selectedReview.value = review
   reviewDetailVisible.value = true
 
+  const token = localStorage.getItem('token')
+
   // 獲取評論照片
-  axios.get(`http://localhost:8080/review_photos/ids?vendorReviewId=${review.id}`, {
-    headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-  })
-    .then(async (response) => {
-      reviewPhotos.value = response.data
-      console.log('評論照片:', reviewPhotos.value)
+  try {
+    reviewPhotos.value = await adminApi.getVendorReviewPhotos(review.id, token)
+    console.log('評論照片:', reviewPhotos.value)
 
-      try {
-        // 使用 Promise.all 來並行處理所有圖片的請求
-        const urls = await Promise.all(
-          reviewPhotos.value.map(photoId => getImageSrc(photoId))
-        );
+    const urls = await Promise.all(
+      reviewPhotos.value.map(photoId => getImageSrc(photoId))
+    );
 
-        // 將結果儲存到 photoUrls 中
-        photoUrls.value = urls;
-        console.log('圖片 URL:', photoUrls.value)
-      } catch (error) {
-        console.error('圖片加載失敗:', error);
-      }
-    })
-    .catch(error => {
-      console.error('獲取評論照片失敗:', error)
-    })
+    photoUrls.value = urls;
+    console.log('圖片 URL:', photoUrls.value)
+  } catch (e) {
+    console.error('獲取評論照片失敗:', e)
+  }
 }
 
-
-async function getImageSrc(photoId) {
+const getImageSrc = async (photoId) => {
   try {
-    const response = await axios.get(`http://localhost:8080/review_photos/download?photoId=${photoId}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      responseType: 'blob',  // 以 blob 形式處理圖片
-    });
-    const url = URL.createObjectURL(response.data);  // 創建 blob URL
-    return url;
+    const token = localStorage.getItem('token')
+    const res = await adminApi.getVendorReviewPhotoById(photoId, token)
+    return URL.createObjectURL(res);  // 創建 blob URL
   } catch (error) {
     console.error('圖片加載失敗', error);
   }
 }
 
 // 顯示圖片放大視窗
-const showPhotoModal = (photoId) => {
-  // 設定圖片下載的 URL 並添加 Authorization header
-  const photoUrl = `http://localhost:8080/review_photos/download?photoId=${photoId}`;
-
-  // 使用 axios 获取图片内容（可根据需求进行调整）
-  axios.get(photoUrl, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`
-    },
-    responseType: 'blob'  // 确保响应为二进制数据（例如图片）
-  })
-    .then(response => {
-      // 你可以在这里处理成功获取的图片数据
-      const imageBlob = response.data;
-      const imageUrl = URL.createObjectURL(imageBlob);
-      selectedPhoto.value = imageUrl;
-      photoModalVisible.value = true;
-    })
-    .catch(error => {
-      console.error('获取图片失败:', error);
-    });
+const showPhotoModal = async (photoId) => {
+  try {
+    const token = localStorage.getItem('token')
+    const imageBlob = await adminApi.getVendorReviewPhotoById(photoId, token)
+    const imageUrl = URL.createObjectURL(imageBlob);
+    selectedPhoto.value = imageUrl;
+    photoModalVisible.value = true;
+  } catch (e) {
+    console.error('獲取圖片失敗:', e);
+  }
 }
 
-
 // 刪除評論
-const deleteReview = (event, reviewId) => {
+const deleteReview = async (event, reviewId) => {
   event.stopPropagation();
 
-  // 使用 SweetAlert2 替代 confirm
-  Swal.fire({
+  const isConfirmed = await Swal.fire({
     title: '確定要刪除此評論嗎？',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonText: '確定',
     cancelButtonText: '取消',
-  }).then((result) => {
-    if (!result.isConfirmed) return;
+  })
 
-    // 发送删除请求
-    axios.delete(`http://localhost:8080/api/vendor_admin/review/delete/${reviewId}`)
-      .then(() => {
-        // 先销毁 DataTable（如果已初始化）
-        if (dataTable) {
-          dataTable.destroy();
-          dataTable = null;  // 确保 DataTable 变量重置
-        }
+  if (!isConfirmed) return;
 
-        // 从本地数据中删除该项
-        ratingsData.value.reviews = ratingsData.value.reviews.filter(review => review.id !== reviewId);
+  try {
+    await vendorAdminApi.deleteVendorReview(reviewId)
 
-        // 等待 Vue DOM 更新后再重新初始化 DataTable
-        nextTick(() => {
-          initializeDataTable();
-        });
+    // 先销毁 DataTable（如果已初始化）
+    if (dataTable) {
+      dataTable.destroy();
+      dataTable = null;  // 确保 DataTable 变量重置
+    }
 
-        // 使用 SweetAlert2 替代 alert
-        Swal.fire({
-          icon: 'success',
-          title: '刪除成功',
-          confirmButtonText: 'OK',
-        });
-      })
-      .catch(() => {
-        // 使用 SweetAlert2 替代 alert
-        Swal.fire({
-          icon: 'error',
-          title: '刪除評論失敗',
-          text: '請稍後再試。',
-          confirmButtonText: 'OK',
-        });
-      });
-  });
+    // 从本地数据中删除该项
+    ratingsData.value.reviews = ratingsData.value.reviews
+      .filter(review => review.id !== reviewId);
+
+    // 等待 Vue DOM 更新后再重新初始化 DataTable
+    nextTick(() => {
+      initializeDataTable();
+    });
+
+    // 使用 SweetAlert2 替代 alert
+    await Swal.fire({
+      icon: 'success',
+      title: '刪除成功',
+      confirmButtonText: 'OK',
+    });
+  } catch (e) {
+    await Swal.fire({
+      icon: 'error',
+      title: '刪除評論失敗',
+      text: '請稍後再試。',
+      confirmButtonText: 'OK',
+    });
+  }
 };
 
 // 格式化日期

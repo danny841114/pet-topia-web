@@ -73,7 +73,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi';
-import axios from 'axios';
+import { adminApi } from '@/api/vendor/AdminApi';
 import Swal from 'sweetalert2'
 
 const authStore = useAuthStore()
@@ -183,9 +183,8 @@ const filteredRecords = computed(() => {
 // 獲取認證標語列表
 const getCertifications = async () => {
   try {
-    const res = await axios.get('http://localhost:8080/api/certification_type/all')
-    console.log(res);
-    certificationTags.value = res;
+    certificationTags.value = await adminApi.getCertifications();
+    console.log(certificationTags.value);
   } catch (e) {
     console.error("獲取認證標語失敗：", e);
   }
