@@ -10,37 +10,48 @@ apiClient.interceptors.response.use(
   (error) => {
     console.error('API Error:', error)
     return Promise.reject(error)
-  }
+  },
 )
 
 export const authApi = {
   sendVerificationCode(email, token) {
     return apiClient.post(
-      `/send-verification`,
+      '/send-verification',
       { email },
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } },
     )
+  },
+
+  // 疑似重複
+  sendVerificationCodeByEmail(email) {
+    return apiClient.post('/local-password/send-verification', { email })
   },
 
   verifyCode(email, code, token) {
     return apiClient.post(
-      `/verify-code`,
+      '/verify-code',
       {
         email,
         code,
       },
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } },
     )
   },
 
   changePassword(email, newPassword, token) {
     return apiClient.post(
-      `/verify-code`,
+      '/change-password',
       {
         email,
         newPassword,
       },
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } },
     )
+  },
+
+  checkEmailStatus(email) {
+    return apiClient.get('/local-password/check', {
+      params: { email },
+    })
   },
 }

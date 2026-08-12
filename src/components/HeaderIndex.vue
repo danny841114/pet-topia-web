@@ -248,7 +248,6 @@
 import { Icon } from '@iconify/vue'
 import { useAuthStore } from '../stores/auth'
 import { computed, onMounted, ref, watch, onUnmounted } from 'vue'
-import axiosInstance from '@/utils/axios'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 

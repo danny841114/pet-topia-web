@@ -67,7 +67,7 @@
                 <div class="text-center">
                   <p class="mb-0">
                     沒收到驗證碼？
-                    <button class="btn btn-link p-0" @click="resendVerification" :disabled="countdown > 0 || isLoading">
+                    <button class="btn btn-link p-0" @click="sendVerification" :disabled="countdown > 0 || isLoading">
                       重新發送
                     </button>
                   </p>
@@ -140,22 +140,19 @@ let countdownTimer = null;
 // 檢查電子郵件的登入方式
 const checkEmailStatus = async () => {
   try {
-    this.isLoading = true;
-    const response = await fetch(`/api/auth/local-password/check?email=${encodeURIComponent(this.email)}`);
-    const data = await response.json();
+    isLoading.value = true;
 
-    if (response.ok) {
-      if (data.canSetupLocalPassword) {
-        provider.value = data.provider;
-      } else {
-        error.value = '此帳號無法設置本地密碼';
-        step.value = 'error';
-      }
+    const encodedEmail = encodeURIComponent(email.value)
+    const data = await authApi.checkEmailStatus(encodedEmail);
+
+    if (data.canSetupLocalPassword) {
+      provider.value = data.provider;
     } else {
-      error.value = data.error || '檢查帳號狀態時發生錯誤';
+      error.value = '此帳號無法設置本地密碼';
+      step.value = 'error';
     }
-  } catch (error) {
-    console.error('檢查電子郵件狀態錯誤:', error);
+  } catch (e) {
+    console.error('檢查電子郵件狀態錯誤:', e);
     error.value = '無法檢查帳號狀態，請稍後再試';
   } finally {
     isLoading.value = false;
@@ -188,34 +185,29 @@ const sendVerification = async () => {
     } else {
       error.value = data.error || '無法發送驗證碼';
     }
-  } catch (error) {
-    console.error('發送驗證碼錯誤:', error);
+  } catch (e) {
+    console.error('發送驗證碼錯誤:', e);
     error.value = '發送驗證碼時發生錯誤，請稍後再試';
   } finally {
     isLoading.value = false;
   }
-
-  startCountdown()
-
-  // 重新發送驗證碼
-  sendVerification()
 }
-
 
 // 啟動倒數計時
 const startCountdown = () => {
   // 清除之前的計時器
-  if (countdownTimer.value) {
-    clearInterval(countdownTimer.value);
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
   }
 
   countdown.value = 60; // 60秒倒數
 
-  this.countdownTimer = setInterval(() => {
+  countdownTimer = setInterval(() => {
     if (countdown.value > 0) {
       countdown.value--;
     } else {
-      clearInterval(countdownTimer.value);
+      clearInterval(countdownTimer);
+      countdownTimer = null;
     }
   }, 1000);
 }
@@ -247,10 +239,11 @@ const verifyCode = async () => {
     const data = await response.json();
 
     if (response.ok && data.verified) {
-      this.message = '驗證成功';
+      message.value = '驗證成功';
       // 清除計時器
-      if (countdownTimer.value) {
-        clearInterval(countdownTimer.value);
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
       }
       // 進入密碼設置階段
       setTimeout(() => {
@@ -260,8 +253,8 @@ const verifyCode = async () => {
     } else {
       error.value = data.error || '驗證碼錯誤';
     }
-  } catch (error) {
-    console.error('驗證驗證碼錯誤:', error);
+  } catch (e) {
+    console.error('驗證驗證碼錯誤:', e);
     error.value = '驗證過程中發生錯誤，請稍後再試';
   } finally {
     isLoading.value = false;
@@ -318,8 +311,8 @@ const setPassword = async () => {
     } else {
       error.value = data.error || '設置密碼失敗';
     }
-  } catch (error) {
-    console.error('設置密碼錯誤:', error);
+  } catch (e) {
+    console.error('設置密碼錯誤:', e);
     error.value = '設置密碼時發生錯誤，請稍後再試';
   } finally {
     isLoading.value = false;
