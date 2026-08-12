@@ -6,7 +6,7 @@
         <div class="profile-container">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0">更改密碼</h2>
-            
+
             <!-- 顯示訊息 -->
             <div v-if="success" class="alert alert-success alert-dismissible fade show" role="alert">
               <i class="fas fa-check-circle"></i>
@@ -26,28 +26,14 @@
             </div>
           </div>
 
-          <form 
-            @submit.prevent="handleSubmit" 
-            class="password-form"
-            :class="{ 'fade-in': !isLoading }"
-            :style="{ visibility: isLoading ? 'hidden' : 'visible' }"
-          >
+          <form @submit.prevent="handleSubmit" class="password-form" :class="{ 'fade-in': !isLoading }"
+            :style="{ visibility: isLoading ? 'hidden' : 'visible' }">
             <div class="form-group">
               <label class="form-label">電子郵件</label>
               <div class="input-group">
-                <input 
-                  type="email" 
-                  class="form-control" 
-                  v-model="form.email" 
-                  required
-                  :disabled="isEmailVerified"
-                >
-                <button 
-                  type="button" 
-                  class="btn btn-primary" 
-                  @click="sendVerificationCode"
-                  :disabled="isEmailVerified || countdown > 0"
-                >
+                <input type="email" class="form-control" v-model="form.email" required :disabled="isEmailVerified">
+                <button type="button" class="btn btn-primary" @click="sendVerificationCode"
+                  :disabled="isEmailVerified || countdown > 0">
                   {{ countdown > 0 ? `${countdown}秒後重試` : '發送驗證碼' }}
                 </button>
               </div>
@@ -56,18 +42,9 @@
             <div class="form-group" v-if="!isEmailVerified">
               <label class="form-label">驗證碼</label>
               <div class="input-group">
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  v-model="form.verificationCode" 
-                  required
-                >
-                <button 
-                  type="button" 
-                  class="btn btn-primary" 
-                  @click="verifyCode"
-                  :disabled="isLoading || !form.verificationCode"
-                >
+                <input type="text" class="form-control" v-model="form.verificationCode" required>
+                <button type="button" class="btn btn-primary" @click="verifyCode"
+                  :disabled="isLoading || !form.verificationCode">
                   {{ isLoading ? '驗證中...' : '驗證' }}
                 </button>
               </div>
@@ -75,30 +52,16 @@
 
             <div class="form-group" v-if="isEmailVerified">
               <label class="form-label">新密碼</label>
-              <input 
-                type="password" 
-                class="form-control" 
-                v-model="form.newPassword" 
-                required
-              >
+              <input type="password" class="form-control" v-model="form.newPassword" required>
             </div>
 
             <div class="form-group" v-if="isEmailVerified">
               <label class="form-label">確認新密碼</label>
-              <input 
-                type="password" 
-                class="form-control" 
-                v-model="form.confirmPassword" 
-                required
-              >
+              <input type="password" class="form-control" v-model="form.confirmPassword" required>
             </div>
 
             <div class="d-grid gap-2 mt-4">
-              <button 
-                type="submit" 
-                class="btn btn-primary" 
-                :disabled="isLoading || !isEmailVerified"
-              >
+              <button type="submit" class="btn btn-primary" :disabled="isLoading || !isEmailVerified">
                 {{ isLoading ? '處理中...' : '更改密碼' }}
               </button>
             </div>
@@ -109,186 +72,133 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { authApi } from '@/api/user/authApi';
 import Swal from 'sweetalert2';
 import ProfileSidebar from '@/components/ProfileSidebar.vue';
 
-export default {
-  name: 'ChangePassword',
-  components: {
-    ProfileSidebar
-  },
-  setup() {
-    const authStore = useAuthStore();
-    const isLoading = ref(false);
-    const isEmailVerified = ref(false);
-    const countdown = ref(0);
+const authStore = useAuthStore();
+const isLoading = ref(false);
+const isEmailVerified = ref(false);
+const countdown = ref(0);
 
-    const form = reactive({
-      email: authStore.user?.email || '',
-      verificationCode: '',
-      newPassword: '',
-      confirmPassword: ''
+const form = reactive({
+  email: authStore.user?.email || '',
+  verificationCode: '',
+  newPassword: '',
+  confirmPassword: ''
+});
+
+const startCountdown = () => {
+  countdown.value = 60;
+  const timer = setInterval(() => {
+    countdown.value--;
+    if (countdown.value <= 0) {
+      clearInterval(timer);
+    }
+  }, 1000);
+};
+
+const sendVerificationCode = async () => {
+  try {
+    isLoading.value = true;
+
+    await authApi.sendVerificationCode(form.email, authStore.token)
+
+    Swal.fire({
+      icon: 'success',
+      title: '驗證碼已發送',
+      text: '請檢查您的電子郵件',
+      timer: 3000,
+      showConfirmButton: false
     });
 
-    const startCountdown = () => {
-      countdown.value = 60;
-      const timer = setInterval(() => {
-        countdown.value--;
-        if (countdown.value <= 0) {
-          clearInterval(timer);
-        }
-      }, 1000);
-    };
+    startCountdown();
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: '錯誤',
+      text: error.message || '發送驗證碼失敗'
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
 
-    const sendVerificationCode = async () => {
-      try {
-        isLoading.value = true;
-        const response = await fetch('/api/auth/send-verification', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authStore.token}`
-          },
-          body: JSON.stringify({ email: form.email })
-        });
+const verifyCode = async () => {
+  try {
+    isLoading.value = true;
 
-        if (response.ok) {
-          Swal.fire({
-            icon: 'success',
-            title: '驗證碼已發送',
-            text: '請檢查您的電子郵件',
-            timer: 3000,
-            showConfirmButton: false
-          });
-          startCountdown();
-        } else {
-          const data = await response.json();
-          throw new Error(data.error || '發送驗證碼失敗');
-        }
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: '錯誤',
-          text: error.message || '發送驗證碼時發生錯誤'
-        });
-      } finally {
-        isLoading.value = false;
-      }
-    };
+    await authApi.verifyCode(form.email, form.verificationCode, token)
 
-    const verifyCode = async () => {
-      try {
-        isLoading.value = true;
-        const response = await fetch('/api/auth/verify-code', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authStore.token}`
-          },
-          body: JSON.stringify({
-            email: form.email,
-            code: form.verificationCode
-          })
-        });
+    isEmailVerified.value = true;
 
-        const data = await response.json();
+    Swal.fire({
+      icon: 'success',
+      title: '驗證成功',
+      text: '請繼續設置新密碼',
+      timer: 2000,
+      showConfirmButton: false
+    });
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: '錯誤',
+      text: error.message || '驗證碼驗證失敗'
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
 
-        if (response.ok) {
-          isEmailVerified.value = true;
-          Swal.fire({
-            icon: 'success',
-            title: '驗證成功',
-            text: '請繼續設置新密碼',
-            timer: 2000,
-            showConfirmButton: false
-          });
-        } else {
-          throw new Error(data.error || '驗證碼錯誤');
-        }
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: '錯誤',
-          text: error.message || '驗證碼驗證失敗'
-        });
-      } finally {
-        isLoading.value = false;
-      }
-    };
+const handleSubmit = async () => {
+  if (!isEmailVerified.value) {
+    Swal.fire({
+      icon: 'error',
+      title: '錯誤',
+      text: '請先驗證驗證碼'
+    });
 
-    const handleSubmit = async () => {
-      if (!isEmailVerified.value) {
-        Swal.fire({
-          icon: 'error',
-          title: '錯誤',
-          text: '請先驗證驗證碼'
-        });
-        return;
-      }
+    return;
+  }
 
-      if (form.newPassword !== form.confirmPassword) {
-        Swal.fire({
-          icon: 'error',
-          title: '錯誤',
-          text: '兩次輸入的密碼不一致'
-        });
-        return;
-      }
+  if (form.newPassword !== form.confirmPassword) {
+    Swal.fire({
+      icon: 'error',
+      title: '錯誤',
+      text: '兩次輸入的密碼不一致'
+    });
 
-      try {
-        isLoading.value = true;
-        const response = await fetch('/api/auth/change-password', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authStore.token}`
-          },
-          body: JSON.stringify({
-            email: form.email,
-            newPassword: form.newPassword
-          })
-        });
+    return;
+  }
 
-        const data = await response.json();
+  try {
+    isLoading.value = true;
 
-        if (response.ok) {
-          Swal.fire({
-            icon: 'success',
-            title: '密碼更改成功',
-            text: '下次登入時請使用新密碼',
-            confirmButtonText: '確定'
-          });
-          // 清空表單
-          form.newPassword = '';
-          form.confirmPassword = '';
-          form.verificationCode = '';
-          isEmailVerified.value = false;
-        } else {
-          throw new Error(data.error || '密碼更改失敗');
-        }
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: '錯誤',
-          text: error.message || '更改密碼時發生錯誤'
-        });
-      } finally {
-        isLoading.value = false;
-      }
-    };
+    await authApi.changePassword(form.email, form.newPassword, token)
 
-    return {
-      form,
-      isLoading,
-      isEmailVerified,
-      countdown,
-      sendVerificationCode,
-      verifyCode,
-      handleSubmit
-    };
+    Swal.fire({
+      icon: 'success',
+      title: '密碼更改成功',
+      text: '下次登入時請使用新密碼',
+      confirmButtonText: '確定'
+    });
+
+    // 清空表單
+    form.newPassword = '';
+    form.confirmPassword = '';
+    form.verificationCode = '';
+    isEmailVerified.value = false;
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: '錯誤',
+      text: error.message || '更改密碼時發生錯誤'
+    });
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
@@ -321,7 +231,8 @@ export default {
 .profile-container {
   position: relative;
   flex: 1;
-  min-width: 0; /* 防止flex子項溢出 */
+  min-width: 0;
+  /* 防止flex子項溢出 */
   background: rgba(255, 255, 255, 0.95);
   padding: 2rem;
   border-radius: 10px;
@@ -400,7 +311,7 @@ form {
   .container-fluid {
     padding: 0 1rem;
   }
-  
+
   .page-container {
     flex-direction: column;
   }
@@ -411,14 +322,14 @@ form {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .form-label {
     min-width: auto;
     width: 100%;
     text-align: left;
     margin-bottom: 0.5rem;
   }
-  
+
   .form-control {
     width: 100%;
   }
@@ -447,8 +358,9 @@ form {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
-</style> 
+</style>

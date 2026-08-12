@@ -6,7 +6,7 @@
           <div class="card">
             <div class="card-body">
               <h3 class="card-title text-center mb-4">設置本地密碼</h3>
-              
+
               <!-- 初始畫面：提供信息並提示發送驗證郵件 -->
               <div v-if="step === 'initial'">
                 <div class="alert alert-info">
@@ -17,15 +17,15 @@
                     <li>使用電子郵件和密碼登入</li>
                   </ul>
                 </div>
-                
+
                 <div v-if="error" class="alert alert-danger">
                   {{ error }}
                 </div>
-                
+
                 <div v-if="message" class="alert alert-success">
                   {{ message }}
                 </div>
-                
+
                 <form @submit.prevent="sendVerification" class="mt-4">
                   <div class="text-center">
                     <button type="submit" class="btn btn-primary" :disabled="isLoading">
@@ -34,98 +34,75 @@
                   </div>
                 </form>
               </div>
-              
+
               <!-- 第二步：驗證碼驗證 -->
               <div v-if="step === 'verification'">
                 <div class="alert alert-info">
                   <p>我們已發送驗證碼至您的信箱：<strong>{{ email }}</strong></p>
                   <p>請在 {{ countdown }} 秒內完成驗證</p>
                 </div>
-                
+
                 <div v-if="error" class="alert alert-danger">
                   {{ error }}
                 </div>
-                
+
                 <div v-if="message" class="alert alert-success">
                   {{ message }}
                 </div>
-                
+
                 <form @submit.prevent="verifyCode" class="mt-4">
                   <div class="form-group mb-3">
                     <label for="verificationCode">請輸入驗證碼</label>
-                    <input 
-                      type="text" 
-                      class="form-control" 
-                      id="verificationCode" 
-                      v-model="verificationCode" 
-                      placeholder="請輸入6位數驗證碼"
-                      maxlength="6"
-                      required
-                    >
+                    <input type="text" class="form-control" id="verificationCode" v-model="verificationCode"
+                      placeholder="請輸入6位數驗證碼" maxlength="6" required>
                   </div>
-                  
+
                   <div class="text-center mb-3">
                     <button type="submit" class="btn btn-primary w-100" :disabled="isLoading || !verificationCode">
                       {{ isLoading ? '驗證中...' : '驗證' }}
                     </button>
                   </div>
                 </form>
-                
+
                 <div class="text-center">
                   <p class="mb-0">
                     沒收到驗證碼？
-                    <button 
-                      class="btn btn-link p-0" 
-                      @click="resendVerification" 
-                      :disabled="countdown > 0 || isLoading">
+                    <button class="btn btn-link p-0" @click="resendVerification" :disabled="countdown > 0 || isLoading">
                       重新發送
                     </button>
                   </p>
                 </div>
               </div>
-              
+
               <!-- 第三步：密碼設置表單 -->
               <div v-if="step === 'password'">
                 <div class="alert alert-info">
                   <p>請為您的帳號 <strong>{{ email }}</strong> 設置本地密碼</p>
                 </div>
-                
+
                 <div v-if="error" class="alert alert-danger">
                   {{ error }}
                 </div>
-                
+
                 <div v-if="message" class="alert alert-success">
                   {{ message }}
                 </div>
-                
+
                 <form @submit.prevent="setPassword" class="mt-4">
                   <div class="form-group mb-3">
                     <label for="password">新密碼</label>
-                    <input 
-                      type="password" 
-                      class="form-control" 
-                      id="password" 
-                      v-model="password" 
-                      required
-                      minlength="8" 
-                      maxlength="20"
-                    >
+                    <input type="password" class="form-control" id="password" v-model="password" required minlength="8"
+                      maxlength="20">
                     <small class="form-text text-muted">
                       密碼長度必須在8-20個字元之間
                     </small>
                   </div>
-                  
+
                   <div class="form-group mb-3">
                     <label for="confirmPassword">確認密碼</label>
-                    <input 
-                      type="password" 
-                      class="form-control" 
-                      id="confirmPassword" 
-                      v-model="confirmPassword" 
-                      required
-                    >
+                    <input type="password" class="form-control" id="confirmPassword" v-model="confirmPassword" required>
                   </div>
-                  
+
                   <div class="text-center">
                     <button type="submit" class="btn btn-primary" :disabled="isLoading">
                       {{ isLoading ? '設置中...' : '設置密碼' }}
@@ -141,237 +118,242 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      email: '',
-      provider: '',
-      step: 'initial', // 'initial', 'verification' 或 'password'
-      password: '',
-      confirmPassword: '',
-      error: '',
-      message: '',
-      isLoading: false,
-      verificationCode: '',
-      countdown: 0,
-      countdownTimer: null
-    };
-  },
-  created() {
-    // 從URL獲取電子郵件
-    const urlParams = new URLSearchParams(window.location.search);
-    this.email = urlParams.get('email');
-    
-    if (!this.email) {
-      this.error = '缺少電子郵件地址參數，請從登入頁面重新操作';
+<script setup>
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+
+const router = useRouter();
+const route = useRoute();
+const email = ref('');
+const provider = ref('');
+const step = ref('initial'); // 'initial', 'verification', 'password', 'error'
+const password = ref('');
+const confirmPassword = ref('');
+const error = ref('');
+const message = ref('');
+const isLoading = ref(false);
+const verificationCode = ref('');
+const countdown = ref(0);
+
+let countdownTimer = null;
+
+// 檢查電子郵件的登入方式
+const checkEmailStatus = async () => {
+  try {
+    this.isLoading = true;
+    const response = await fetch(`/api/auth/local-password/check?email=${encodeURIComponent(this.email)}`);
+    const data = await response.json();
+
+    if (response.ok) {
+      if (data.canSetupLocalPassword) {
+        provider.value = data.provider;
+      } else {
+        error.value = '此帳號無法設置本地密碼';
+        step.value = 'error';
+      }
+    } else {
+      error.value = data.error || '檢查帳號狀態時發生錯誤';
+    }
+  } catch (error) {
+    console.error('檢查電子郵件狀態錯誤:', error);
+    error.value = '無法檢查帳號狀態，請稍後再試';
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+// 發送驗證郵件
+const sendVerification = async () => {
+  try {
+    isLoading.value = true;
+    error.value = '';
+    message.value = '';
+
+    const response = await fetch('/api/auth/local-password/send-verification', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email.value
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      message.value = '驗證碼已發送，請查收您的電子郵件';
+      step.value = 'verification';
+      startCountdown();
+    } else {
+      error.value = data.error || '無法發送驗證碼';
+    }
+  } catch (error) {
+    console.error('發送驗證碼錯誤:', error);
+    error.value = '發送驗證碼時發生錯誤，請稍後再試';
+  } finally {
+    isLoading.value = false;
+  }
+
+  startCountdown()
+
+  // 重新發送驗證碼
+  sendVerification()
+}
+
+
+// 啟動倒數計時
+const startCountdown = () => {
+  // 清除之前的計時器
+  if (countdownTimer.value) {
+    clearInterval(countdownTimer.value);
+  }
+
+  countdown.value = 60; // 60秒倒數
+
+  this.countdownTimer = setInterval(() => {
+    if (countdown.value > 0) {
+      countdown.value--;
+    } else {
+      clearInterval(countdownTimer.value);
+    }
+  }, 1000);
+}
+
+// 驗證驗證碼
+const verifyCode = async () => {
+  try {
+    isLoading.value = true;
+    error.value = '';
+    message.value = '';
+
+    if (!verificationCode.value || verificationCode.value.length !== 6) {
+      error.value = '請輸入6位數驗證碼';
+      isLoading.value = false;
       return;
     }
-    
-    // 初始步驟：檢查帳號是否為第三方登入
-    this.checkEmailStatus();
-  },
-  beforeUnmount() {
-    // 清除計時器
-    if (this.countdownTimer) {
-      clearInterval(this.countdownTimer);
-    }
-  },
-  methods: {
-    // 檢查電子郵件的登入方式
-    async checkEmailStatus() {
-      try {
-        this.isLoading = true;
-        const response = await fetch(`/api/auth/local-password/check?email=${encodeURIComponent(this.email)}`);
-        const data = await response.json();
-        
-        if (response.ok) {
-          if (data.canSetupLocalPassword) {
-            this.provider = data.provider;
-          } else {
-            this.error = '此帳號無法設置本地密碼';
-            this.step = 'error';
-          }
-        } else {
-          this.error = data.error || '檢查帳號狀態時發生錯誤';
-        }
-      } catch (error) {
-        console.error('檢查電子郵件狀態錯誤:', error);
-        this.error = '無法檢查帳號狀態，請稍後再試';
-      } finally {
-        this.isLoading = false;
+
+    const response = await fetch('/api/auth/local-password/verify-code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email.value,
+        code: verificationCode.value
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.verified) {
+      this.message = '驗證成功';
+      // 清除計時器
+      if (countdownTimer.value) {
+        clearInterval(countdownTimer.value);
       }
-    },
-    
-    // 發送驗證郵件
-    async sendVerification() {
-      try {
-        this.isLoading = true;
-        this.error = '';
-        this.message = '';
-        
-        const response = await fetch('/api/auth/local-password/send-verification', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: this.email
-          })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-          this.message = '驗證碼已發送，請查收您的電子郵件';
-          this.step = 'verification';
-          this.startCountdown();
-        } else {
-          this.error = data.error || '無法發送驗證碼';
-        }
-      } catch (error) {
-        console.error('發送驗證碼錯誤:', error);
-        this.error = '發送驗證碼時發生錯誤，請稍後再試';
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    
-    // 啟動倒數計時
-    startCountdown() {
-      // 清除之前的計時器
-      if (this.countdownTimer) {
-        clearInterval(this.countdownTimer);
-      }
-      
-      this.countdown = 60; // 60秒倒數
-      
-      this.countdownTimer = setInterval(() => {
-        if (this.countdown > 0) {
-          this.countdown--;
-        } else {
-          clearInterval(this.countdownTimer);
-        }
+      // 進入密碼設置階段
+      setTimeout(() => {
+        step.value = 'password';
+        message.value = '';
       }, 1000);
-    },
-    
-    // 重新發送驗證碼
-    resendVerification() {
-      this.sendVerification();
-    },
-    
-    // 驗證驗證碼
-    async verifyCode() {
-      try {
-        this.isLoading = true;
-        this.error = '';
-        this.message = '';
-        
-        if (!this.verificationCode || this.verificationCode.length !== 6) {
-          this.error = '請輸入6位數驗證碼';
-          this.isLoading = false;
-          return;
-        }
-        
-        const response = await fetch('/api/auth/local-password/verify-code', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: this.email,
-            code: this.verificationCode
-          })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.verified) {
-          this.message = '驗證成功';
-          // 清除計時器
-          if (this.countdownTimer) {
-            clearInterval(this.countdownTimer);
-          }
-          // 進入密碼設置階段
-          setTimeout(() => {
-            this.step = 'password';
-            this.message = '';
-          }, 1000);
-        } else {
-          this.error = data.error || '驗證碼錯誤';
-        }
-      } catch (error) {
-        console.error('驗證驗證碼錯誤:', error);
-        this.error = '驗證過程中發生錯誤，請稍後再試';
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    
-    // 設置密碼
-    async setPassword() {
-      // 驗證密碼
-      if (this.password !== this.confirmPassword) {
-        this.error = '兩次輸入的密碼不一致';
-        return;
-      }
-      
-      if (this.password.length < 8 || this.password.length > 20) {
-        this.error = '密碼長度必須在8-20個字元之間';
-        return;
-      }
-      
-      try {
-        this.isLoading = true;
-        this.error = '';
-        this.message = '';
-        
-        const response = await fetch('/api/auth/local-password/set-password', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: this.email,
-            password: this.password
-          })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-          this.message = '密碼設置成功，3秒後將跳轉到登入頁面';
-          
-          // 清除輸入內容
-          this.password = '';
-          this.confirmPassword = '';
-          
-          // 3秒後跳轉到登入頁面
-          setTimeout(() => {
-            this.$router.push({
-              path: '/login',
-              query: {
-                message: '本地密碼設置成功，請使用新密碼登入'
-              }
-            });
-          }, 3000);
-        } else {
-          this.error = data.error || '設置密碼失敗';
-        }
-      } catch (error) {
-        console.error('設置密碼錯誤:', error);
-        this.error = '設置密碼時發生錯誤，請稍後再試';
-      } finally {
-        this.isLoading = false;
-      }
+    } else {
+      error.value = data.error || '驗證碼錯誤';
     }
+  } catch (error) {
+    console.error('驗證驗證碼錯誤:', error);
+    error.value = '驗證過程中發生錯誤，請稍後再試';
+  } finally {
+    isLoading.value = false;
   }
-};
+}
+
+// 設置密碼
+const setPassword = async () => {
+  // 驗證密碼
+  if (password.value !== confirmPassword.value) {
+    error.value = '兩次輸入的密碼不一致';
+    return;
+  }
+
+  if (password.value.length < 8 || password.value.length > 20) {
+    error.value = '密碼長度必須在8-20個字元之間';
+    return;
+  }
+
+  try {
+    isLoading.value = true;
+    error.value = '';
+    message.value = '';
+
+    const response = await fetch('/api/auth/local-password/set-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email.value,
+        password: password.value
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      message.value = '密碼設置成功，3秒後將跳轉到登入頁面';
+
+      // 清除輸入內容
+      password.value = '';
+      confirmPassword.value = '';
+
+      // 3秒後跳轉到登入頁面
+      setTimeout(() => {
+        router.push({
+          path: '/login',
+          query: {
+            message: '本地密碼設置成功，請使用新密碼登入'
+          }
+        });
+      }, 3000);
+    } else {
+      error.value = data.error || '設置密碼失敗';
+    }
+  } catch (error) {
+    console.error('設置密碼錯誤:', error);
+    error.value = '設置密碼時發生錯誤，請稍後再試';
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+// 生命週期：取代原本的 created()
+onMounted(() => {
+  // 優先使用 Vue Router 的 route.query 讀取 URL 參數，
+  // 若沒有則倒退使用原生 URLSearchParams
+  email.value = (route.query.email)
+    || new URLSearchParams(window.location.search).get('email')
+    || '';
+
+  if (!email.value) {
+    error.value = '缺少電子郵件地址參數，請從登入頁面重新操作';
+    return;
+  }
+
+  checkEmailStatus();
+});
+
+// 生命週期：取代原本的 beforeUnmount()
+onUnmounted(() => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+  }
+});
 </script>
 
 <style scoped>
 .password-setup-page {
-  min-height: calc(100vh - 60px);  /* 減去header的高度 */
+  min-height: calc(100vh - 60px);
+  /* 減去header的高度 */
   background: url('/user_static/images/background-img.png') no-repeat center center/cover;
   padding: 2rem 0;
 }
@@ -403,4 +385,4 @@ export default {
   color: #ff5252;
   text-decoration: underline;
 }
-</style> 
+</style>

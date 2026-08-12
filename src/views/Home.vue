@@ -66,6 +66,7 @@ const slides = ref([
     title: '最好玩活動',
   }
 ]);
+
 onMounted(async () => {
   await nextTick();
 
@@ -87,8 +88,6 @@ onMounted(async () => {
     swiper.update();
   }, 100);
 });
-
-
 </script>
 
 <style scoped>

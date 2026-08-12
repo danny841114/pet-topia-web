@@ -29,7 +29,8 @@
 
           <!-- 優惠券列表 -->
           <div v-else class="coupon-list">
-            <div v-for="coupon in coupons" :key="coupon.id" class="coupon-card" :class="{ 'expired': isExpired(coupon) }">
+            <div v-for="coupon in coupons" :key="coupon.id" class="coupon-card"
+              :class="{ 'expired': isExpired(coupon) }">
               <div class="coupon-content">
                 <div class="coupon-header">
                   <h3 class="coupon-name">{{ coupon.name }}</h3>
@@ -39,7 +40,8 @@
                 </div>
                 <div class="coupon-amount">
                   <span class="amount">
-                    {{ coupon.discountType ? `${(coupon.discountValue * 100).toFixed(0)}%` : `$${coupon.discountValue.toFixed(0)}` }}
+                    {{ coupon.discountType ? `${(coupon.discountValue * 100).toFixed(0)}%` :
+                      `$${coupon.discountValue.toFixed(0)}` }}
                   </span>
                   <span class="discount-text">{{ coupon.discountType ? '折扣' : '折抵' }}</span>
                 </div>
@@ -57,11 +59,7 @@
                   </div>
                 </div>
               </div>
-              <button 
-                class="use-coupon-btn" 
-                :disabled="isExpired(coupon)"
-                @click="useCoupon(coupon)"
-              >
+              <button class="use-coupon-btn" :disabled="isExpired(coupon)" @click="useCoupon(coupon)">
                 使用優惠券
               </button>
             </div>
@@ -72,74 +70,58 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { fetchCartCouponsForMember } from '@/api/shop/couponApi';
 import ProfileSidebar from '@/components/ProfileSidebar.vue';
 import { Icon } from '@iconify/vue';
 
-export default {
-  components: {
-    ProfileSidebar,
-    Icon
-  },
-  setup() {
-    const authStore = useAuthStore();
-    const coupons = ref([]);
-    const isLoading = ref(true);
+const authStore = useAuthStore();
+const coupons = ref([]);
+const isLoading = ref(true);
 
-    // 獲取優惠券列表
-    const fetchCoupons = async () => {
-      try {
-        isLoading.value = true;
-        const { availableCoupons, expiredCoupons } = await fetchCartCouponsForMember({ 
-          memberId: authStore.userId 
-        });
-        coupons.value = [...availableCoupons, ...expiredCoupons];
-      } catch (error) {
-        console.error('獲取優惠券失敗:', error);
-      } finally {
-        isLoading.value = false;
-      }
-    };
-
-    // 檢查優惠券是否過期
-    const isExpired = (coupon) => {
-      const now = new Date();
-      const expiryDate = new Date(coupon.validEnd);
-      return now > expiryDate || !coupon.status;
-    };
-
-    // 格式化日期
-    const formatDate = (dateString) => {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('zh-TW', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
-    };
-
-    // 使用優惠券
-    const useCoupon = (coupon) => {
-      // TODO: 實現使用優惠券的邏輯
-      console.log('使用優惠券:', coupon);
-    };
-
-    onMounted(() => {
-      fetchCoupons();
+// 獲取優惠券列表
+const fetchCoupons = async () => {
+  try {
+    isLoading.value = true;
+    const { availableCoupons, expiredCoupons } = await fetchCartCouponsForMember({
+      memberId: authStore.userId
     });
-
-    return {
-      coupons,
-      isLoading,
-      isExpired,
-      formatDate,
-      useCoupon
-    };
+    coupons.value = [...availableCoupons, ...expiredCoupons];
+  } catch (error) {
+    console.error('獲取優惠券失敗:', error);
+  } finally {
+    isLoading.value = false;
   }
 };
+
+// 檢查優惠券是否過期
+const isExpired = (coupon) => {
+  const now = new Date();
+  const expiryDate = new Date(coupon.validEnd);
+  return now > expiryDate || !coupon.status;
+};
+
+// 格式化日期
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
+
+// 使用優惠券
+const useCoupon = (coupon) => {
+  // TODO: 實現使用優惠券的邏輯
+  console.log('使用優惠券:', coupon);
+};
+
+onMounted(() => {
+  fetchCoupons();
+});
 </script>
 
 <style scoped>
@@ -299,7 +281,7 @@ export default {
   .container-fluid {
     padding: 0 1rem;
   }
-  
+
   .page-container {
     flex-direction: column;
   }
@@ -310,4 +292,4 @@ export default {
     grid-template-columns: 1fr;
   }
 }
-</style> 
+</style>
