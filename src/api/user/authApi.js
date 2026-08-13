@@ -81,4 +81,12 @@ export const authApi = {
       password,
     })
   },
+
+  register(email, password, confirmPassword) {
+    return apiClient.post('/register', {
+      email,
+      password,
+      confirmPassword,
+    })
+  },
 }

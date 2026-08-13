@@ -15,29 +15,17 @@
                 <div class="verification-form mt-3">
                   <div class="form-group mb-3">
                     <label for="verificationCode">請輸入驗證碼</label>
-                    <input 
-                      type="text" 
-                      class="form-control" 
-                      id="verificationCode" 
-                      v-model="verificationCode" 
-                      placeholder="請輸入6位數驗證碼"
-                      maxlength="6"
-                    >
+                    <input type="text" class="form-control" id="verificationCode" v-model="verificationCode"
+                      placeholder="請輸入6位數驗證碼" maxlength="6">
                   </div>
-                  <button 
-                    class="btn btn-primary w-100 mb-3" 
-                    @click="verifyEmail"
-                    :disabled="!verificationCode">
+                  <button class="btn btn-primary w-100 mb-3" @click="verifyEmail" :disabled="!verificationCode">
                     驗證
                   </button>
                 </div>
                 <hr>
                 <p class="mb-0">
                   沒收到驗證信？
-                  <button 
-                    class="btn btn-link p-0" 
-                    @click="resendVerification" 
-                    :disabled="countdown > 0">
+                  <button class="btn btn-link p-0" @click="resendVerification" :disabled="countdown > 0">
                     重新發送
                   </button>
                 </p>
@@ -82,11 +70,11 @@
               </div>
 
               <div class="divider"><span>或</span></div>
-              
+
               <a href="/oauth2/authorization/google" class="social-btn">
-                <img src="/user_static/icon/Google_icon.png" alt="Google"> 使用   Google   註冊
+                <img src="/user_static/icon/Google_icon.png" alt="Google"> 使用 Google 註冊
               </a>
-              
+
               <a href="/oauth2/authorization/facebook" class="social-btn">
                 <img src="/user_static/icon/Facebook_icon.png" alt="Facebook"> 使用 Facebook 註冊
               </a>
@@ -99,198 +87,136 @@
   </div>
 </template>
 
-<script>
-import { useAuthStore } from '../stores/auth';
+<script setup>
+import { ref } from 'vue';
+import { onBeforeUnmount } from 'vue';
+import { authApi } from '@/api/user/authApi';
+import router from '@/router/router';
 
-export default {
-  data() {
-    return {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      verificationCode: '',
-      showVerification: false,
-      countdown: 300,
-      timer: null,
-      canResend: false,
-      success: null,
-      error: null,
-      showLoading: false,
-      loadingMessage: '驗證成功！',
-      countdownSeconds: 2,
-      countdownTimer: null
-    };
-  },
-  methods: {
-    startCountdown() {
-      this.countdown = 300;
-      this.timer = setInterval(() => {
-        if (this.countdown > 0) {
-          this.countdown--;
-        } else {
-          clearInterval(this.timer);
-        }
-      }, 1000);
-    },
-    
-    // 開始跳轉倒計時的方法
-    startRedirectCountdown() {
-      this.countdownSeconds = 2;
-      if (this.countdownTimer) {
-        clearInterval(this.countdownTimer);
-      }
-      
-      this.countdownTimer = setInterval(() => {
-        if (this.countdownSeconds > 0) {
-          this.countdownSeconds--;
-        } else {
-          clearInterval(this.countdownTimer);
-          // 驗證成功後跳轉到登入頁面
-          this.$router.push('/login?verified=true&message=' + encodeURIComponent('郵箱驗證成功，請登入'));
-        }
-      }, 1000);
-    },
-    async handleRegister() {
-      try {
-        // 清除之前的錯誤和成功消息
-        this.error = null;
-        this.success = null;
+const email = ref('');
+const password = ref('');
+const confirmPassword = ref('');
+const verificationCode = ref('');
+const showVerification = ref(false);
+const countdown = ref(300);
+const timer = ref(null);
+const success = ref(null);
+const error = ref(null);
+const showLoading = ref(false);
+const loadingMessage = ref('驗證成功！')
+const countdownSeconds = ref(2);
+const countdownTimer = ref(null);
 
-        // 基本驗證
-        if (!this.email || !this.password) {
-          this.error = '請填寫所有必填欄位';
-          return;
-        }
-
-        // 驗證密碼
-        if (this.password !== this.confirmPassword) {
-          this.error = '兩次輸入的密碼不一致';
-          return;
-        }
-
-        // 準備註冊數據
-        const registerData = {
-          email: this.email.trim(),
-          password: this.password,
-          confirmPassword: this.confirmPassword
-        };
-
-        console.log('準備發送註冊請求，完整數據:', JSON.stringify(registerData, null, 2));
-
-        const response = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(registerData)
-        });
-
-        console.log('服務器響應狀態:', response.status);
-        
-        // 檢查響應內容類型
-        const contentType = response.headers.get('content-type');
-        let data;
-        if (contentType && contentType.includes('application/json')) {
-          data = await response.json();
-          console.log('註冊響應完整數據:', JSON.stringify(data, null, 2));
-        } else {
-          const text = await response.text();
-          console.log('非 JSON 響應:', text);
-          data = { message: '服務器響應格式不正確' };
-        }
-
-        if (response.ok) {
-          this.success = '註冊成功！請查看您的電子郵件信箱進行驗證';
-          this.showVerification = true;
-          this.startCountdown();  // 開始倒數計時
-        } else {
-          // 處理具體的錯誤情況
-          if (data.error) {
-            this.error = data.error;
-          } else if (response.status === 400) {
-            this.error = '註冊資料格式不正確，請檢查您的輸入';
-            console.error('請求數據:', registerData);
-            console.error('響應數據:', data);
-          } else if (response.status === 409) {
-            this.error = '該電子郵件已被註冊';
-          } else {
-            this.error = '註冊失敗，請稍後再試';
-          }
-          console.error('註冊失敗:', {
-            status: response.status,
-            data: data,
-            requestData: registerData
-          });
-        }
-      } catch (error) {
-        console.error('註冊過程發生錯誤:', error);
-        this.error = '系統錯誤，請稍後再試';
-      }
-    },
-    async verifyEmail() {
-      try {
-        const response = await fetch('/api/auth/verify-code', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: this.email,
-            code: this.verificationCode
-          })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.verified) {
-          // 顯示 loading 動畫
-          this.loadingMessage = '郵箱驗證成功！';
-          this.showLoading = true;
-          this.startRedirectCountdown();
-        } else {
-          this.error = data.error || '驗證碼錯誤，請重新輸入';
-        }
-      } catch (error) {
-        console.error('驗證過程發生錯誤:', error);
-        this.error = '系統錯誤，請稍後再試';
-      }
-    },
-    async resendVerification() {
-      try {
-        const response = await fetch('/api/auth/send-verification', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: this.email
-          })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          this.success = '驗證郵件已重新發送，請查收';
-          this.startCountdown();
-        } else {
-          this.error = data.error || '重新發送失敗，請稍後再試';
-        }
-      } catch (error) {
-        console.error('重新發送驗證郵件時發生錯誤:', error);
-        this.error = '系統錯誤，請稍後再試';
-      }
-    }
-  },
-  beforeUnmount() {
-    // 組件銷毀前清除計時器
-    if (this.timer) {
-      clearInterval(this.timer);
-    }
-    if (this.countdownTimer) {
-      clearInterval(this.countdownTimer);
-    }
+const startCountdown = async () => {
+  // 重新開始倒數前，先清除現有的計時器，避免重複計時
+  if (timer.value) {
+    clearInterval(timer.value);
   }
-};
+
+  countdown.value = 300;
+  timer.value = setInterval(() => {
+    if (countdown.value > 0) {
+      countdown.value--;
+    } else {
+      clearInterval(timer.value);
+    }
+  }, 1000);
+}
+
+// 開始跳轉倒計時的方法
+const startRedirectCountdown = async () => {
+  countdownSeconds.value = 2;
+  if (countdownTimer.value) {
+    clearInterval(countdownTimer.value);
+  }
+
+  countdownTimer.value = setInterval(() => {
+    if (countdownSeconds.value > 0) {
+      countdownSeconds.value--;
+    } else {
+      clearInterval(countdownTimer.value);
+      // 驗證成功後跳轉到登入頁面
+      router.push('/login?verified=true&message=' + encodeURIComponent('郵箱驗證成功，請登入'));
+    }
+  }, 1000);
+}
+
+const handleRegister = async () => {
+  try {
+    // 清除之前的錯誤和成功消息
+    error.value = null;
+    success.value = null;
+
+    // 基本驗證
+    if (!email.value || !password.value) {
+      error.value = '請填寫所有必填欄位';
+      return;
+    }
+
+    // 驗證密碼
+    if (password.value !== confirmPassword.value) {
+      error.value = '兩次輸入的密碼不一致';
+      return;
+    }
+
+    await authApi.register(
+      email.value.trim(),
+      password.value,
+      confirmPassword.value
+    )
+
+    success.value = '註冊成功！請查看您的電子郵件信箱進行驗證';
+    showVerification.value = true;
+
+    startCountdown();  // 開始倒數計時
+  } catch (e) {
+    console.error('註冊過程發生錯誤:', e);
+    error.value = '系統錯誤，請稍後再試';
+  }
+}
+
+const verifyEmail = async () => {
+  try {
+    // 加入token (原先無)
+    const data = await authApi.verifyCode(
+      email.value,
+      verificationCode.value,
+      null
+    )
+
+    if (data.verified) {
+      loadingMessage.value = '郵箱驗證成功！';
+      showLoading.value = true;
+      startRedirectCountdown();
+    } else {
+      error.value = data.error || '驗證碼錯誤，請重新輸入';
+    }
+  } catch (e) {
+    console.error('驗證過程發生錯誤:', e);
+    error.value = '系統錯誤，請稍後再試';
+  }
+}
+const resendVerification = async () => {
+  try {
+    await authApi.sendVerificationCode(email.value, null)
+    success.value = '驗證郵件已重新發送，請查收';
+    startCountdown();
+  } catch (e) {
+    console.error('重新發送驗證郵件時發生錯誤:', e);
+    error.value = '系統錯誤，請稍後再試';
+  }
+}
+
+onBeforeUnmount(() => {
+  // 組件銷毀前清除計時器
+  if (timer.value) {
+    clearInterval(timer.value);
+  }
+
+  if (countdownTimer.value) {
+    clearInterval(countdownTimer.value);
+  }
+})
 </script>
 
 <style>
@@ -423,11 +349,13 @@ export default {
 }
 
 @keyframes animation {
+
   0%,
   80%,
   100% {
     box-shadow: 0 2em 0 -1em var(--accent-color, #ff6b6b);
   }
+
   40% {
     box-shadow: 0 2em 0 0 var(--accent-color, #ff6b6b);
   }
@@ -444,4 +372,4 @@ export default {
   margin-bottom: 0.5rem;
   color: #ff6b6b;
 }
-</style> 
+</style>
