@@ -200,4 +200,24 @@ export const vendorApi = {
 
     return apiClient.put(`/update/${vendorId}`, formData)
   },
+
+  // 改成 GET
+  searchVendor(keyword) {
+    const formData = new FormData()
+    formData.append('keyword', keyword)
+
+    return apiClient.get(`/find`, formData)
+  },
+
+  getNotifications(userId) {
+    return apiClient.get(`/notification/${userId}`)
+  },
+
+  readNotification(notificationId) {
+    return apiClient.put(`/notification/read/${notificationId}`)
+  },
+
+  deleteNotification(userId) {
+    return apiClient.delete(`/notification/delete/${userId}`)
+  },
 }

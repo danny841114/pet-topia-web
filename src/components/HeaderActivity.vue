@@ -337,40 +337,33 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch, onUnmounted } from 'vue'
-import axios from 'axios'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { Modal } from 'bootstrap'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { useAuthStore } from '../stores/auth'
+import { activityApi } from '@/api/vendor/activityApi'
+import { vendorApi } from '@/api/vendor/vendorApi'
+import Swal from 'sweetalert2'
+
 const authStore = useAuthStore()
 const userId = authStore.userId
-import Swal from 'sweetalert2'
 const keyword = ref('')
 const activityList = ref([]) // 儲存結果傳至搜尋頁面
 const router = useRouter()
 
-const keywordForApi = ref({
-  keyword: keyword,
-})
 const searchActivity = async () => {
   if (!keyword.value) {
-    alert('請輸入關鍵字!')
+    alert('請輸入關鍵字!') // use sweet alert
     return
   }
 
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/find`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(keywordForApi.value),
-    })
-    const data = await response.json()
-    activityList.value = data
+    activityList.value = await activityApi.searchActivity(keyword.value)
 
     router.replace({
       path: '/activity/search',
-      query: { keyword: keywordForApi.value.keyword }, // 只會更新當前URL，不會新增歷史紀錄，即按上一頁不會回到上個搜尋結果
+      query: { keyword: keyword.value }, // 只會更新當前URL，不會新增歷史紀錄，即按上一頁不會回到上個搜尋結果
     })
   } catch (error) {
     console.error('提交失敗:', error)
@@ -389,8 +382,8 @@ const memberId = 11 // 假设当前会员ID为1，实际应用中请从用户信
 // 获取通知列表
 const getNotifications = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/vendor/notification/${userId}`)
-    notifications.value = response.data.reverse()
+    const res = await vendorApi.getNotifications(userId)
+    notifications.value = res.reverse()
   } catch (error) {
     console.error('获取通知失败:', error)
   }
@@ -409,7 +402,7 @@ const toggleNotifications = () => {
 // 标记通知为已读
 const markAsRead = async (index, notificationId) => {
   try {
-    await axios.put(`http://localhost:8080/api/vendor/notification/read/${notificationId}`)
+    await vendorApi.readNotification(notificationId)
     notifications.value[index].isRead = true
   } catch (error) {
     console.error('标记通知失败:', error)
@@ -419,7 +412,7 @@ const markAsRead = async (index, notificationId) => {
 // 清除所有通知
 const clearNotifications = async () => {
   try {
-    await axios.delete(`http://localhost:8080/api/vendor/notification/delete/${userId}`)
+    await vendorApi.deleteNotification(userId)
     notifications.value = []
   } catch (error) {
     console.error('清除通知失败:', error)

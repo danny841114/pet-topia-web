@@ -128,4 +128,9 @@ export const activityApi = {
   deleteRegistrationById(registrationId) {
     return apiClient.delete(`/registration/${likeId}/delete`)
   },
+
+  // 改成 GET
+  searchActivity(keyword) {
+    return apiClient.post(`/find`, { keyword })
+  },
 }
