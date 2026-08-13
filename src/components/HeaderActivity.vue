@@ -1081,7 +1081,7 @@ const showBecomeVendorButton = computed(() => {
 // 處理成為商家點擊事件
 const handleBecomeVendor = async () => {
   try {
-    const checkResult = null
+    let checkResult = null
 
     try {
       checkResult = await vendorApi.checkVendorEligibility(authStore.token);
