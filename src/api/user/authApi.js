@@ -70,4 +70,15 @@ export const authApi = {
       params: { email },
     })
   },
+
+  checkToken(token) {
+    return apiClient.get('/status', { headers: { Authorization: `Bearer ${token}` } })
+  },
+
+  login(email, password) {
+    return apiClient.post('/login', {
+      email,
+      password,
+    })
+  },
 }
