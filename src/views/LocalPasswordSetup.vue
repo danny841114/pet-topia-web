@@ -121,6 +121,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { authApi } from '@/api/user/authApi';
 
 const router = useRouter();
 const route = useRoute();
@@ -166,28 +167,14 @@ const sendVerification = async () => {
     error.value = '';
     message.value = '';
 
-    const response = await fetch('/api/auth/local-password/send-verification', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email: email.value
-      })
-    });
+    await authApi.localSendVerificationCode(email.value)
 
-    const data = await response.json();
-
-    if (response.ok) {
-      message.value = '驗證碼已發送，請查收您的電子郵件';
-      step.value = 'verification';
-      startCountdown();
-    } else {
-      error.value = data.error || '無法發送驗證碼';
-    }
+    message.value = '驗證碼已發送，請查收您的電子郵件'
+    step.value = 'verification';
+    startCountdown();
   } catch (e) {
     console.error('發送驗證碼錯誤:', e);
-    error.value = '發送驗證碼時發生錯誤，請稍後再試';
+    error.value = '發送驗證碼時發生錯誤，請稍後再試'
   } finally {
     isLoading.value = false;
   }
@@ -225,33 +212,22 @@ const verifyCode = async () => {
       return;
     }
 
-    const response = await fetch('/api/auth/local-password/verify-code', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email: email.value,
-        code: verificationCode.value
-      })
-    });
+    const res = await authApi.localVerifyCode(email.value, verificationCode.value)
 
-    const data = await response.json();
-
-    if (response.ok && data.verified) {
+    if (res.verified) {
       message.value = '驗證成功';
+
       // 清除計時器
       if (countdownTimer) {
         clearInterval(countdownTimer);
         countdownTimer = null;
       }
+
       // 進入密碼設置階段
       setTimeout(() => {
         step.value = 'password';
         message.value = '';
       }, 1000);
-    } else {
-      error.value = data.error || '驗證碼錯誤';
     }
   } catch (e) {
     console.error('驗證驗證碼錯誤:', e);
@@ -279,38 +255,24 @@ const setPassword = async () => {
     error.value = '';
     message.value = '';
 
-    const response = await fetch('/api/auth/local-password/set-password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email: email.value,
-        password: password.value
-      })
-    });
+    await authApi.loclaChangePassword(email.value, password.value)
 
-    const data = await response.json();
+    message.value = '密碼設置成功，3秒後將跳轉到登入頁面';
 
-    if (response.ok) {
-      message.value = '密碼設置成功，3秒後將跳轉到登入頁面';
+    // 清除輸入內容
+    password.value = '';
+    confirmPassword.value = '';
 
-      // 清除輸入內容
-      password.value = '';
-      confirmPassword.value = '';
+    // 3秒後跳轉到登入頁面
+    setTimeout(() => {
+      router.push({
+        path: '/login',
+        query: {
+          message: '本地密碼設置成功，請使用新密碼登入'
+        }
+      });
+    }, 3000);
 
-      // 3秒後跳轉到登入頁面
-      setTimeout(() => {
-        router.push({
-          path: '/login',
-          query: {
-            message: '本地密碼設置成功，請使用新密碼登入'
-          }
-        });
-      }, 3000);
-    } else {
-      error.value = data.error || '設置密碼失敗';
-    }
   } catch (e) {
     console.error('設置密碼錯誤:', e);
     error.value = '設置密碼時發生錯誤，請稍後再試';
