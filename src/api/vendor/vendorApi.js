@@ -220,4 +220,24 @@ export const vendorApi = {
   deleteNotification(userId) {
     return apiClient.delete(`/notification/delete/${userId}`)
   },
+
+  checkVendorEligibility(token) {
+    return apiClient.get(`/convert/check`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  },
+
+  getVendorEligibility(token) {
+    return apiClient.post(
+      `/convert`,
+      { confirm: true },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+  },
 }

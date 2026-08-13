@@ -60,4 +60,17 @@ export const memberApi = {
       },
     })
   },
+
+  // 與上面函數合併
+  getProfilePhotoByTimestamp(timestamp, token) {
+    return apiClient.get('/profile-photo', {
+      params: {
+        t: timestamp,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+    })
+  },
 }

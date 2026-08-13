@@ -345,6 +345,7 @@ import { useAuthStore } from '../stores/auth'
 import { activityApi } from '@/api/vendor/activityApi'
 import { vendorApi } from '@/api/vendor/vendorApi'
 import Swal from 'sweetalert2'
+import { memberApi } from '@/api/user/member'
 
 const authStore = useAuthStore()
 const userId = authStore.userId
@@ -671,32 +672,19 @@ const fetchAvatar = async () => {
 
   try {
     const timestamp = Date.now() // 添加時間戳防止快取
-    const response = await fetch(`/api/member/profile-photo?t=${timestamp}`, {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-      },
-    })
+    const blob = await memberApi.getProfilePhotoByTimestamp(timestamp, authStore.token)
 
-    console.log('頭像請求響應:', {
-      status: response.status,
-      ok: response.ok,
-    })
-
-    if (response.ok) {
-      const blob = await response.blob()
-      if (blob.size > 0) {
-        // 釋放舊的 URL
-        if (avatarUrl.value && avatarUrl.value.startsWith('blob:')) {
-          URL.revokeObjectURL(avatarUrl.value)
-        }
-        const newAvatarUrl = URL.createObjectURL(blob)
-        avatarUrl.value = newAvatarUrl
-        console.log('成功更新頭像 URL:', newAvatarUrl)
-
-        // 觸發重新渲染
-        shouldForceRefreshUserData.value = !shouldForceRefreshUserData.value
+    if (blob.size > 0) {
+      // 釋放舊的 URL
+      if (avatarUrl.value && avatarUrl.value.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarUrl.value)
       }
+      const newAvatarUrl = URL.createObjectURL(blob)
+      avatarUrl.value = newAvatarUrl
+      console.log('成功更新頭像 URL:', newAvatarUrl)
+
+      // 觸發重新渲染
+      shouldForceRefreshUserData.value = !shouldForceRefreshUserData.value
     }
   } catch (error) {
     console.error('獲取頭像失敗:', error)
@@ -1093,24 +1081,21 @@ const showBecomeVendorButton = computed(() => {
 // 處理成為商家點擊事件
 const handleBecomeVendor = async () => {
   try {
-    const checkResponse = await fetch('/api/vendor/convert/check', {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-      },
-    });
+    const checkResult = null
 
-    if (!checkResponse.ok) {
-      const errorData = await checkResponse.json();
+    try {
+      checkResult = await vendorApi.checkVendorEligibility(authStore.token);
+    } catch (e) {
       Swal.fire({
         icon: 'error',
         title: '錯誤',
-        text: `無法檢查商家資格: ${errorData.error || '未知錯誤'}`,
+        text: '無法檢查商家資格',
         confirmButtonColor: '#2b4f76'
       });
+
+      console.error("無法轉換成商家", e)
       return;
     }
-
-    const checkResult = await checkResponse.json();
 
     if (!checkResult.eligible) {
       Swal.fire({
@@ -1119,6 +1104,7 @@ const handleBecomeVendor = async () => {
         text: checkResult.message || '您目前無法成為商家',
         confirmButtonColor: '#2b4f76'
       });
+
       return;
     }
 
@@ -1175,20 +1161,14 @@ const switchToVendor = async () => {
         text: '請先登入系統',
         confirmButtonColor: '#2b4f76'
       });
+
       return;
     }
 
-    const response = await fetch('/api/vendor/convert', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authStore.token}`,
-      },
-      body: JSON.stringify({ confirm: true }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
+    const result = null;
+    try {
+      result = await vendorApi.getVendorEligibility(authStore.token)
+    } catch (e) {
       console.error('切換到商家帳號失敗:', errorData);
       Swal.fire({
         icon: 'error',
@@ -1196,10 +1176,9 @@ const switchToVendor = async () => {
         text: `切換到商家帳號失敗: ${errorData.error || '未知錯誤'}`,
         confirmButtonColor: '#2b4f76'
       });
+
       return;
     }
-
-    const result = await response.json();
 
     if (!result.token || !result.vendorId || !result.role) {
       console.error('API 返回資料不完整:', result);
@@ -1209,6 +1188,7 @@ const switchToVendor = async () => {
         text: '系統返回資料不完整，請稍後再試',
         confirmButtonColor: '#2b4f76'
       });
+
       return;
     }
 
