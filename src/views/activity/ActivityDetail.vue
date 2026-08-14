@@ -721,33 +721,21 @@ const submitComment = async () => {
 
   if (!ask.isConfirmed) return
 
-  // 參數拆分出來
   try {
-    const response = await fetch(
-      `http://localhost:8080/api/activity/${props.activityId}/review/add`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(commentForm.value),
-      }
-    )
+    await activityApi.addReview(props.activityId, commentForm.value.content)
 
-    const result = await response.json()
+    const ask = await Swal.fire({
+      title: '成功送出',
+      icon: 'success',
+      confirmButtonText: '關閉',
+    })
 
-    if (result.success) {
-      const ask = await Swal.fire({
-        title: '成功送出',
-        icon: 'success',
-        confirmButtonText: '關閉',
-      })
+    closeComment()
 
-      closeComment()
+    addReviewButton.value = '已留言'
+    isAddReviewDisabled.value = true
 
-      addReviewButton.value = '已留言'
-      isAddReviewDisabled.value = true
-
-      if (ask.isConfirmed) window.location.reload()
-    }
+    if (ask.isConfirmed) window.location.reload()
   } catch (error) {
     console.error('新增留言失敗:', error)
   }
@@ -780,15 +768,8 @@ const submitRewrite = async (reviewId) => {
 
   if (!ask.isConfirmed) return
 
-  // 參數拆分出來
   try {
-    const response = await fetch(`http://localhost:8080/api/activity/review/${reviewId}/rewrite`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(commentForm.value),
-    })
-
-    const result = response.json()
+    await activityApi.updateReview(props.activityId, reviewId, commentForm.value.content)
 
     Swal.fire({
       title: '成功送出',
@@ -803,7 +784,7 @@ const submitRewrite = async (reviewId) => {
     )
     if (updatedReview) {
       updatedReview.reviewTime = new Date()
-      updatedReview.reviewContent = result.review.reviewContent // 更新留言內容
+      updatedReview.reviewContent = commentForm.value.content // 更新留言內容
     }
   } catch (error) {
     console.error('修改留言失敗:', error)

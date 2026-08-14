@@ -133,4 +133,12 @@ export const activityApi = {
   searchActivity(keyword) {
     return apiClient.post(`/find`, { keyword })
   },
+
+  addReview(activityId, content) {
+    return apiClient.post(`/${activityId}/review/add`, { content })
+  },
+
+  updateReview(activityId, reviewId, content) {
+    return apiClient.post(`/review/${reviewId}/rewrite`, { content })
+  },
 }

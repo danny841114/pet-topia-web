@@ -243,12 +243,7 @@ const confirmEdit = async (reviewId, content, index) => {
   })
 
   try {
-    // 將參數拆分出來
-    await fetch(`http://localhost:8080/api/activity/review/${reviewId}/rewrite`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(review.value),
-    })
+    await activityApi.updateReview(null, reviewId, review.value.content)
 
     reviewList.value[index].reviewContent = editedContent.value
     editIndex.value = null
