@@ -286,25 +286,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, computed, watch } from 'vue';
+import { ref, onMounted, nextTick, computed } from 'vue';
 import axios from 'axios';
 import { fetchCouponsForMember } from '@/api/shop/couponApi';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
-
 import { useRoute } from 'vue-router';
 import { useAuthStore } from "@/stores/auth";
 import { useCartStore } from "@/stores/shop/cart";
 
 const PATH = `${import.meta.env.VITE_API_URL}`;
-
 const cartStore = useCartStore();
 const authStore = useAuthStore();
 const memberId = authStore.memberId;
-
-
 const route = useRoute();
-const productIds = route.query.productIds;  // 從購物車勾選商品後傳過來 // 
+const productIds = route.query.productIds;  // 從購物車勾選商品後傳過來 //
 
 // API路徑
 const URL = import.meta.env.VITE_API_URL;
@@ -566,7 +562,7 @@ const notMeetCoupons = ref([]);
 
 const isModalOpen = ref(false);
 const selectedCoupon = ref(null);  // 儲存選擇的優惠券
-const selectedCouponId = route.query.selectedCouponId || null;  // 購物車選擇的優惠券Id 
+const selectedCouponId = route.query.selectedCouponId || null;  // 購物車選擇的優惠券Id
 
 // 獲取優惠券
 const fetchCoupons = async () => {

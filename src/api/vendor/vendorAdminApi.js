@@ -216,4 +216,8 @@ export const vendorAdminApi = {
   deleteVendorReview(reviewId) {
     return apiClient.delete(`/review/delete/${reviewId}`)
   },
+
+  getUserStatus(userId) {
+    return apiClient.get(`/status/${userId}`)
+  },
 }

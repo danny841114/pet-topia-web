@@ -240,4 +240,16 @@ export const vendorApi = {
       }
     )
   },
+
+  switchBackToMember(token) {
+    return apiClient.post(
+      `/switch-back`,
+      { confirm: true },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+  },
 }

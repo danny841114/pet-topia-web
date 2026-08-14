@@ -233,68 +233,55 @@
 </template>
 <script setup>
 import { Icon } from '@iconify/vue';
-import VendorAdminSidebar from './VendorAdminSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
-import { useRouter } from 'vue-router';
+import { vendorApi } from '@/api/vendor/vendorApi';
 import Swal from 'sweetalert2';
 
 const authStore = useAuthStore();
-const router = useRouter();
 
-const handleLogout = () => {
+const handleLogout = async () => {
   authStore.clearToken();
 
   // 發送登出事件通知其他組件
   window.dispatchEvent(new CustomEvent('user-logout'));
 
-  Swal.fire({
+  await Swal.fire({
     icon: 'success',
     title: '登出成功！',
     text: '感謝您的使用',
     confirmButtonText: '確定'
-  }).then(() => {
-    // 使用 window.location.href 進行完整頁面刷新
-    window.location.href = '/?logout=true';
-  });
+  })
+
+  // 使用 window.location.href 進行完整頁面刷新
+  window.location.href = '/?logout=true';
 };
 
 const switchBackToMember = async () => {
   try {
-    const response = await fetch('/api/vendor/switch-back', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${authStore.token}`
+    const data = await vendorApi.switchBackToMember(authStore.token)
+
+    // 更新認證狀態
+    authStore.setToken(
+      data.token,
+      data.userId,
+      data.role,
+      {
+        userId: data.userId,
+        email: data.email,
+        userRole: data.role
       }
-    });
+    );
 
-    if (response.ok) {
-      const data = await response.json();
+    // 顯示成功訊息
+    await Swal.fire({
+      title: '切換成功',
+      text: '已切換回會員帳號',
+      icon: 'success',
+      confirmButtonText: '確定'
+    })
 
-      // 更新認證狀態
-      authStore.setToken(
-        data.token,
-        data.userId,
-        data.role,
-        {
-          userId: data.userId,
-          email: data.email,
-          userRole: data.role
-        }
-      );
-
-      // 顯示成功訊息
-      Swal.fire({
-        title: '切換成功',
-        text: '已切換回會員帳號',
-        icon: 'success',
-        confirmButtonText: '確定'
-      }).then(() => {
-        // 使用 window.location.href 進行完整頁面刷新
-        window.location.href = '/?switch_back=true';
-      });
-    } else {
-      throw new Error('切換失敗');
-    }
+    // 使用 window.location.href 進行完整頁面刷新
+    window.location.href = '/?switch_back=true';
   } catch (error) {
     console.error('切換回會員失敗:', error);
     Swal.fire({
@@ -306,4 +293,5 @@ const switchBackToMember = async () => {
   }
 };
 </script>
+
 <style></style>
