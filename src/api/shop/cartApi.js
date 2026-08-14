@@ -16,11 +16,7 @@ apiClient.interceptors.response.use(
 export const cartApi = {
   // 改為 GET
   getCartsByMemberId(memberId) {
-    return apiClient.post('', null, {
-      params: {
-        memberId: memberId,
-      },
-    })
+    return apiClient.post('', null, { params: { memberId } })
   },
 
   // 改為 PUT

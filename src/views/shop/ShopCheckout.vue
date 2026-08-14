@@ -294,6 +294,7 @@ import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from "@/stores/auth";
 import { useCartStore } from "@/stores/shop/cart";
+import { shopApi } from '@/api/shop/shopApi';
 
 const PATH = `${import.meta.env.VITE_API_URL}`;
 const cartStore = useCartStore();
@@ -321,12 +322,13 @@ const paymentCategories = ref([]);
 // 從後端獲取資料
 const fetchCheckoutData = async () => {
   try {
-    const response = await axios.get(`${URL}/shop/checkout?productIds=${productIds}&memberId=${memberId}`);
-    checkoutData.value = response.data;
+    checkoutData.value = await shopApi.getCheckoutData(memberId, productIds)
+
     cartItems.value = checkoutData.value.cartItems;
     subtotal.value = checkoutData.value.subtotal;
     shippingCategories.value = checkoutData.value.shippingCategories;
     paymentCategories.value = checkoutData.value.paymentCategories;
+
     console.log("checkoutData.value", checkoutData.value);
   } catch (error) {
     console.error("Error fetching checkout data:", error);
@@ -371,16 +373,7 @@ async function fetchMemberData() {
   cancelTokenSource = axios.CancelToken.source();
 
   try {
-    const response = await axios({
-      method: "GET",
-      url: `${URL}/shop/member`,
-      cancelToken: cancelTokenSource.token,
-      params: {
-        memberId: memberId
-      },
-    });
-
-    memberData = response.data; // 儲存資料
+    memberData = await shopApi.getMemberData(memberId, cancelTokenSource.token); // 儲存資料
     return memberData;
   } catch (error) {
     if (axios.isCancel(error)) {
@@ -404,16 +397,7 @@ async function fetchAddressData() {
   cancelTokenSource = axios.CancelToken.source();
 
   try {
-    const response = await axios({
-      method: "GET",
-      url: `${URL}/shop/shipping/address`,
-      cancelToken: cancelTokenSource.token,
-      params: {
-        memberId: memberId
-      },
-    });
-
-    addressData = response.data;
+    addressData = await shopApi.getAddressData(memberId, cancelTokenSource.token);
     return addressData;
   } catch (error) {
     if (axios.isCancel(error)) {
@@ -712,38 +696,28 @@ const submitOrder = async () => {
   }
 
   try {
-    const orderData = {
-      couponId: selectedCoupon.value ? selectedCoupon.value.id : null,
-      shippingCategoryId: selectedShipping.value,
-      paymentCategoryId: selectedPayment.value,
-      paymentAmount: null,
-      street: street.value,
-      city: city.value,
-      receiverName: name.value,
-      receiverPhone: phone.value,
-      cartItems: cartItems.value.map((item) => ({
+    const res = await shopApi.sendCheckoutData(
+      memberId,
+      selectedCoupon.value ? selectedCoupon.value.id : null,
+      selectedShipping.value,
+      selectedPayment.value,
+      null,
+      street.value,
+      city.value,
+      name.value,
+      phone.value,
+      cartItems.value.map((item) => ({
         productId: item.product.id,
       })),
-    };
-
-    // **發送訂單建立請求**
-    const response = await axios({
-      method: "POST",
-      url: `${URL}/shop/checkout`,
-      data: orderData,
-      withCredentials: true,
-      params: {
-        memberId: memberId
-      }
-    });
+    )
 
     // **確認訂單建立成功，並取得 ECPay 付款資訊**
-    if (response.data.message.includes("訂單建立成功")) {
-      const orderId = response.data.orderId;
+    if (res.message.includes("訂單建立成功")) {
+      const orderId = res.orderId;
 
-      if (selectedPayment.value === 1 && response.data.paymentData) {
+      if (selectedPayment.value === 1 && res.paymentData) {
         // **處理 ECPay 付款**
-        paymentData.value = { ...response.data.paymentData };
+        paymentData.value = { ...res.paymentData };
 
         await nextTick(); // 等待 DOM 渲染完成
 
