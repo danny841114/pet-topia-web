@@ -60,4 +60,36 @@ export const shopApi = {
       { params: { memberId }, withCredentials: true }
     )
   },
+
+  getProducts(start, rows, category, keyword) {
+    return apiClient.get('/products', { params: { start, rows, category, keyword } })
+  },
+
+  getProductDetail(productDetailId) {
+    return apiClient.get('/productDetail', { params: { productDetailId } })
+  },
+
+  confirmProduct(memberId, productDetailId, productSizeId, productColorId) {
+    return apiClient.post('/productDetail/api/getConfirmProductByDetailIdSizeIdColorId', null, {
+      params: { memberId, productDetailId, productSizeId, productColorId },
+    })
+  },
+
+  getProductByOption(productDetailId, optionId, optionName) {
+    return apiClient.post('/productDetail/api/getProductByOption', null, {
+      params: { productDetailId, optionId, optionName },
+    })
+  },
+
+  getProductByDetailId(productDetailId) {
+    return apiClient.get('/productDetail/api/getProductByProductDetailId', {
+      params: { productDetailId },
+    })
+  },
+
+  addProductIntoCart(memberId, productDetailId, productSizeId, productColorId, quantity) {
+    return apiClient.post('/productDetail/api/addProductToCart', null, {
+      params: { memberId, productDetailId, productSizeId, productColorId, quantity },
+    })
+  },
 }
