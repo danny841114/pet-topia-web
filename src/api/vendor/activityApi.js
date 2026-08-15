@@ -66,11 +66,11 @@ export const activityApi = {
   },
 
   isActivityRegistered(activityId, memberId) {
-    return apiClient.get(`/${activityId}/member/${memberId}/regist/status`)
+    return apiClient.get(`/${activityId}/member/${memberId}/register/status`)
   },
 
   toggleRegistration(activityId, memberId) {
-    return apiClient.post(`/${activityId}/regist`, {
+    return apiClient.post(`/${activityId}/register`, {
       memberId,
     })
   },

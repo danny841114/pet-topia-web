@@ -34,19 +34,19 @@
           <p>{{ activity.description }}</p>
           <p>
             分類：
-            <span v-if="activity.activityType"><b style="color: red">{{ activity.activityType.name }}</b><button
+            <span v-if="activity.activityType"><b style="color: red">{{ activity.activityType?.name }}</b><button
                 class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin-left: 10px"
-                @click="openSameType(activity.activityType.id)">
+                @click="openSameType(activity.activityType?.id)">
                 查看同型別活動
               </button></span>
             <span v-else style="color: gray">( 無分類 )</span>
           </p>
 
           <p>
-            主辦店家：<span style="margin: 5px" v-if="activity.vendor.logoImgBase64">
-              <img :src="activity.vendor.logoImgBase64" alt="店家圖片" class="img-fluid rounded-4" width="30" /></span><a
-              :href="`/vendor/detail/${activity.vendor.id}`" v-if="activity.vendor.name"><b>{{ activity.vendor.name
-              }}</b></a><a :href="`/vendor/detail/${activity.vendor.id}`" v-else style="color: gray"><b>( 無店家名稱
+            主辦店家：<span style="margin: 5px" v-if="activity.vendor?.logoImgBase64">
+              <img :src="activity.vendor?.logoImgBase64" alt="店家圖片" class="img-fluid rounded-4" width="30" /></span><a
+              :href="`/vendor/detail/${activity.vendor?.id}`" v-if="activity.vendor?.name"><b>{{ activity.vendor?.name
+              }}</b></a><a :href="`/vendor/detail/${activity.vendor?.id}`" v-else style="color: gray"><b>( 無店家名稱
                 )</b></a>
           </p>
           <p>
@@ -58,9 +58,9 @@
           <p>
             地址：<b>{{ activity.address }}</b>
           </p>
-          <p>需要報名：<b v-if="activity.isRegistrationRequired">是</b><b v-else>否</b></p>
+          <p>需要報名：<b v-if="activity.registrationRequired">是</b><b v-else>否</b></p>
 
-          <p v-if="activity.isRegistrationRequired">
+          <p v-if="activity.registrationRequired">
             報名人數：<b>{{ currentPeople }}</b><button :disabled="!isAvalible" style="margin-left: 10px"
               class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" @click="registActivityConfirm()">
               {{ registractionStatus }}
@@ -71,7 +71,7 @@
               報名狀態
             </button>
           </p>
-          <p v-if="activity.isRegistrationRequired">
+          <p v-if="activity.registrationRequired">
             報名人數上限：<b>{{ maxPeople }}</b>
           </p>
           <p>
@@ -182,16 +182,16 @@
           <td>
             <a :href="`/activity/detail/${activity.id}`">{{ activity.name }}</a>
           </td>
-          <td>{{ activity.activityType.name }}</td>
+          <td>{{ activity.activityType?.name }}</td>
           <td>
-            <a :href="`/vendor/detail/${activity.vendor.id}`"><span v-if="activity.vendor.name">{{ activity.vendor.name
+            <a :href="`/vendor/detail/${activity.vendor?.id}`"><span v-if="activity.vendor?.name">{{ activity.vendor?.name
             }}</span>
               <span v-else style="color: #c0c0c0">無店家名稱</span></a>
           </td>
           <td>{{ formatDate(activity.startTime) }}</td>
           <td>{{ formatDate(activity.endTime) }}</td>
           <td style="text-align: center">
-            <span v-if="activity.isRegistrationRequired" style="color: red">是</span>
+            <span v-if="activity.registrationRequired" style="color: red">是</span>
             <span v-else>否</span>
           </td>
         </tr>
@@ -394,7 +394,7 @@ const activity = ref({})
 const activityImageList = ref([])
 const reviewList = ref([])
 const activityList = ref([])
-const activityForNumberOfVisitor = ref([])
+const activityForNumberOfVisitor = ref({})
 const currentPeople = ref()
 const maxPeople = ref()
 const addReviewButton = ref('留言')
@@ -901,9 +901,9 @@ const copyUrl = () => {
   copyMessage.value = '複製成功'
 }
 
-onMounted(() => {
+onMounted(async () => {
   console.log('活動ID:', props.activityId)
-  fetchActivityData()
+  await fetchActivityData()
   fetchActivityImages()
   fetchReviews()
   fetchActivities()
@@ -913,8 +913,7 @@ onMounted(() => {
   isActivityAvalible()
   getRegistractionStatus()
   getLikeStatus()
-}
-)
+})
 </script>
 
 <style scoped>
