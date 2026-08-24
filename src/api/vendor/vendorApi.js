@@ -10,7 +10,7 @@ apiClient.interceptors.response.use(
   (error) => {
     console.error('API Error:', error)
     return Promise.reject(error)
-  }
+  },
 )
 
 export const vendorApi = {
@@ -79,7 +79,7 @@ export const vendorApi = {
     ratingPrice,
     ratingService,
     content,
-    reviewPhotos
+    reviewPhotos,
   ) {
     const formData = new FormData()
     formData.append('memberId', memberId)
@@ -110,7 +110,7 @@ export const vendorApi = {
     ratingService,
     content,
     reviewPhotos,
-    removeImageList
+    removeImageList,
   ) {
     const formData = new FormData()
     formData.append('ratingEnv', ratingEnv)
@@ -169,10 +169,10 @@ export const vendorApi = {
     vendorDescription,
     contactPerson,
     vendorTaxIdNumber,
-    category,
-    deletedImageIds,
-    imagePreviews,
-    logoInput
+    categoryId,
+    deletedImageIds = [],
+    imagePreviews = [],
+    logoInput,
   ) {
     const formData = new FormData()
 
@@ -184,19 +184,35 @@ export const vendorApi = {
     formData.append('vendorDescription', vendorDescription)
     formData.append('contactPerson', contactPerson)
     formData.append('vendorTaxIdNumber', vendorTaxIdNumber)
-    formData.append('category', category)
+    formData.append('categoryId', categoryId)
 
-    deletedImageIds.forEach((imgId) => {
-      formData.append('deletedImageIds', imgId)
-    })
-
-    imagePreviews.forEach((img) => {
-      formData.append('files', img.file)
-    })
-
-    if (logoInput.length > 0) {
-      formData.append('vendorLogoImg', logoInput.files[0])
+    if (Array.isArray(deletedImageIds)) {
+      deletedImageIds.forEach((imgId) => {
+        formData.append('deletedImageIds', imgId)
+      })
     }
+
+    if (Array.isArray(imagePreviews)) {
+      imagePreviews.forEach((img) => {
+        formData.append('files', img.file)
+      })
+    }
+
+  let logoFile = null;
+  if (logoInput instanceof File) {
+    logoFile = logoInput;
+  } else if (logoInput?.files?.[0] instanceof File) {
+    logoFile = logoInput.files[0];
+  } else if (Array.isArray(logoInput) && logoInput[0] instanceof File) {
+    logoFile = logoInput[0];
+  }
+
+  if (logoFile) {
+    formData.append('vendorLogoImg', logoFile);
+    console.log('LOGO 檔案成功加入 FormData:', logoFile.name);
+  } else {
+    console.warn('未檢測到新的 LOGO 檔案');
+  }
 
     return apiClient.put(`/update/${vendorId}`, formData)
   },
@@ -237,7 +253,7 @@ export const vendorApi = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     )
   },
 
@@ -249,7 +265,7 @@ export const vendorApi = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     )
   },
 }

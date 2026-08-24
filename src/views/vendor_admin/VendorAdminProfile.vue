@@ -338,8 +338,6 @@ const updateVendor = async () => {
       title: '商家資料更新成功',
       confirmButtonText: 'OK'
     })
-
-    window.location.reload(); // 成功后重新加载页面
   } catch (error) {
     console.error('更新商家資料時發生錯誤：', error)
 
@@ -355,17 +353,14 @@ const updateVendor = async () => {
 onMounted(async () => {
   const token = localStorage.getItem('token')
   try {
-    // 獲取商家資料和類別
     const res = await vendorAdminApi.getProfile(vendor.value.id, token)
     console.log(res)
 
-    // 當返回成功時，將資料存入 `vendor` 和 `allcategory`
     vendor.value = res.vendor
     allcategory.value = res.allcategory
-    console.log(allcategory.value)
+
     // 确保 vendor.category 被正确赋值
     if (res.vendor) {
-      vendor.value = res.vendor
       // 赋一个默认值，防止 vendorCategory 为 undefined
       vendor.value.vendorCategory = res.vendor.vendorCategory || { id: null, name: '' }
     }
