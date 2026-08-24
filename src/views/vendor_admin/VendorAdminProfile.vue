@@ -1,5 +1,4 @@
 <template>
-  <!-- <VendorAdminSidebar></VendorAdminSidebar> -->
   <div class="content-body">
     <div class="container">
       <div class="content-box">
@@ -151,7 +150,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { vendorApi } from '@/api/vendor/vendorApi'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
-import { adminApi } from '@/api/vendor/AdminApi'
+import { adminApi } from '@/api/vendor/adminApi'
 import Swal from 'sweetalert2'
 
 const authStore = useAuthStore()

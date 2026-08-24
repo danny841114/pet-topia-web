@@ -3,6 +3,7 @@
     <button class="toggle-btn" @click="toggleSidebar">
       {{ isCollapsed ? '☰' : '✖' }}
     </button>
+
     <nav v-if="!isCollapsed" class="sidebar-nav">
       <ul class="metismenu" id="menu">
         <!-- 店家菜单 -->
@@ -69,7 +70,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, onMounted, watch } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi';
@@ -81,7 +82,7 @@ const storeMenuOpen = ref(false);
 const reviewsMenuOpen = ref(false);
 const activityMenuOpen = ref(false);
 const vendorStatus = ref(false); // 預設為 false
-const route = useRouter(); // 初始化 router
+const router = useRouter();
 const emit = defineEmits(['toggle-sidebar']);
 
 const toggleSidebar = () => {
@@ -99,21 +100,14 @@ const toggleMenu = (menu) => {
   }
 };
 
-watch(() => route.path, (newPath, oldPath) => {
-  if (newPath !== oldPath) {
-    location.reload(); // 路由变化时刷新页面
-  }
-});
-
 onMounted(async () => {
   try {
     const data = await vendorAdminApi.getUserStatus(userId)
-    vendorStatus.value = data.status; // 假設 API 回傳 { status: true }
+    vendorStatus.value = data.status;
 
-    if (vendorStatus.value) {
-      // 這裡缺邏輯
-    } else {
-      route.push('/vendor/admin/profile'); // 跳转到店家资讯页面
+    if (!vendorStatus.value) {
+      // 管理員未認證，跳回設定頁面
+      router.push('/vendor/admin/profile');
     }
   } catch (error) {
     console.error('獲取店家狀態失敗', error);

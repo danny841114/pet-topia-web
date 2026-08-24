@@ -22,6 +22,7 @@
 
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
+import { useAuthStore } from './stores/auth';
 
 import HeaderIndex from "./components/HeaderIndex.vue";
 import HeaderShop from "./components/HeaderShop.vue";
@@ -30,21 +31,17 @@ import HeaderVendorAdmin from "./components/HeaderVendorAdmin.vue";
 import VendorAdminSidebar from "./components/VendorAdminSidebar.vue";
 import HeaderActivity from "./components/HeaderActivity.vue";
 import Footer from "./components/Footer.vue";
-
-import { useAuthStore } from './stores/auth';
+import ChatRoom from './components/shop/ChatRoom.vue';
 
 // import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.js'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
-import ChatRoom from './components/shop/ChatRoom.vue';
-
 const route = useRoute();
 
-// 根據path 決定顯示哪一個 header
 const vendorAdminSidebar = computed(() => {
   if (route.path.startsWith("/vendor/admin")) {
-    return VendorAdminSidebar; // 顯示 HeaderShop
+    return VendorAdminSidebar;
   }
 });
 

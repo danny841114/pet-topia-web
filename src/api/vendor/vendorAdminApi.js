@@ -10,7 +10,7 @@ apiClient.interceptors.response.use(
   (error) => {
     console.error('API Error:', error)
     return Promise.reject(error)
-  }
+  },
 )
 
 export const vendorAdminApi = {
@@ -114,7 +114,7 @@ export const vendorAdminApi = {
     endTime,
     isRegistrationRequired,
     maxParticipants,
-    imagePreviews
+    imagePreviews,
   ) {
     const formdata = new FormData()
     formdata.append('vendor_id', vendorId)
@@ -204,7 +204,7 @@ export const vendorAdminApi = {
 
   getProfile(vendorId, token) {
     return apiClient.get(`/profile`, {
-      params: vendorId,
+      params: { vendorId },
       headers: { Authorization: `Bearer ${token}` },
     })
   },
