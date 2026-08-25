@@ -46,7 +46,7 @@
             主辦店家：<span style="margin: 5px" v-if="activity.vendor?.logoImgBase64">
               <img :src="activity.vendor?.logoImgBase64" alt="店家圖片" class="img-fluid rounded-4" width="30" /></span><a
               :href="`/vendor/detail/${activity.vendor?.id}`" v-if="activity.vendor?.name"><b>{{ activity.vendor?.name
-              }}</b></a><a :href="`/vendor/detail/${activity.vendor?.id}`" v-else style="color: gray"><b>( 無店家名稱
+                }}</b></a><a :href="`/vendor/detail/${activity.vendor?.id}`" v-else style="color: gray"><b>( 無店家名稱
                 )</b></a>
           </p>
           <p>
@@ -184,8 +184,9 @@
           </td>
           <td>{{ activity.activityType?.name }}</td>
           <td>
-            <a :href="`/vendor/detail/${activity.vendor?.id}`"><span v-if="activity.vendor?.name">{{ activity.vendor?.name
-            }}</span>
+            <a :href="`/vendor/detail/${activity.vendor?.id}`"><span v-if="activity.vendor?.name">{{
+              activity.vendor?.name
+                }}</span>
               <span v-else style="color: #c0c0c0">無店家名稱</span></a>
           </td>
           <td>{{ formatDate(activity.startTime) }}</td>
@@ -382,9 +383,12 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination, Navigation } from 'swiper/modules'
 import { useAuthStore } from '@/stores/auth'
 import { activityApi } from '@/api/vendor/activityApi'
+import { listUtil } from '@/utils/listUtil'
+import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
 
 const authStore = useAuthStore()
+const formatDate = dateUtil.formatChineseDate
 const memberId = authStore.memberId
 const props = defineProps({
   activityId: Number,
@@ -420,11 +424,6 @@ const isPopupShareVisible = ref(false)
 const shareUrl = ref(window.location.href)
 const copyMessage = ref()
 
-/* 0. 隨機排列 */
-const shuffleList = (array) => {
-  return array.sort(() => Math.random() - 0.5)
-}
-
 /* 2. 活動資料 */
 const fetchActivityData = async () => {
   try {
@@ -456,7 +455,7 @@ const fetchReviews = async () => {
 const fetchActivities = async () => {
   try {
     const data = await activityApi.getOtherActivities(props.activityId);
-    activityList.value = shuffleList(data)
+    activityList.value = listUtil.shuffleList(data)
   } catch (error) {
     console.error('獲取店家清單失敗:', error)
   }
@@ -493,19 +492,6 @@ const isReviewExisting = async () => {
     addReviewButton.value = '留言'
     isAddReviewDisabled.value = false
   }
-}
-
-/* 9. 時間轉換 */
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  let hours = date.getHours()
-  const minutes = date.getMinutes()
-  const period = hours >= 12 ? '下午' : '上午'
-  hours = hours % 12 || 12
-  return `${year}年${month}月${day}日 ${period} ${hours}:${minutes < 10 ? '0' + minutes : minutes}`
 }
 
 /* 10. 圖片放大 */

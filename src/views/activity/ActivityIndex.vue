@@ -13,7 +13,7 @@
                   style="margin-bottom: 15px" /></span>
               <h3>
                 主辦店家：<a :href="`/vendor/detail/${slide.vendor.id}`"><span v-if="slide.vendor.name">{{ slide.vendor.name
-                }}</span><span v-else style="gray">無店家名稱</span></a>
+                    }}</span><span v-else style="gray">無店家名稱</span></a>
               </h3>
             </div>
             <div class="content-wrapper col-md-7 p-5 mb-5">
@@ -113,23 +113,21 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination, Autoplay } from 'swiper/modules'
 import { ref, computed, onMounted } from 'vue'
 import { activityApi } from '@/api/vendor/activityApi'
+import { listUtil } from '@/utils/listUtil'
+import { dateUtil } from '@/utils/dateUtil'
 
+const formatDate = dateUtil.formatChineseDate
 const activityList = ref([])
 const activityRandomList = ref([])
 const activeFilter = ref(0)
 const filters = ref([])
-
-/* 0. 隨機排列 */
-const shuffleList = (array) => {
-  return array.sort(() => Math.random() - 0.5)
-}
 
 /* 1 活動列表 */
 const fetchActivities = async () => {
   try {
     const data = await activityApi.getActivities()
     activityList.value = data
-    activityRandomList.value = shuffleList(data)
+    activityRandomList.value = listUtil.shuffleList(data)
   } catch (error) {
     console.error('獲取活動清單失敗:', error)
   }
@@ -168,24 +166,10 @@ const filteredActivities = computed(() => {
   }
 })
 
-/* 3. 時間轉換 */
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  let hours = date.getHours()
-  const minutes = date.getMinutes()
-  const period = hours >= 12 ? '下午' : '上午'
-  hours = hours % 12 || 12
-  return `${year}年${month}月${day}日 ${period} ${hours}:${minutes < 10 ? '0' + minutes : minutes}`
-}
-
 onMounted(() => {
   fetchActivities()
   getActivityTypes()
-}
-)
+})
 </script>
 
 <style>

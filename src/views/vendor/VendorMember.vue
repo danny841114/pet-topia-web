@@ -183,10 +183,12 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { vendorApi } from '@/api/vendor/vendorApi'
+import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
 import ProfileSidebar from '@/components/ProfileSidebar.vue'
 
 const authStore = useAuthStore()
+const formatDate = dateUtil.formatChineseDate
 const authMemberId = authStore.memberId
 const memberId = ref(authMemberId)
 const likeList = ref([])
@@ -380,19 +382,6 @@ const deleteReview = async (reviewId) => {
   } catch (error) {
     console.error('刪除評論失敗:', error)
   }
-}
-
-/* 6. 時間轉換 */
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  let hours = date.getHours()
-  const minutes = date.getMinutes()
-  const period = hours >= 12 ? '下午' : '上午'
-  hours = hours % 12 || 12
-  return `${year}年${month}月${day}日 ${period} ${hours}:${minutes < 10 ? '0' + minutes : minutes}`
 }
 
 /* 7. 頁面切換按鈕 */

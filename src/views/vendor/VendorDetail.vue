@@ -458,9 +458,12 @@ import { ref, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { vendorApi } from '@/api/vendor/vendorApi'
 import { activityApi } from '@/api/vendor/activityApi'
+import { listUtil } from '@/utils/listUtil'
+import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
 
 const apiBase = import.meta.env.VITE_API_URL
+const formatDate = dateUtil.formatChineseDate
 const props = defineProps({
   vendorId: Number,
 })
@@ -499,16 +502,10 @@ const isPopupCategoryVisible = ref(false)
 const isRateVisible = ref(false)
 const avgRate = ref([])
 
-/* 0. 隨機排列 */
-const shuffleList = (array) => {
-  return array.sort(() => Math.random() - 0.5)
-}
-
 /* 2. 店家資料 */
 const fetchVendorData = async () => {
   try {
     vendor.value = await vendorApi.getVendor(props.vendorId);
-    console.log('test test test test test ',vendor.value)
   } catch (error) {
     console.error('Get vendor data failed:', error)
   }
@@ -536,7 +533,7 @@ const fetchVendorReviewList = async () => {
 const fetchVendorList = async () => {
   try {
     const data = await vendorApi.getOtherVendors(props.vendorId)
-    vendorList.value = shuffleList(data)
+    vendorList.value = listUtil.shuffleList(data)
   } catch (error) {
     console.error('獲取店家清單失敗:', error)
   }
@@ -592,19 +589,6 @@ const resetHover3 = () => {
 /* 8. 標籤 */
 const getTag = async () => {
   tagList.value = await vendorApi.getVendorTags(props.vendorId)
-}
-
-/* 9. 時間轉換 */
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  let hours = date.getHours()
-  const minutes = date.getMinutes()
-  const period = hours >= 12 ? '下午' : '上午'
-  hours = hours % 12 || 12
-  return `${year}年${month}月${day}日 ${period} ${hours}:${minutes < 10 ? '0' + minutes : minutes}`
 }
 
 /* 10. 店家活動 */
@@ -751,7 +735,15 @@ const submitReviewFinal = async () => {
   }
 
   try {
-    await vendorApi.addVendorReview(props.vendorId, memberId, rating1.value, rating2.value, rating3.value, review.value.content, reviewPhotos.value)
+    await vendorApi.addVendorReview(
+      props.vendorId,
+      memberId,
+      rating1.value,
+      rating2.value,
+      rating3.value,
+      review.value.content,
+      reviewPhotos.value
+    )
 
     await Swal.fire({
       title: '提送成功',
@@ -808,7 +800,16 @@ const submitRewirte = async () => {
   if (!ask.isConfirmed) return
 
   try {
-    await vendorApi.updateVendorReview(props.vendorId, rewriteReviewId.value, rating1.value, rating2.value, rating3.value, review.value.content, reviewPhotos.value, removeImageList.value)
+    await vendorApi.updateVendorReview(
+      props.vendorId,
+      rewriteReviewId.value,
+      rating1.value,
+      rating2.value,
+      rating3.value,
+      review.value.content,
+      reviewPhotos.value,
+      removeImageList.value
+    )
 
     await Swal.fire({
       title: '修改成功',
@@ -1024,16 +1025,16 @@ const closeRate = () => {
 //   loadGoogleMaps()
 // })
 
-onMounted(() =>{
+onMounted(() => {
   fetchVendorData(),
-  fetchVendorImageList(),
-  fetchVendorReviewList(),
-  fetchVendorList(),
-  getReviewIsExisied(),
-  getTag(),
-  getActivities(),
-  getLikeStatus(),
-  fetchAvgRate()
+    fetchVendorImageList(),
+    fetchVendorReviewList(),
+    fetchVendorList(),
+    getReviewIsExisied(),
+    getTag(),
+    getActivities(),
+    getLikeStatus(),
+    fetchAvgRate()
 }
 );
 </script>

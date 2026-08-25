@@ -34,7 +34,7 @@
                   <td>
                     <a :href="`/activity/detail/${like.vendorActivity.id}`">{{
                       like.vendorActivity.name
-                      }}</a>
+                    }}</a>
                   </td>
                   <td>{{ like.vendorActivity.activityType.name }}</td>
                   <td>{{ formatDate(like.vendorActivity.startTime) }}</td>
@@ -67,7 +67,7 @@
                   <td>
                     <a :href="`/activity/detail/${review.vendorActivity.id}`">{{
                       review.vendorActivity.name
-                      }}</a>
+                    }}</a>
                   </td>
 
                   <!-- 判斷是否在編輯模式 -->
@@ -126,7 +126,7 @@
                   <td>
                     <a :href="`/activity/detail/${registration.vendorActivity.id}`">{{
                       registration.vendorActivity.name
-                      }}</a>
+                    }}</a>
                   </td>
                   <td>{{ formatDate(registration.registrationTime) }}</td>
                   <td v-if="registration.status == 'confirmed'">成功</td>
@@ -153,10 +153,12 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { activityApi } from '@/api/vendor/activityApi'
+import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
 import ProfileSidebar from '@/components/ProfileSidebar.vue'
 
 const authStore = useAuthStore()
+const formatDate = dateUtil.formatChineseDate
 const authMemberId = authStore.memberId
 const memberId = ref(authMemberId)
 const likeList = ref([])
@@ -316,19 +318,6 @@ const deleteRegistration = async (registrationId) => {
   }
 }
 
-/* 8. 時間轉換 */
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  let hours = date.getHours()
-  const minutes = date.getMinutes()
-  const period = hours >= 12 ? '下午' : '上午'
-  hours = hours % 12 || 12
-  return `${year}年${month}月${day}日 ${period} ${hours}:${minutes < 10 ? '0' + minutes : minutes}`
-}
-
 /* 9. 頁面切換按鈕 */
 const switchLikePage = () => {
   isLikeVisible.value = true
@@ -352,8 +341,7 @@ onMounted(() => {
   getActivityLikes()
   getActivityReviews()
   getActivityRegistrations()
-}
-)
+})
 </script>
 
 <style>

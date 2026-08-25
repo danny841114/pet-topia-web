@@ -82,11 +82,6 @@ const activeFilter = ref(0)
 const filters = ref([])
 const coordinate = ref([])
 
-/* 0. 隨機排列 */
-const shuffleList = (array) => {
-  return array.sort(() => Math.random() - 0.5)
-}
-
 /* 1. 店家列表 */
 const fetchVendorList = async () => {
   try {
