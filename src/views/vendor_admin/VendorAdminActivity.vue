@@ -238,31 +238,31 @@ const initDataTable = () => {
           let activityId = e.target.getAttribute('data-id');
 
           // 使用 SweetAlert2 替代 confirm
-          Swal.fire({
+          const result = Swal.fire({
             title: '確定要刪除這個活動嗎？',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: '確定',
             cancelButtonText: '取消',
-          }).then(async (result) => {
-            if (!result.isConfirmed) return;
+          })
 
-            try {
-              await deleteEvent(activityId);
-              Swal.fire({
-                icon: 'success',
-                title: '活動刪除成功',
-                confirmButtonText: '確認',
-              });
-            } catch (error) {
-              Swal.fire({
-                icon: 'error',
-                title: '刪除失敗',
-                text: '請稍後再試。',
-                confirmButtonText: '確認',
-              });
-            }
-          });
+          if (!result.isConfirmed) return;
+
+          try {
+            await deleteEvent(activityId);
+            Swal.fire({
+              icon: 'success',
+              title: '活動刪除成功',
+              confirmButtonText: '確認',
+            });
+          } catch (error) {
+            Swal.fire({
+              icon: 'error',
+              title: '刪除失敗',
+              text: '請稍後再試。',
+              confirmButtonText: '確認',
+            });
+          }
         });
       });
     },

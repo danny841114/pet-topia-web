@@ -263,27 +263,29 @@ watch(registerFilter, async () => {
 });
 
 const fetchRegistration = async () => {
-  vendorAdminApi.getActivityRegistrations(activityId)
-    .then(response => {
-      console.log('獲取的活動報名:', response.data);  // 應該是評論數組
-      registers.value = response.data;
-      // activityName.value = registers.value[0].vendorActivity.name
-      console.log(registers.value);
-      totalRegistrations.value = registers.value.length;
-      nextTick(() => {
-        updateGenderChart()
-        updateAgeChart()
-        updateRegistrationTrendChart();
-        initializeDataTable();  // 重新初始化 DataTable
-      });
-      // 确保数据加载完成后再计算和更新图表
-      // calculateOverallRating();  // 更新总评分
-      // updateChart();             // 更新图表
-      // updateReviews();
-    })
-    .catch(error => {
-      console.error('獲取評論資料失敗:', error);
+  try {
+    const response = await vendorAdminApi.getActivityRegistrations(activityId)
+    console.log('獲取的活動報名:', response.data);
+
+    registers.value = response.data;
+    // activityName.value = registers.value[0].vendorActivity.name
+    totalRegistrations.value = registers.value.length;
+    console.log(registers.value);
+
+    nextTick(() => {
+      updateGenderChart()
+      updateAgeChart()
+      updateRegistrationTrendChart();
+      initializeDataTable();  // 重新初始化 DataTable
     });
+
+    // 确保数据加载完成后再计算和更新图表
+    // calculateOverallRating();  // 更新总评分
+    // updateChart();             // 更新图表
+    // updateReviews();
+  } catch (error) {
+    console.error('獲取評論資料失敗:', error);
+  }
 }
 
 const updateGenderChart = () => {
@@ -642,44 +644,39 @@ const handleBatchSubmit = async () => {
 };
 
 const deleteRegistration = async (registerId) => {
-  // showModal("确定要刪除该报名吗？", async () => {
   try {
-    vendorAdminApi.deleteRegister(registerId)
-      .then(() => {
-        // 先销毁 DataTable（如果已初始化）
-        if (dataTable) {
-          dataTable.destroy();
-          dataTable = null;  // 确保 DataTable 变量重置
-        }
+    await vendorAdminApi.deleteRegister(registerId)
 
-        // 从本地数据中删除该项
-        registers.value = registers.value.filter(register => register.id !== registerId);
+    // 先销毁 DataTable（如果已初始化）
+    if (dataTable) {
+      dataTable.destroy();
+      dataTable = null;  // 确保 DataTable 变量重置
+    }
 
-        // 等待 Vue DOM 更新后再重新初始化 DataTable
-        nextTick(() => {
-          initializeDataTable();
-          updateGenderChart()
-          updateAgeChart()
-        });
-        Swal.fire({
-          icon: 'success',
-          title: '刪除成功！',
-          timer: 1000,
-          showConfirmButton: false
-        });
-      })
-      .catch(() => {
-        Swal.fire({
-          icon: 'error',
-          title: '刪除失敗'
-        });
-      })
+    // 从本地数据中删除该项
+    registers.value = registers.value.filter(register => register.id !== registerId);
+
+    // 等待 Vue DOM 更新后再重新初始化 DataTable
+    nextTick(() => {
+      initializeDataTable();
+      updateGenderChart()
+      updateAgeChart()
+    });
+
+    Swal.fire({
+      icon: 'success',
+      title: '刪除成功！',
+      timer: 1000,
+      showConfirmButton: false
+    });
   } catch (error) {
     console.error("刪除失败:", error);
-  }
-  // 这里可以根据需要，重新拉取数据，更新界面
 
-  // });
+    Swal.fire({
+      icon: 'error',
+      title: '刪除失敗'
+    });
+  }
 };
 
 const getStatusLabel = (status) => {

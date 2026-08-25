@@ -731,17 +731,16 @@ const submitOrder = async () => {
         }
       } else if (selectedPayment.value === 2) {
         // **處理貨到付款**
-        Swal.fire({
+        await Swal.fire({
           title: "訂單建立成功",
           text: `訂單成功！訂單編號：${orderId}`,
           icon: "success",
           showConfirmButton: false, // 移除取消按鈕
           timer: 1500, // 等待一段時間後自動跳轉
-        }).then(() => {
-          cartStore.fetchCartCount(memberId);
-          router.push(`/shop/orderHistory`); // 直接跳轉
-        });
+        })
 
+        cartStore.fetchCartCount(memberId);
+        router.push(`/shop/orderHistory`); // 直接跳轉
       } else {
         Swal.fire("錯誤", "無法取得 ECPay 付款資訊", "error");
       }

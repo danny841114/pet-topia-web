@@ -187,12 +187,13 @@ const totalPages = ref(1); // 總頁數
 const fetchOrderHistoryData = async () => {
 
   try {
-    const { orders: fetchedOrders, totalPages: fetchedTotalPages } = await fetchOrderHistory(filters.value, memberId);
-    orders.value = fetchedOrders;
-    totalPages.value = fetchedTotalPages;
-    noContentMessage.value = orders.value.
-      length === 0 ? '查無相關資訊' : '';
+    const res = await fetchOrderHistory(filters.value, memberId);
 
+    orders.value = res.orders;
+    totalPages.value = res.totalPages;
+
+    // 之後改用 computed
+    noContentMessage.value = orders.value.length === 0 ? '查無相關資訊' : '';
   } catch (error) {
     console.error('獲取訂單失敗:', error);
     orders.value = [];
@@ -296,7 +297,7 @@ const submitReview = async (formData) => {
       return;
     }
 
-    const { isConfirmed } = await Swal.fire({
+    const isConfirmed = await Swal.fire({
       title: '確認提交評價?',
       html: `評分：${rating}<br>內容：${reviewDescription}`,
       icon: 'question',

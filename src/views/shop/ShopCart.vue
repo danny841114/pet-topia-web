@@ -422,17 +422,16 @@ function onQuantityInputBlur(cart) {
 }
 
 // 刪除該商品的購物車
-function onClickDeleteCartBtn(cart) {
-  Swal.fire({
+async function onClickDeleteCartBtn(cart) {
+  const result = await Swal.fire({
     title: "確定要刪除嗎？",
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "確定刪除",
     cancelButtonText: "取消"
-  }).then((result) => {
-    if (result.isConfirmed)
-      deleteCart(cart);
-  });
+  })
+
+  if (result.isConfirmed) deleteCart(cart);
 }
 
 // 去買單 => 前往買單頁面
