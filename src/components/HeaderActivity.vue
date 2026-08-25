@@ -1165,7 +1165,7 @@ const switchToVendor = async () => {
       return;
     }
 
-    const result = null;
+    let result = null;
     try {
       result = await vendorApi.getVendorEligibility(authStore.token)
     } catch (e) {
