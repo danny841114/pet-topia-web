@@ -388,7 +388,7 @@ import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
 
 const authStore = useAuthStore()
-const formatDate = dateUtil.formatChineseDate
+const formatDate = dateUtil.formatDateTime
 const memberId = authStore.memberId
 const props = defineProps({
   activityId: Number,

@@ -101,7 +101,8 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
-import { adminApi } from '@/api/vendor/AdminApi';
+import { adminApi } from '@/api/vendor/adminApi';
+import { dateUtil } from '@/utils/dateUtil'
 import moment from "moment";
 import Swal from 'sweetalert2'
 
@@ -145,21 +146,8 @@ const checkTimeConflict = async (vendorId, activityId, startTime, endTime) => {
 const validateTimeConflict = async () => {
   if (vendorActivity.value.startTime && vendorActivity.value.endTime) {
     // 輸出原始的 startTime 和 endTime
-    // 將時間轉換為 SQL 支援的格式
-    const formatDate = (dateStr) => {
-      const date = new Date(dateStr);
-      const year = date.getFullYear();
-      const month = ('0' + (date.getMonth() + 1)).slice(-2);
-      const day = ('0' + date.getDate()).slice(-2);
-      const hours = ('0' + date.getHours()).slice(-2);
-      const minutes = ('0' + date.getMinutes()).slice(-2);
-      const seconds = ('0' + date.getSeconds()).slice(-2);
-
-      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    };
-
-    const formattedStartTime = formatDate(vendorActivity.value.startTime);
-    const formattedEndTime = formatDate(vendorActivity.value.endTime);
+    const formattedStartTime = dateUtil.formatDbDateTime(vendorActivity.value.startTime);
+    const formattedEndTime = dateUtil.formatDbDateTime(vendorActivity.value.endTime);
 
     // 輸出轉換後的時間
     console.log(formattedStartTime, formattedEndTime);
@@ -314,21 +302,8 @@ const goBack = () => {
 const submitForm = async () => {
   if (vendorActivity.value.startTime && vendorActivity.value.endTime) {
     // 輸出原始的 startTime 和 endTime
-    // 將時間轉換為 SQL 支援的格式
-    const formatDate = (dateStr) => {
-      const date = new Date(dateStr);
-      const year = date.getFullYear();
-      const month = ('0' + (date.getMonth() + 1)).slice(-2);
-      const day = ('0' + date.getDate()).slice(-2);
-      const hours = ('0' + date.getHours()).slice(-2);
-      const minutes = ('0' + date.getMinutes()).slice(-2);
-      const seconds = ('0' + date.getSeconds()).slice(-2);
-
-      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    };
-
-    const formattedStartTime = formatDate(vendorActivity.value.startTime);
-    const formattedEndTime = formatDate(vendorActivity.value.endTime);
+    const formattedStartTime = dateUtil.formatDbDateTime(vendorActivity.value.startTime);
+    const formattedEndTime = dateUtil.formatDbDateTime(vendorActivity.value.endTime);
 
     // 輸出轉換後的時間
     console.log(formattedStartTime, formattedEndTime);

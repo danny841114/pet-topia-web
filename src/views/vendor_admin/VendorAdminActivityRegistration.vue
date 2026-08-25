@@ -131,6 +131,7 @@ import { onMounted, ref, nextTick, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { Chart as ChartJS, LinearScale, BarController, BarElement, CategoryScale, Title, Tooltip, Legend, PieController, LineController } from 'chart.js';
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
+import { dateUtil } from '@/utils/dateUtil';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import * as XLSX from 'xlsx';
 import DataTable from 'datatables.net-dt'
@@ -140,6 +141,7 @@ let dataTable = null
 let genderChart = null
 let ageChart = null
 let registrationTrendChart = null
+const formatDate = dateUtil.formatDateTime
 const route = useRoute();  // 取得當前路由資訊
 const registers = ref([])
 const registerFilter = ref('all')
@@ -222,12 +224,6 @@ const initializeDataTable = () => {
     })
   })
 }
-
-// 日期格式化函數
-const formatDate = (dateString) => {
-  let date = new Date(dateString);
-  return date.toLocaleDateString("zh-TW") + " " + date.toLocaleTimeString("zh-TW", { hour: '2-digit', minute: '2-digit' });
-};
 
 // 過濾報名
 const filteredRegisters = computed(() => {

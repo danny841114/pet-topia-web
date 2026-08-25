@@ -216,20 +216,17 @@
 <script setup>
 import { ref, onMounted, watch, watchEffect, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import axios from 'axios';
-import Swal from 'sweetalert2';
-
 import { getAverageRating } from '@/api/shop/productReviewApi';
 import { getProductReviews } from '@/api/shop/productReviewApi';
 import { getReviewCount } from '@/api/shop/productReviewApi';
-
 import { useAuthStore } from "@/stores/auth";
 import { useCartStore } from "@/stores/shop/cart";
 import { shopApi } from '@/api/shop/shopApi';
-import { easing } from 'jquery';
+import { dateUtil } from '@/utils/dateUtil';
+import Swal from 'sweetalert2';
 
+const formatDate = dateUtil.formatDateTime
 const route = useRoute();
-
 const PATH = `${import.meta.env.VITE_API_URL}`;
 const authStore = useAuthStore();
 const cartStore = useCartStore();
@@ -651,11 +648,6 @@ const changePage = (page) => {
   if (page < 1 || page > totalPages.value) return;
   fetchProductReviews(page, pageSize.value);  // 請求新的頁面資料
 };
-
-const formatDate = (date) => {
-  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-  return new Date(date).toLocaleDateString('zh-TW', options)
-}
 
 // 頁面加載後自動加載商品評論
 onMounted(() => {

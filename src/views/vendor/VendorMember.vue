@@ -188,7 +188,7 @@ import Swal from 'sweetalert2'
 import ProfileSidebar from '@/components/ProfileSidebar.vue'
 
 const authStore = useAuthStore()
-const formatDate = dateUtil.formatChineseDate
+const formatDate = dateUtil.formatDateTime
 const authMemberId = authStore.memberId
 const memberId = ref(authMemberId)
 const likeList = ref([])

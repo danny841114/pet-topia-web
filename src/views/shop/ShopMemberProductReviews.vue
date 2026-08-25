@@ -144,11 +144,12 @@ import { ref, onMounted, toRaw } from 'vue'
 import { useAuthStore } from "@/stores/auth";
 import { getMemberReviews } from '@/api/shop/productReviewApi'
 import { updateProductReview } from '@/api/shop/productReviewApi';
+import { dateUtil } from '@/utils/dateUtil';
 import Swal from 'sweetalert2';
 
+const formatDate = dateUtil.formatDateTime
 const authStore = useAuthStore();
 const memberId = authStore.memberId;
-
 const reviews = ref([])
 const totalPages = ref(0)  // 存儲總頁數
 const totalElements = ref(0)  // 存儲總評論數
@@ -175,12 +176,6 @@ const changePage = (page) => {
   fetchReviews(page, pageSize.value);  // 請求新的頁面資料
 };
 
-// 格式化評論時間
-const formatDate = (date) => {
-  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-  return new Date(date).toLocaleDateString('zh-TW', options)
-}
-
 //==========編輯評論===========
 const isEditing = ref(false)
 const editingReviewId = ref(null)
@@ -206,8 +201,6 @@ const editReview = (review) => {
 
   isEditing.value = true;
 };
-
-
 
 // 刪除編輯中的圖片
 const removeSelectedImage = (index) => {
@@ -241,16 +234,12 @@ const deleteOriginalImage = (reviewPhotoId, review) => {
   }
 };
 
-
-
 // 設定評分
 const setRating = (star) => {
   editedReview.value.rating = star;  // 更新編輯中的評分
 };
 
-
 const submitEdit = async (review) => {
-
   const formData = new FormData();
   const rawData = toRaw(editedReview.value);
   const deleteIds = review.deleteIds;

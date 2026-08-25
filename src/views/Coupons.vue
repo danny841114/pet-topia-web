@@ -76,7 +76,9 @@ import { useAuthStore } from '@/stores/auth';
 import { fetchCartCouponsForMember } from '@/api/shop/couponApi';
 import ProfileSidebar from '@/components/ProfileSidebar.vue';
 import { Icon } from '@iconify/vue';
+import { dateUtil } from '@/utils/dateUtil';
 
+const formatDate = dateUtil.formatDateOnly
 const authStore = useAuthStore();
 const coupons = ref([]);
 const isLoading = ref(true);
@@ -101,16 +103,6 @@ const isExpired = (coupon) => {
   const now = new Date();
   const expiryDate = new Date(coupon.validEnd);
   return now > expiryDate || !coupon.status;
-};
-
-// 格式化日期
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  });
 };
 
 // 使用優惠券

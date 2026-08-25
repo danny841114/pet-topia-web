@@ -463,7 +463,7 @@ import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
 
 const apiBase = import.meta.env.VITE_API_URL
-const formatDate = dateUtil.formatChineseDate
+const formatDate = dateUtil.formatDateTime
 const props = defineProps({
   vendorId: Number,
 })

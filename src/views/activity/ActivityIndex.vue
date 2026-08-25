@@ -116,7 +116,7 @@ import { activityApi } from '@/api/vendor/activityApi'
 import { listUtil } from '@/utils/listUtil'
 import { dateUtil } from '@/utils/dateUtil'
 
-const formatDate = dateUtil.formatChineseDate
+const formatDate = dateUtil.formatDateTime
 const activityList = ref([])
 const activityRandomList = ref([])
 const activeFilter = ref(0)

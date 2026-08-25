@@ -92,6 +92,7 @@ import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 import Swal from 'sweetalert2'
+import { dateUtil } from '@/utils/dateUtil'
 
 const authStore = useAuthStore()
 const userId = authStore.userId
@@ -187,21 +188,8 @@ const submitForm = async () => {
     // 輸出原始的 startTime 和 endTime
     console.log(startTime.value, endTime.value);
 
-    // 將時間轉換為 SQL 支援的格式
-    const formatDate = (dateStr) => {
-      const date = new Date(dateStr);
-      const year = date.getFullYear();
-      const month = ('0' + (date.getMonth() + 1)).slice(-2);
-      const day = ('0' + date.getDate()).slice(-2);
-      const hours = ('0' + date.getHours()).slice(-2);
-      const minutes = ('0' + date.getMinutes()).slice(-2);
-      const seconds = ('0' + date.getSeconds()).slice(-2);
-
-      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    };
-
-    const formattedStartTime = formatDate(startTime.value);
-    const formattedEndTime = formatDate(endTime.value);
+    const formattedStartTime = dateUtil.formatDbDateTime(startTime.value);
+    const formattedEndTime = dateUtil.formatDbDateTime(endTime.value);
 
     // 輸出轉換後的時間
     console.log(formattedStartTime, formattedEndTime);

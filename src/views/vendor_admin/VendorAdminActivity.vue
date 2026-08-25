@@ -36,6 +36,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 import { adminApi } from '@/api/vendor/adminApi'
+import { dateUtil } from '@/utils/dateUtil'
 import * as XLSX from 'xlsx'
 import Swal from 'sweetalert2'
 import DataTable from 'datatables.net-dt'
@@ -47,6 +48,7 @@ const router = useRouter()
 const imageCache = ref({})
 const events = ref([])
 const eventFilter = ref('all')
+const formatDate = dateUtil.formatDateTime
 let dataTableInstance = null
 
 const exportToExcel = async () => {
@@ -185,16 +187,6 @@ const getEventImageUrl = async (eventId) => {
     console.error('獲取活動圖片失敗', error)
     return null
   }
-}
-
-// 日期格式化函數
-const formatDate = (dateString) => {
-  let date = new Date(dateString)
-  return (
-    date.toLocaleDateString('zh-TW') +
-    ' ' +
-    date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
-  )
 }
 
 // 初始化 DataTable
