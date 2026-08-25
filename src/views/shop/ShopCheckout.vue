@@ -293,7 +293,7 @@ import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from "@/stores/auth";
-import { useCartStore } from "@/stores/shop/cart";
+import { useCartStore } from "@/stores/cart";
 import { shopApi } from '@/api/shop/shopApi';
 
 const PATH = `${import.meta.env.VITE_API_URL}`;

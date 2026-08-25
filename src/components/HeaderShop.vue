@@ -386,7 +386,7 @@ import { storeToRefs } from 'pinia';
 import Swal from 'sweetalert2';
 
 import { useAuthStore } from "@/stores/auth";
-import { useCartStore } from "@/stores/shop/cart";
+import { useCartStore } from "@/stores/cart";
 
 const router = useRouter();
 const route = useRoute();

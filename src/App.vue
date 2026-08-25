@@ -31,7 +31,7 @@ import HeaderVendorAdmin from "./components/HeaderVendorAdmin.vue";
 import VendorAdminSidebar from "./components/VendorAdminSidebar.vue";
 import HeaderActivity from "./components/HeaderActivity.vue";
 import Footer from "./components/Footer.vue";
-import ChatRoom from './components/shop/ChatRoom.vue';
+import ChatRoom from './components/ChatRoom.vue';
 
 // import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.js'

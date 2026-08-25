@@ -220,7 +220,7 @@ import { getAverageRating } from '@/api/shop/productReviewApi';
 import { getProductReviews } from '@/api/shop/productReviewApi';
 import { getReviewCount } from '@/api/shop/productReviewApi';
 import { useAuthStore } from "@/stores/auth";
-import { useCartStore } from "@/stores/shop/cart";
+import { useCartStore } from "@/stores/cart";
 import { shopApi } from '@/api/shop/shopApi';
 import { dateUtil } from '@/utils/dateUtil';
 import Swal from 'sweetalert2';

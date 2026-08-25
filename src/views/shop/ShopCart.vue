@@ -209,7 +209,7 @@ import Swal from 'sweetalert2';
 import { fetchCartCouponsForMember } from '@/api/shop/couponApi';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from "@/stores/auth";
-import { useCartStore } from "@/stores/shop/cart";
+import { useCartStore } from "@/stores/cart";
 import { cartApi } from '@/api/shop/cartApi';
 
 const router = useRouter();
