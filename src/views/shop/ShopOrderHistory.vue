@@ -307,17 +307,10 @@ const submitReview = async (formData) => {
     });
 
     if (isConfirmed) {
-      const formDataToSend = new FormData();
-      formDataToSend.append('rating', rating);
-      formDataToSend.append('reviewDescription', reviewDescription);
-      formDataToSend.append('memberId', memberId);
+      const result = await createProductReview(
+        productId, memberId, rating, reviewDescription, reviewPhotos
+      );
 
-      // 添加圖片到 FormData
-      reviewPhotos.forEach((file, index) => {
-        formDataToSend.append('reviewPhotos', file);  // 這裡將每個圖片都加入 FormData
-      });
-
-      const result = await createProductReview(productId, formDataToSend);
       if (result?.status === 201 || result?.status === 200) {  // 修正判斷條件
         await Swal.fire({
           title: '評論提交成功',
@@ -328,20 +321,20 @@ const submitReview = async (formData) => {
         });
 
         // 添加「前往查看評論」按鈕
-        await Swal.fire({
+        const confirm = await Swal.fire({
           title: '評論成功!',
           text: '您可以查看您的評論。',
           icon: 'success',
           showCancelButton: true,
           confirmButtonText: '前往查看評論',
           cancelButtonText: '前往歷史訂單',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = `/shop/member/product/review`;
-          } else {
-            closeModal();
-          }
-        });
+        })
+
+        if (confirm.isConfirmed) {
+          window.location.href = `/shop/member/product/review`;
+        } else {
+          closeModal();
+        }
       } else {
         console.error("評論提交失敗，API 回應:", result);
         throw new Error("評論提交失敗");

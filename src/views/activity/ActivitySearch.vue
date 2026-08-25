@@ -62,7 +62,8 @@
       <h3>
         <b v-if="typeActivityList.length != 0">同類別活動：<span style="color: red">{{
           typeActivityList[0].activityType.name
-            }}</span></b><b v-else>同類別活動</b>
+            }}</span></b>
+        <b v-else>同類別活動</b>
       </h3>
       <div class="scroll-container" v-if="typeActivityList.length != 0">
         <div v-for="(activity, index) in typeActivityList" :key="index" style="font-size: 24px">

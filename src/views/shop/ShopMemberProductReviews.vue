@@ -164,7 +164,6 @@ const fetchReviews = async (page = 1, size = 5) => {
     totalPages.value = response.data.totalPages;  // 獲取總頁數
     totalElements.value = response.data.totalElements;  // 獲取總評論數
     currentPage.value = page;  // 更新當前頁碼
-
   } catch (error) {
     console.error('無法獲取評論', error);
   }
@@ -240,38 +239,11 @@ const setRating = (star) => {
 };
 
 const submitEdit = async (review) => {
-  const formData = new FormData();
   const rawData = toRaw(editedReview.value);
-  const deleteIds = review.deleteIds;
-
   const rating = rawData.rating;
   const reviewDescription = rawData.reviewDescription;
 
-  // 加入基本數據
-  formData.append('reviewId', editingReviewId.value);
-  formData.append('rating', rawData.rating);
-  formData.append('reviewDescription', rawData.reviewDescription);
-
-  // 加入 deleteIds（以 list integer 傳送）
-  if (deleteIds && deleteIds.length > 0) {
-    deleteIds.forEach(id => {
-      formData.append('deletePhotoIds', id);
-    });
-  }
-
-  // 加入新上傳的圖片
-  if (rawData.productReviewPhoto && rawData.productReviewPhoto.length > 0) {
-    rawData.productReviewPhoto.forEach((fileObj) => {
-      if (fileObj.file instanceof File) {  // 確保從物件中取出 file 屬性
-        formData.append('newPhotos', fileObj.file);  // 確保是 File 物件
-      } else {
-        console.warn("忽略非 File 類型的項目:", fileObj);
-      }
-    });
-  }
-
   try {
-
     if (rating === 0) {
       await Swal.fire({
         title: '請評分星星!',
@@ -282,7 +254,7 @@ const submitEdit = async (review) => {
       return;
     }
 
-    const { isConfirmed } = await Swal.fire({
+    const isConfirmed = await Swal.fire({
       title: '確認提交評價?',
       html: `評分：${rating}<br>內容：${reviewDescription}`,
       icon: 'question',
@@ -293,8 +265,14 @@ const submitEdit = async (review) => {
     });
 
     if (isConfirmed) {
+      const result = await updateProductReview(
+        editingReviewId.value,
+        rating,
+        reviewDescription,
+        review.deleteIds,
+        rawData.productReviewPhoto
+      );
 
-      const result = await updateProductReview(formData);
       if (result?.status === 200 || result?.status === 201) {  // 修正判斷條件
         await Swal.fire({
           title: '評論提交成功',
@@ -303,10 +281,9 @@ const submitEdit = async (review) => {
           timer: 1000,
           showConfirmButton: false,
         });
+
         fetchReviews();
         cancelEdit();
-
-
       } else {
         console.error("評論提交失敗，API 回應:", result);
         throw new Error("評論提交失敗");
