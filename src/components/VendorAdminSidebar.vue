@@ -70,7 +70,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi';

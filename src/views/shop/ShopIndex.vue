@@ -385,14 +385,14 @@ watch(() => route.query, async () => {
   padding-right: 75px;
 }
 
-::v-deep .pagination .page-item.active .page-link {
+:deep(.pagination .page-item.active .page-link) {
   background-color: #ecc795;
   border-color: #ecc795;
   color: #fff;
   cursor: pointer;
 }
 
-::v-deep .pagination .page-link:hover {
+:deep(.pagination .page-link:hover) {
   cursor: pointer;
 }
 </style>
