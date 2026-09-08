@@ -9,7 +9,10 @@ apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
     console.error('API Error:', error)
-    return Promise.reject(error)
+
+    const errorData = error.response?.data || { message: error.message || '系統發生錯誤' }
+
+    return Promise.reject(errorData)
   }
 )
 

@@ -171,7 +171,7 @@ const handleRegister = async () => {
     startCountdown();  // 開始倒數計時
   } catch (e) {
     console.error('註冊過程發生錯誤:', e);
-    error.value = '系統錯誤，請稍後再試';
+    error.value = e.error || '系統錯誤，請稍後再試';
   }
 }
 
