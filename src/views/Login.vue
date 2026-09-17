@@ -144,6 +144,70 @@ const param = ref({
   error: urlParams.get('error')
 })
 
+// 檢查是否是郵箱格式
+const isEmailFormat = (text) => {
+  if (!text) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(text);
+};
+
+// 從 API 獲取最新用戶名稱的方法
+const fetchLatestNameFromApi = async (token, userId) => {
+  console.log(`嘗試從 API 獲取用戶 ID ${userId} 的最新名稱，令牌: ${token ? token.substring(0, 10) + '...' : 'undefined'}`);
+
+  if (!token || !userId) {
+    console.warn('缺少令牌或用戶 ID，無法獲取用戶名稱');
+    return null;
+  }
+
+  // 定義要嘗試的 API 端點
+  const apiEndpoints = [
+    '/api/member/profile',
+    `/api/member/${userId}`,
+    '/api/member/userInfo'
+  ];
+
+
+  // 嘗試從每個 API 獲取名稱
+  for (const endpoint of apiEndpoints) {
+    try {
+      console.log(`嘗試從 ${endpoint} 獲取用戶名稱`);
+
+      const response = await fetch(endpoint, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        console.warn(`API ${endpoint} 返回狀態碼 ${response.status}`);
+        continue;
+      }
+
+      const data = await response.json();
+      console.log(`從 ${endpoint} 獲取的資料:`, data);
+
+      // 檢查資料是否有效
+      if (data && data.name &&
+        data.name !== 'null' &&
+        data.name !== 'undefined' &&
+        !isEmailFormat(data.name)) {
+
+        console.log(`找到有效的用戶名稱: ${data.name}`);
+
+        // 緩存此用戶 ID 的名稱
+        localStorage.setItem(`db_name_${userId}`, data.name);
+        console.log(`已緩存用戶 ${userId} 的名稱: ${data.name}`);
+
+        return data.name;
+      }
+    } catch (error) {
+      console.error(`從 ${endpoint} 獲取用戶名稱失敗:`, error);
+    }
+  }
+
+  console.warn('所有 API 嘗試都未能獲取有效的用戶名稱');
+  return null;
+}
+
 // 檢查 token 是否有效
 const checkTokenValidity = async () => {
   if (!authStore.token) return;
@@ -171,8 +235,6 @@ const handleLogin = async () => {
       return;
     }
 
-    console.log('準備發送登入請求，郵箱:', email.value);
-
     const data = await authApi.login(email.value.trim(), password.value)
 
     // 使用 Pinia store 存儲 token 和用戶信息
@@ -186,32 +248,23 @@ const handleLogin = async () => {
       }
     );
 
+    // 當檢測到是第三方帳號時
+    if (data.isThirdPartyAccount && data.provider) {
+      showLocalPasswordSetup.value = true;
+      provider.value = data.provider;
+      userEmail.value = data.email;
+      console.log("第三方帳號", provider.value, userEmail.value);
+      return;
+    }
+
     // 顯示 loading 動畫和成功提示
     loadingMessage.value = '登入成功！';
     showLoading.value = true;
     startCountdown();
-
-    // // 當檢測到是第三方帳號時
-    // if (data.isThirdPartyAccount && data.provider) {
-    //   showLocalPasswordSetup.value = true;
-    //   provider.value = data.provider;
-    //   userEmail.value = data.email;
-    //   console.log("第三方帳號", provider.value, userEmail.value);
-    //   return;
-    // }
   } catch (e) {
     console.error('登入過程中發生錯誤:', e);
     error.value = e.response?.data?.message || '登入失敗，請檢查您的電子郵件和密碼';
   }
-}
-
-// 第三方登入處理
-const redirectToOAuth2 = async (provider) => {
-  // 存儲OAuth2相關信息
-  storeOAuth2Info(provider);
-
-  // 使用標準的 OAuth2 授權端點重定向
-  window.location.href = `/oauth2/authorization/${provider}?client_name=${provider}`;
 }
 
 // 處理OAuth2回調
@@ -221,7 +274,6 @@ const handleOAuth2Callback = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const err = urlParams.get('error');
-    const state = urlParams.get('state');
 
     // 檢查是否有錯誤
     if (err) {
@@ -265,7 +317,6 @@ const handleOAuth2Callback = async () => {
       name: localStorage.getItem('oauth2_name') || '',
       email: localStorage.getItem('oauth2_email') || ''
     };
-
     console.log(`用戶信息 - 名稱: ${userInfo.name || '未提供'}, 郵箱: ${userInfo.email || '未提供'}`);
 
     // 顯示載入中動畫
@@ -291,15 +342,14 @@ const handleOAuth2Callback = async () => {
         data.memberName = cachedName;
 
         // 異步獲取最新名稱，但不等待結果
-        fetchLatestNameFromApi(data.token, data.userId)
-          .then(latestName => {
-            if (latestName && latestName !== cachedName) {
-              console.log(`名稱已更新: ${cachedName} -> ${latestName}`);
-            }
-          })
-          .catch(error => {
-            console.error('異步獲取最新名稱失敗:', error);
-          });
+        try {
+          const latestName = await fetchLatestNameFromApi(data.token, data.userId)
+          if (latestName && latestName !== cachedName) {
+            console.log(`名稱已更新: ${cachedName} -> ${latestName}`);
+          }
+        } catch (error) {
+          console.error('異步獲取最新名稱失敗:', error);
+        }
       } else {
         // 沒有有效的緩存名稱，立即嘗試獲取
         console.log('沒有找到緩存的用戶名稱，將直接從 API 獲取');
@@ -347,15 +397,15 @@ const handleOAuth2Callback = async () => {
       startCountdown();
 
       // 使用 Vue Router 進行導航
-      setTimeout(() => {
-        router.push({
-          path: '/',
-          query: {
-            oauth_success: 'true',
-            user_new_login: 'true'
-          }
-        });
-      }, 1500);
+      // setTimeout(() => {
+      //   router.push({
+      //     path: '/',
+      //     query: {
+      //       oauth_success: 'true',
+      //       user_new_login: 'true'
+      //     }
+      //   });
+      // }, 1500);
     } else {
       error.value = '登入失敗: 登入過程中發生錯誤，未收到有效的用戶數據';
     }
@@ -365,6 +415,7 @@ const handleOAuth2Callback = async () => {
     console.error('OAuth2 login error:', e);
   }
 }
+
 // 存儲OAuth2相關信息，用於回調處理
 const storeOAuth2Info = (provider) => {
   // 存儲當前時間戳，用於驗證會話有效期
@@ -431,69 +482,6 @@ const startCountdown = () => {
   }, 1000);
 }
 
-// 從 API 獲取最新用戶名稱的方法
-const fetchLatestNameFromApi = async (token, userId) => {
-  console.log(`嘗試從 API 獲取用戶 ID ${userId} 的最新名稱，令牌: ${token ? token.substring(0, 10) + '...' : 'undefined'}`);
-
-  if (!token || !userId) {
-    console.warn('缺少令牌或用戶 ID，無法獲取用戶名稱');
-    return null;
-  }
-
-  // 定義要嘗試的 API 端點
-  const apiEndpoints = [
-    '/api/member/profile',
-    `/api/member/${userId}`,
-    '/api/member/userInfo'
-  ];
-
-  // 檢查是否是郵箱格式
-  const isEmailFormat = (text) => {
-    if (!text) return false;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(text);
-  };
-
-  // 嘗試從每個 API 獲取名稱
-  for (const endpoint of apiEndpoints) {
-    try {
-      console.log(`嘗試從 ${endpoint} 獲取用戶名稱`);
-
-      const response = await fetch(endpoint, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!response.ok) {
-        console.warn(`API ${endpoint} 返回狀態碼 ${response.status}`);
-        continue;
-      }
-
-      const data = await response.json();
-      console.log(`從 ${endpoint} 獲取的資料:`, data);
-
-      // 檢查資料是否有效
-      if (data && data.name &&
-        data.name !== 'null' &&
-        data.name !== 'undefined' &&
-        !isEmailFormat(data.name)) {
-
-        console.log(`找到有效的用戶名稱: ${data.name}`);
-
-        // 緩存此用戶 ID 的名稱
-        localStorage.setItem(`db_name_${userId}`, data.name);
-        console.log(`已緩存用戶 ${userId} 的名稱: ${data.name}`);
-
-        return data.name;
-      }
-    } catch (error) {
-      console.error(`從 ${endpoint} 獲取用戶名稱失敗:`, error);
-    }
-  }
-
-  console.warn('所有 API 嘗試都未能獲取有效的用戶名稱');
-  return null;
-}
-
 onUnmounted(() => {
   if (countdownTimer.value) {
     clearInterval(countdownTimer.value);
@@ -502,11 +490,10 @@ onUnmounted(() => {
 
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search);
-  const authStore = useAuthStore();
 
   if (window.location.search.includes('code=')) {
-      handleOAuth2Callback();
-    }
+    handleOAuth2Callback();
+  }
 
   console.log('Login組件掛載，檢查URL參數...');
 
