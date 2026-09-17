@@ -112,10 +112,10 @@
 
 <script setup>
 import { useAuthStore } from '@/stores/auth';
-import { Icon } from '@iconify/vue';
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import axios from 'axios'
+import { authApi } from '@/api/user/authApi';
+import { oauth2Api } from '@/api/user/oauth2Api';
 
 const router = useRouter()
 const route = useRoute()
@@ -124,7 +124,6 @@ const email = ref('')
 const password = ref('')
 const success = ref(null)
 const error = ref(null)
-const countdown = ref(0)
 
 const showLocalPasswordSetup = ref(false)
 const provider = ref('')
@@ -151,17 +150,9 @@ const checkTokenValidity = async () => {
 
   try {
     // 發送請求到後端驗證 token
-    const response = await fetch('/api/auth/status', {
-      headers: {
-        'Authorization': `Bearer ${authStore.token}`
-      }
-    });
-
-    if (!response.ok) {
-      // token 無效或過期，清除儲存的資訊
-      authStore.clearToken();
-    }
+    await authApi.getStatus(authStore.token)
   } catch (error) {
+    authStore.clearToken();
     console.error('Token 驗證錯誤:', error);
   }
 }
@@ -180,55 +171,37 @@ const handleLogin = async () => {
       return;
     }
 
-    const loginData = {
-      email: email.value.trim(),
-      password: password.value
-    };
+    console.log('準備發送登入請求，郵箱:', email.value);
 
-    console.log('準備發送登入請求，郵箱:', loginData.email);
+    const data = await authApi.login(email.value.trim(), password.value)
 
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(loginData)
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      // 使用 Pinia store 存儲 token 和用戶信息
-      authStore.setToken(
-        data.token,
-        data.userId,
-        data.role,
-        {
-          name: data.name,
-          email: data.email
-        }
-      );
-
-      // 顯示 loading 動畫和成功提示
-      loadingMessage.value = '登入成功！';
-      showLoading.value = true;
-      startCountdown();
-    } else {
-      // 處理登入失敗
-      error.value = data.error || '登入失敗，請檢查您的電子郵件和密碼';
-
-      // 當檢測到是第三方帳號時
-      if (data.isThirdPartyAccount && data.provider) {
-        showLocalPasswordSetup.value = true;
-        provider.value = data.provider;
-        userEmail.value = data.email;
-        console.log("第三方帳號", provider.value, userEmail.value);
-        return;
+    // 使用 Pinia store 存儲 token 和用戶信息
+    authStore.setToken(
+      data.token,
+      data.userId,
+      data.role,
+      {
+        name: data.name,
+        email: data.email
       }
-    }
+    );
+
+    // 顯示 loading 動畫和成功提示
+    loadingMessage.value = '登入成功！';
+    showLoading.value = true;
+    startCountdown();
+
+    // // 當檢測到是第三方帳號時
+    // if (data.isThirdPartyAccount && data.provider) {
+    //   showLocalPasswordSetup.value = true;
+    //   provider.value = data.provider;
+    //   userEmail.value = data.email;
+    //   console.log("第三方帳號", provider.value, userEmail.value);
+    //   return;
+    // }
   } catch (e) {
     console.error('登入過程中發生錯誤:', e);
-    error.value = '系統錯誤，請稍後再試';
+    error.value = e.response?.data?.message || '登入失敗，請檢查您的電子郵件和密碼';
   }
 }
 
@@ -287,9 +260,6 @@ const handleOAuth2Callback = async () => {
       }
     }
 
-    // 使用 auth store
-    const authStore = useAuthStore();
-
     // 獲取用戶資訊
     const userInfo = {
       name: localStorage.getItem('oauth2_name') || '',
@@ -303,14 +273,7 @@ const handleOAuth2Callback = async () => {
     showLoading.value = true;
 
     // 從後端發送登入請求
-    const response = await axios.post('/api/oauth2/login', {
-      code,
-      provider,
-      name: userInfo.name,
-      email: userInfo.email
-    });
-
-    const data = response.data;
+    const data = await oauth2Api.login(code, provider, userInfo.name, userInfo.email)
     console.log('OAuth2 登入響應:', data);
 
     if (data && data.token) {
@@ -430,6 +393,7 @@ const loginWithProvider = () => {
   }
   // 添加其他提供商的處理邏輯（如有需要）
 }
+
 // 新增開始倒數計時的方法
 const startCountdown = () => {
   countdownSeconds.value = 2;
@@ -539,6 +503,10 @@ onUnmounted(() => {
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search);
   const authStore = useAuthStore();
+
+  if (window.location.search.includes('code=')) {
+      handleOAuth2Callback();
+    }
 
   console.log('Login組件掛載，檢查URL參數...');
 

@@ -92,4 +92,12 @@ export const authApi = {
       confirmPassword,
     })
   },
+
+  getStatus(token) {
+    return apiClient.get('/status', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  },
 }
