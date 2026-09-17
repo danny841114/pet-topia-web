@@ -22,6 +22,15 @@ export const memberApi = {
     })
   },
 
+  getProfileWithNoCache(token) {
+    return apiClient.get('/profile', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Cache-Control': 'no-cache',
+      },
+    })
+  },
+
   updateProfile(name, phone, gender, address, birthdate, token) {
     return apiClient.put(
       '/profile',

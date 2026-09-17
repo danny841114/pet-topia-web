@@ -3,7 +3,7 @@ export const dateUtil = {
     if (!dateStr) return ''
 
     const date = new Date(dateStr)
-    if (NaN(date.getTime())) return ''
+    if (isNaN(date.getTime())) return ''
 
     const options = {
       year: 'numeric',
@@ -20,7 +20,7 @@ export const dateUtil = {
     if (!dateStr) return ''
 
     const date = new Date(dateStr)
-    if (NaN(date.getTime())) return ''
+    if (isNaN(date.getTime())) return ''
 
     const options = {
       year: 'numeric',
@@ -35,7 +35,7 @@ export const dateUtil = {
     if (!dateStr) return ''
 
     const date = new Date(dateStr)
-    if (NaN(date.getTime())) return ''
+    if (isNaN(date.getTime())) return ''
 
     const year = date.getFullYear()
     const month = ('0' + (date.getMonth() + 1)).slice(-2)
@@ -51,7 +51,7 @@ export const dateUtil = {
     if (!dateStr) return ''
 
     const date = new Date(dateStr)
-    if (NaN(date.getTime())) return ''
+    if (isNaN(date.getTime())) return ''
 
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')

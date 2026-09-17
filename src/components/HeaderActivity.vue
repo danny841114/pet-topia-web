@@ -346,12 +346,14 @@ import { activityApi } from '@/api/vendor/activityApi'
 import { vendorApi } from '@/api/vendor/vendorApi'
 import Swal from 'sweetalert2'
 import { memberApi } from '@/api/user/member'
+import { emailUtil } from '@/utils/emailUtil'
 
 const authStore = useAuthStore()
 const userId = authStore.userId
 const keyword = ref('')
 const activityList = ref([]) // 儲存結果傳至搜尋頁面
 const router = useRouter()
+const isEmailFormat = emailUtil.isEmailFormat()
 
 const searchActivity = async () => {
   if (!keyword.value) {
@@ -378,7 +380,6 @@ const selectedNotificationContent = ref(null)
 const selectedNotificationTitle = ref(null)
 const selectedNotificationSedTime = ref(null)
 const modalInstance = ref(null)
-const memberId = 11 // 假设当前会员ID为1，实际应用中请从用户信息获取
 
 // 获取通知列表
 const getNotifications = async () => {
@@ -451,14 +452,6 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 // 修改 userName 計算屬性
 const userName = computed(() => {
-  // 檢查字符串是否為郵箱格式
-  const isEmailFormat = (text, email) => {
-    if (!text || !email) return false
-    if (text.toLowerCase() === email.toLowerCase()) return true
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(text)
-  }
-
   // 從 authStore 和 localStorage 獲取最新資料
   const userData = JSON.parse(localStorage.getItem('userData') || '{}')
   const user = authStore.user || userData
@@ -513,14 +506,6 @@ const fetchNameFromDatabase = async (forceRefresh = false) => {
   if (!authStore.token || !authStore.userId) return null
 
   console.log('直接從資料庫獲取最新用戶名稱')
-
-  // 檢查是否是郵箱格式的函數
-  const isEmailFormat = (text, email) => {
-    if (!text || !email) return false
-    if (text === email) return true
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(text)
-  }
 
   try {
     // 同時嘗試多個 API 端點以確保能獲取到最新名稱
@@ -624,10 +609,8 @@ const fetchNameFromDatabase = async (forceRefresh = false) => {
 }
 
 // 添加状态管理
-const retryCount = ref(0)
 const isLoading = ref(false)
 const avatarUrl = ref(null)
-const MAX_RETRIES = 2
 
 const userAvatar = computed(() => {
   if (!authStore.user) {
@@ -811,14 +794,6 @@ onMounted(async () => {
       : null,
   })
 
-  // 添加判斷郵箱函數
-  const isEmailFormat = (text, email) => {
-    if (!text || !email) return false
-    if (text.toLowerCase() === email.toLowerCase()) return true
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(text)
-  }
-
   // 如果用戶已登入
   if (authStore.isAuthenticated) {
     // 如果沒有頭像，嘗試獲取頭像
@@ -987,14 +962,6 @@ const handleUserLogin = (event) => {
     // 如果是第三方登入，需要檢查名稱
     if (event.detail.user.provider) {
       console.log('登入事件檢測到第三方用戶，立即獲取名稱')
-
-      // 判斷名稱是否是郵箱格式
-      const isEmailFormat = (text, email) => {
-        if (!text || !email) return false
-        if (text.toLowerCase() === email.toLowerCase()) return true
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        return emailRegex.test(text)
-      }
 
       const userEmail = event.detail.user.email || ''
       const userName = event.detail.user.name || ''
@@ -1226,27 +1193,7 @@ const switchToVendor = async () => {
 // 創建並轉換為新的商家帳號
 const convertToVendor = async () => {
   try {
-    const response = await fetch('/api/vendor/convert', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authStore.token}`,
-      },
-      body: JSON.stringify({ confirm: true }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      Swal.fire({
-        icon: 'error',
-        title: '轉換失敗',
-        text: `成為商家失敗: ${errorData.error || '未知錯誤'}`,
-        confirmButtonColor: '#2b4f76'
-      });
-      return;
-    }
-
-    const result = await response.json();
+    const result = await vendorApi.checkVendorEligibility(authStore.token)
 
     authStore.setToken(
       result.token,
@@ -1267,7 +1214,7 @@ const convertToVendor = async () => {
       confirmButtonColor: '#2b4f76'
     });
 
-    window.location.href = '/vendor/admin/profile';
+    router.push('/vendor/admin/profile')
   } catch (error) {
     console.error('成為商家失敗:', error);
     Swal.fire({
@@ -1284,18 +1231,7 @@ const handleProfileUpdate = async (event) => {
 
   try {
     // 強制從資料庫獲取最新資料
-    const response = await fetch('/api/member/profile', {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-        'Cache-Control': 'no-cache', // 防止快取
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('獲取用戶資料失敗')
-    }
-
-    const userData = await response.json()
+    const userData = await memberApi.getProfileWithNoCache(authStore.token)
     console.log('從資料庫獲取的最新用戶資料:', userData)
 
     // 更新 authStore
