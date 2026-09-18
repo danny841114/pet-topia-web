@@ -269,7 +269,8 @@
 
   <!-- 留言視窗 START -->
   <Review v-if="isPopupReviewVisible" :is-open="isPopupReviewVisible" :vendor-id="props.vendorId" :add="commentButton"
-    :update="rewriteButton" :update-review-id="rewriteReviewId" @close="closeReview" @refresh="fetchVendorReviewList">
+    :update="rewriteButton" :update-review-id="rewriteReviewId" @close="closeReview"
+    @refresh="fetchLatestReviewAndRatings">
   </Review>
   <!-- 留言視窗 END -->
 
@@ -416,7 +417,7 @@ const fetchVendorData = async () => {
   try {
     vendor.value = await vendorApi.getVendor(props.vendorId);
   } catch (error) {
-    console.error('Get vendor data failed:', error)
+    console.error('獲取店家資訊失敗', error)
   }
 }
 
@@ -425,7 +426,7 @@ const fetchVendorImageList = async () => {
   try {
     imageList.value = await vendorApi.getVendorImages(props.vendorId)
   } catch (error) {
-    console.error('獲取店家圖片列表失敗:', error)
+    console.error('獲取店家圖片列表失敗', error)
   }
 }
 
@@ -434,7 +435,7 @@ const fetchVendorReviewList = async () => {
   try {
     reviewList.value = await vendorApi.getVendorReviews(props.vendorId)
   } catch (error) {
-    console.error('獲取店家評論清單失敗:', error)
+    console.error('獲取店家評論清單失敗', error)
   }
 }
 
@@ -444,37 +445,53 @@ const fetchVendorList = async () => {
     const data = await vendorApi.getOtherVendors(props.vendorId)
     vendorList.value = listUtil.shuffleList(data)
   } catch (error) {
-    console.error('獲取店家清單失敗:', error)
+    console.error('獲取店家清單失敗', error)
   }
 }
 
 /* 6. 是否能留言*/
 const getReviewIsExisied = async () => {
-  let result = await vendorApi.isReviewExisting(props.vendorId, memberId)
+  try {
+    let result = await vendorApi.isReviewExisting(props.vendorId, memberId)
 
-  if (result.action) {
-    addReviewButton.value = '已留言'
-    isAddReviewDisabled.value = true
-  } else {
-    addReviewButton.value = '留言'
-    isAddReviewDisabled.value = false
+    if (result.action) {
+      addReviewButton.value = '已留言'
+      isAddReviewDisabled.value = true
+    } else {
+      addReviewButton.value = '留言'
+      isAddReviewDisabled.value = false
+    }
+  } catch (error) {
+    console.error('獲取能否留言失敗', error)
   }
 }
 
 /* 8. 標籤 */
 const getTag = async () => {
-  tagList.value = await vendorApi.getVendorTags(props.vendorId)
+  try {
+    tagList.value = await vendorApi.getVendorTags(props.vendorId)
+  } catch (error) {
+    console.error('獲取店家標籤失敗', error)
+  }
 }
 
 /* 10. 店家活動 */
 const getActivities = async () => {
-  activityList.value = await activityApi.getActivitiesByVendorId(props.vendorId)
+  try {
+    activityList.value = await activityApi.getActivitiesByVendorId(props.vendorId)
+  } catch (error) {
+    console.error('獲取店家活動列表失敗', error)
+  }
 }
 
 /* 11. 收藏視窗 */
 const getLikeStatus = async () => {
-  let result = await vendorApi.isLikeExisting(props.vendorId, memberId)
-  likeStatus.value = result.action ? '已收藏' : '收藏'
+  try {
+    let result = await vendorApi.isLikeExisting(props.vendorId, memberId)
+    likeStatus.value = result.action ? '已收藏' : '收藏'
+  } catch (error) {
+    console.error('獲取收藏狀態失敗', error)
+  }
 }
 
 const toggleLike = async () => {
@@ -611,7 +628,7 @@ const openMember = async () => {
   try {
     memberList.value = await vendorApi.getVendorLikes(props.vendorId)
   } catch (error) {
-    console.error('讀取會員失敗:', error)
+    console.error('讀取會員失敗', error)
   }
 }
 
@@ -634,7 +651,7 @@ const openCategory = async (categoryId) => {
   try {
     categoryVendorList.value = await vendorApi.getOtherVendorsByCategorty(props.vendorId, categoryId);
   } catch (error) {
-    console.error('讀取同類別店家失敗:', error)
+    console.error('讀取同類別店家失敗', error)
   }
 }
 
@@ -655,7 +672,7 @@ const fetchAvgRate = async () => {
   try {
     avgRate.value = await vendorApi.getVendorAvgRating(props.vendorId)
   } catch (error) {
-    console.error('讀取評分失敗:', error)
+    console.error('讀取評分失敗', error)
   }
 }
 
@@ -665,6 +682,12 @@ const openRate = () => {
 
 const closeRate = () => {
   isRateVisible.value = false
+}
+
+const fetchLatestReviewAndRatings = () => {
+  fetchVendorReviewList()
+  fetchAvgRate()
+  getReviewIsExisied()
 }
 
 /* 19. 取得店家座標 */
