@@ -71,7 +71,7 @@
         </button>
         &emsp;
         <button v-if="update" type="button" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          @click="resetComment()">
+          @click="resetReview()">
           重設
         </button>
         &emsp;
@@ -100,7 +100,7 @@ const props = defineProps({
   updateReviewId: Number
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'refresh'])
 
 const authStore = useAuthStore()
 const memberId = authStore.memberId
@@ -115,7 +115,7 @@ const tempRating2 = ref(0)
 const rating3 = ref(0)
 const tempRating3 = ref(0)
 
-// 第一組
+// environment rating
 const setRating1 = (value) => {
   rating1.value = value
 }
@@ -126,7 +126,7 @@ const resetHover1 = () => {
   tempRating1.value = 0
 }
 
-// 第二組
+// price rating
 const setRating2 = (value) => {
   rating2.value = value
 }
@@ -137,7 +137,7 @@ const resetHover2 = () => {
   tempRating2.value = 0
 }
 
-// 第三組
+// service rating
 const setRating3 = (value) => {
   rating3.value = value
 }
@@ -146,16 +146,6 @@ const hoverRating3 = (value) => {
 }
 const resetHover3 = () => {
   tempRating3.value = 0
-}
-
-const handleSubmit = () => {
-  if (props.add) {
-    submitReviewFinal()
-    console.log('執行新增')
-  } else if (props.update) {
-    submitRewirte()
-    console.log('執行修改')
-  }
 }
 
 const handleFileUpload = (event) => {
@@ -184,7 +174,7 @@ const removeOriginImage = (photoId) => {
   }
 }
 
-const submitReviewFinal = async () => {
+const submitAdd = async () => {
   if (!review.value.content || !rating1.value || !rating2.value || !rating3.value) {
     Swal.fire({
       title: '欄位未填寫完整',
@@ -210,15 +200,13 @@ const submitReviewFinal = async () => {
       icon: 'success',
       confirmButtonText: '確定',
     })
-
-    window.location.reload() // 重刷頁面，之後有時間改渲染
   } catch (error) {
     console.error('提交失敗:', error)
     alert('提交失敗，請重試！')
   }
 }
 
-const submitRewirte = async () => {
+const submitUpdate = async () => {
   const ask = await Swal.fire({
     title: '確定修改？',
     icon: 'warning',
@@ -234,7 +222,7 @@ const submitRewirte = async () => {
   try {
     await vendorApi.updateVendorReview(
       props.vendorId,
-      rewriteReviewId.value,
+      props.updateReviewId,
       rating1.value,
       rating2.value,
       rating3.value,
@@ -248,15 +236,24 @@ const submitRewirte = async () => {
       icon: 'success',
       confirmButtonText: '確定',
     })
-
-    window.location.reload()
   } catch (error) {
     console.error('提交失敗:', error)
     alert('留言修改失敗，請重試！')
   }
 }
 
-const resetComment = async () => {
+const handleSubmit = async() => {
+  if (props.add) {
+    await submitAdd()
+  } else if (props.update) {
+    await submitUpdate()
+  }
+
+  emit('close')
+  emit('refresh')
+}
+
+const resetReview = async () => {
   const ask = await Swal.fire({
     title: '確定重置？',
     icon: 'warning',
@@ -269,19 +266,31 @@ const resetComment = async () => {
 
   if (!ask.isConfirmed) return
 
-  const res = await vendorApi.getVendorReview(props.vendorId, rewriteReviewId.value)
+  const res = await vendorApi.getVendorReview(props.vendorId, props.updateReviewId)
   review.value.content = res.review.reviewContent
   rating1.value = res.review.ratingEnvironment
   rating2.value = res.review.ratingPrice
   rating3.value = res.review.ratingService
 
-  originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(props.vendorId, rewriteReviewId.value)
+  originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(props.vendorId, props.updateReviewId)
 
   removeImageList.value = []
   reviewPhotos.value = []
 }
 
-const closeModal = () => {
+const closeModal = async () => {
+  const ask = await Swal.fire({
+    title: '確定取消？',
+    icon: 'warning',
+    allowOutsideClick: false,
+    showCancelButton: true,
+    confirmButtonText: '確認',
+    cancelButtonText: '返回',
+    reverseButtons: true,
+  })
+
+  if (!ask.isConfirmed) return
+
   review.value = ""
   reviewPhotos.value = []
   originReviewPhotoList.value = []
@@ -294,8 +303,6 @@ const closeModal = () => {
 }
 
 onMounted(async () => {
-  console.log("欲修改之評論ID", props.updateReviewId)
-
   if (props.updateReviewId) {
     const res = await vendorApi.getVendorReview(props.vendorId, props.updateReviewId)
     review.value.content = res.review.reviewContent
