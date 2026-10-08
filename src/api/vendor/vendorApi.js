@@ -1,25 +1,14 @@
-import axios from 'axios'
+import apiClient from '../apiClient'
 
-const apiClient = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/api/vendor`,
-  timeout: 10000,
-})
-
-apiClient.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    console.error('API Error:', error)
-    return Promise.reject(error)
-  },
-)
+const API_PREFIX = '/api/vendor'
 
 export const vendorApi = {
   getAllVendors() {
-    return apiClient.get(`/all`)
+    return apiClient.get(`${API_PREFIX}/all`)
   },
 
   getVendors() {
-    return apiClient.get(`/all/for/swiper`)
+    return apiClient.get(`${API_PREFIX}/all/for/swiper`)
   },
 
   // this API should be modified
@@ -27,47 +16,47 @@ export const vendorApi = {
     const formData = new FormData()
     formData.append('keyword', keyword)
 
-    return apiClient.post(`/find`, formData)
+    return apiClient.post(`${API_PREFIX}/find`, formData)
   },
 
   getVendorCategories() {
-    return apiClient.get(`/category/show`)
+    return apiClient.get(`${API_PREFIX}/category/show`)
   },
 
   getVendor(vendorId) {
-    return apiClient.get(`/${vendorId}`)
+    return apiClient.get(`${API_PREFIX}/${vendorId}`)
   },
 
   getVendorImages(vendorId) {
-    return apiClient.get(`/${vendorId}/image`)
+    return apiClient.get(`${API_PREFIX}/${vendorId}/image`)
   },
 
   getVendorReviews(vendorId) {
-    return apiClient.get(`/${vendorId}/review`)
+    return apiClient.get(`${API_PREFIX}/${vendorId}/review`)
   },
 
   getVendorTags(vendorId) {
-    return apiClient.get(`/${vendorId}/tag`)
+    return apiClient.get(`${API_PREFIX}/${vendorId}/tag`)
   },
 
   getOtherVendors(vendorId) {
-    return apiClient.get(`/all/except/${vendorId}`)
+    return apiClient.get(`${API_PREFIX}/all/except/${vendorId}`)
   },
 
   getOtherVendorsByCategorty(vendorId, categoryId) {
-    return apiClient.get(`/category/${categoryId}/except/vendor/${vendorId}`)
+    return apiClient.get(`${API_PREFIX}/category/${categoryId}/except/vendor/${vendorId}`)
   },
 
   isReviewExisting(vendorId, memberId) {
-    return apiClient.get(`/${vendorId}/member/${memberId}/review/exist`)
+    return apiClient.get(`${API_PREFIX}/${vendorId}/member/${memberId}/review/exist`)
   },
 
   isLikeExisting(vendorId, memberId) {
-    return apiClient.get(`/${vendorId}/member/${memberId}/like/status`)
+    return apiClient.get(`${API_PREFIX}/${vendorId}/member/${memberId}/like/status`)
   },
 
   toggleLike(vendorId, memberId) {
-    return apiClient.post(`/${vendorId}/like/toggle`, {
+    return apiClient.post(`${API_PREFIX}/${vendorId}/like/toggle`, {
       memberId,
     })
   },
@@ -79,7 +68,7 @@ export const vendorApi = {
     ratingPrice,
     ratingService,
     content,
-    reviewPhotos,
+    reviewPhotos
   ) {
     const formData = new FormData()
     formData.append('memberId', memberId)
@@ -91,15 +80,15 @@ export const vendorApi = {
       formData.append('reviewPhotos', file)
     })
 
-    return apiClient.post(`/${vendorId}/review/add/final`, formData)
+    return apiClient.post(`${API_PREFIX}/${vendorId}/review/add/final`, formData)
   },
 
   getVendorReview(vendorId, reviewId) {
-    return apiClient.get(`/review/${reviewId}`)
+    return apiClient.get(`${API_PREFIX}/review/${reviewId}`)
   },
 
   getVendorReviewPhotos(vendorId, reviewId) {
-    return apiClient.get(`/review/${reviewId}/photo`)
+    return apiClient.get(`${API_PREFIX}/review/${reviewId}/photo`)
   },
 
   updateVendorReview(
@@ -110,7 +99,7 @@ export const vendorApi = {
     ratingService,
     content,
     reviewPhotos,
-    removeImageList,
+    removeImageList
   ) {
     const formData = new FormData()
     formData.append('ratingEnv', ratingEnv)
@@ -123,36 +112,36 @@ export const vendorApi = {
       formData.append('reviewPhotos', file)
     })
 
-    return apiClient.put(`/review/${reviewId}/rewrite/final`, formData)
+    return apiClient.put(`${API_PREFIX}/review/${reviewId}/rewrite/final`, formData)
   },
 
   deleteVendorReview(vendorId, reviewId) {
-    return apiClient.delete(`/review/${reviewId}/delete`)
+    return apiClient.delete(`${API_PREFIX}/review/${reviewId}/delete`)
   },
 
   getVendorLikes(vendorId) {
-    return apiClient.get(`/${vendorId}/like`)
+    return apiClient.get(`${API_PREFIX}/${vendorId}/like`)
   },
 
   getVendorAvgRating(vendorId) {
-    return apiClient.get(`/${vendorId}/update/rating`)
+    return apiClient.get(`${API_PREFIX}/${vendorId}/update/rating`)
   },
 
   getVendorLikesByMemberId(memberId) {
-    return apiClient.get(`/member/${memberId}/like`)
+    return apiClient.get(`${API_PREFIX}/member/${memberId}/like`)
   },
 
   getVendorReviewsByMemberId(memberId) {
-    return apiClient.get(`/member/${memberId}/like`)
+    return apiClient.get(`${API_PREFIX}/member/${memberId}/like`)
   },
 
   deleteLike(likeId) {
-    return apiClient.delete(`/like/${likeId}/delete`)
+    return apiClient.delete(`${API_PREFIX}/like/${likeId}/delete`)
   },
 
   // By Liou
   getSlogans(vendorId, token) {
-    return apiClient.get(`/${vendorId}/slogans`, {
+    return apiClient.get(`${API_PREFIX}/${vendorId}/slogans`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -172,7 +161,7 @@ export const vendorApi = {
     categoryId,
     deletedImageIds = [],
     imagePreviews = [],
-    logoInput,
+    logoInput
   ) {
     const formData = new FormData()
 
@@ -198,23 +187,23 @@ export const vendorApi = {
       })
     }
 
-  let logoFile = null;
-  if (logoInput instanceof File) {
-    logoFile = logoInput;
-  } else if (logoInput?.files?.[0] instanceof File) {
-    logoFile = logoInput.files[0];
-  } else if (Array.isArray(logoInput) && logoInput[0] instanceof File) {
-    logoFile = logoInput[0];
-  }
+    let logoFile = null
+    if (logoInput instanceof File) {
+      logoFile = logoInput
+    } else if (logoInput?.files?.[0] instanceof File) {
+      logoFile = logoInput.files[0]
+    } else if (Array.isArray(logoInput) && logoInput[0] instanceof File) {
+      logoFile = logoInput[0]
+    }
 
-  if (logoFile) {
-    formData.append('vendorLogoImg', logoFile);
-    console.log('LOGO 檔案成功加入 FormData:', logoFile.name);
-  } else {
-    console.warn('未檢測到新的 LOGO 檔案');
-  }
+    if (logoFile) {
+      formData.append('vendorLogoImg', logoFile)
+      console.log('LOGO 檔案成功加入 FormData:', logoFile.name)
+    } else {
+      console.warn('未檢測到新的 LOGO 檔案')
+    }
 
-    return apiClient.put(`/update/${vendorId}`, formData)
+    return apiClient.put(`${API_PREFIX}/update/${vendorId}`, formData)
   },
 
   // 改成 GET
@@ -222,23 +211,23 @@ export const vendorApi = {
     const formData = new FormData()
     formData.append('keyword', keyword)
 
-    return apiClient.get(`/find`, formData)
+    return apiClient.get(`${API_PREFIX}/find`, formData)
   },
 
   getNotifications(userId) {
-    return apiClient.get(`/notification/${userId}`)
+    return apiClient.get(`${API_PREFIX}/notification/${userId}`)
   },
 
   readNotification(notificationId) {
-    return apiClient.put(`/notification/read/${notificationId}`)
+    return apiClient.put(`${API_PREFIX}/notification/read/${notificationId}`)
   },
 
   deleteNotification(userId) {
-    return apiClient.delete(`/notification/delete/${userId}`)
+    return apiClient.delete(`${API_PREFIX}/notification/delete/${userId}`)
   },
 
   checkVendorEligibility(token) {
-    return apiClient.get(`/convert/check`, {
+    return apiClient.get(`${API_PREFIX}/convert/check`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -247,25 +236,25 @@ export const vendorApi = {
 
   getVendorEligibility(token) {
     return apiClient.post(
-      `/convert`,
+      `${API_PREFIX}/convert`,
       { confirm: true },
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      },
+      }
     )
   },
 
   switchBackToMember(token) {
     return apiClient.post(
-      `/switch-back`,
+      `${API_PREFIX}/switch-back`,
       { confirm: true },
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      },
+      }
     )
   },
 }
