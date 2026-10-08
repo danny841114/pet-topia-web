@@ -1,171 +1,142 @@
 <template>
   <div class="overlay">
     <div class="popup-review">
-      <h3><b v-if="add">新增評論</b></h3>
-      <h3><b v-if="update">修改評論</b></h3>
-      <form @submit.prevent="handleSubmit()">
-        <textarea v-model="review.content" placeholder="輸入感想" style="width: 400px; height: 100px" required></textarea>
-        <br />
+      <h3 class="fw-bold mb-3">
+        {{ isEdit ? '修改評論' : '新增評論' }}
+      </h3>
 
-        <!--星星-->
-        <div class="stars">
-          <span v-for="star in 5" :key="star" class="star" :class="{
-            active: tempRating1 > 0 ? star <= tempRating1 : star <= rating1, // hover執行順序優於click
-          }" @click="setRating1(star)" @mouseover="hoverRating1(star)" @mouseout="resetHover1">
-            ★
-          </span>
-          <span>環境：{{ rating1 }}</span>
+      <form @submit.prevent="handleSubmit">
+        <!-- 評論內容 -->
+        <textarea v-model.trim="reviewContent" class="form-control mb-3" rows="4" placeholder="分享你的消費體驗與感想..."
+          required></textarea>
+
+        <!-- 星星評分區塊 -->
+        <div class="ratings-container mb-3">
+          <div v-for="category in ratingCategories" :key="category.key"
+            class="d-flex align-items-center justify-content-center gap-2 mb-2">
+            <span class="rating-label fw-bold">{{ category.label }}：</span>
+            <div class="stars">
+              <span v-for="star in 5" :key="star" class="star"
+                :class="{ active: star <= (hoverRatings[category.key] || ratings[category.key]) }"
+                @click="ratings[category.key] = star" @mouseover="hoverRatings[category.key] = star"
+                @mouseout="hoverRatings[category.key] = 0">
+                ★
+              </span>
+            </div>
+            <span class="rating-num ms-1">{{ ratings[category.key] }} 分</span>
+          </div>
         </div>
 
-        <div class="stars">
-          <span v-for="star in 5" :key="star" class="star" :class="{
-            active: tempRating2 > 0 ? star <= tempRating2 : star <= rating2, // hover執行順序優於click
-          }" @click="setRating2(star)" @mouseover="hoverRating2(star)" @mouseout="resetHover2">
-            ★
-          </span>
-          <span>價格：{{ rating2 }}</span>
+        <!-- 圖片上傳區塊 -->
+        <div class="mb-3">
+          <label class="btn btn-outline-secondary rounded-3 w-100 py-2 cursor-pointer">
+            <i class="bi bi-cloud-upload me-2"></i>選擇 / 上傳照片
+            <input type="file" multiple accept="image/*" class="d-none" @change="handleFileUpload" />
+          </label>
         </div>
 
-        <div class="stars">
-          <span v-for="star in 5" :key="star" class="star" :class="{
-            active: tempRating3 > 0 ? star <= tempRating3 : star <= rating3, // hover執行順序優於click
-          }" @click="setRating3(star)" @mouseover="hoverRating3(star)" @mouseout="resetHover3">
-            ★
-          </span>
-          <span>服務：{{ rating3 }}</span>
-        </div>
-        <!--星星-->
-
-        <input type="file" multiple @change="handleFileUpload"
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" />
-
-        <div class="scroll-container">
+        <!-- 圖片預覽區域 -->
+        <div class="scroll-container mb-4" v-if="originReviewPhotoList.length > 0 || reviewPhotos.length > 0">
           <!-- 原有圖片 -->
-          <div v-if="originReviewPhotoList.length != 0">=== 原有圖片 ===</div>
-          <div class="image-preview">
-            <div v-for="(photo, index) in originReviewPhotoList" :key="index" class="image-container">
-              <img :src="`${apiBase}${photo.imgUrl}`" alt="選擇的圖片" class="preview-img"
-                v-if="!removeImageList.includes(photo.id)" />
-              <button type="button" class="img-button" @click="removeOriginImage(photo.id)"
-                v-if="!removeImageList.includes(photo.id)">
-                刪除
-              </button>
+          <div v-if="activeOriginPhotos.length > 0" class="text-start mb-2">
+            <small class="text-muted fw-bold">原有照片：</small>
+            <div class="image-preview">
+              <div v-for="photo in activeOriginPhotos" :key="photo.id" class="image-container">
+                <img :src="photo.imgUrl" alt="原有圖片" class="preview-img" />
+                <button type="button" class="img-button" @click="removeOriginImage(photo.id)">✕</button>
+              </div>
             </div>
           </div>
-          <!-- 原有圖片 -->
 
           <!-- 新增圖片 -->
-          <div v-if="reviewPhotos.length != 0">=== 新增圖片 ===</div>
-          <div class="image-preview">
-            <div v-for="(photo, index) in reviewPhotos" :key="index" class="image-container">
-              <img :src="photo.previewUrl" alt="選擇的圖片" class="preview-img" />
-              <button type="button" class="img-button" @click="removeImage(index)">刪除</button>
+          <div v-if="reviewPhotos.length > 0" class="text-start">
+            <small class="text-muted fw-bold">新增照片：</small>
+            <div class="image-preview">
+              <div v-for="(photo, index) in reviewPhotos" :key="index" class="image-container">
+                <img :src="photo.previewUrl" alt="預覽圖片" class="preview-img" />
+                <button type="button" class="img-button" @click="removeImage(index)">✕</button>
+              </div>
             </div>
           </div>
-          <!-- 新增圖片 -->
         </div>
-        <br />
 
-        <button type="button" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" @click="closeModal">
-          取消
-        </button>
-        &emsp;
-        <button v-if="update" type="button" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          @click="resetReview()">
-          重設
-        </button>
-        &emsp;
-        <button v-if="add" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" type="submit">
-          新增
-        </button>
-        <button v-if="update" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" type="submit">
-          修改
-        </button>
+        <!-- 操作按鈕群 -->
+        <div class="d-flex justify-content-center gap-2">
+          <button type="button" class="btn btn-outline-secondary btn-lg rounded-4 px-4" @click="handleCancel">
+            取消
+          </button>
+
+          <button v-if="isEdit" type="button" class="btn btn-outline-warning btn-lg rounded-4 px-4"
+            @click="resetReview">
+            重設
+          </button>
+
+          <button type="submit" class="btn btn-dark btn-lg rounded-4 px-4" :disabled="isSubmitting">
+            {{ isSubmitting ? '處理中...' : (isEdit ? '儲存修改' : '發佈評論') }}
+          </button>
+        </div>
       </form>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { vendorApi } from '@/api/vendor/vendorApi'
 import Swal from 'sweetalert2'
 
 const props = defineProps({
-  vendorId: Number,
-  add: Boolean,
-  update: Boolean,
-  updateReviewId: Number
+  vendorId: { type: Number, required: true },
+  add: { type: Boolean, default: false },
+  update: { type: Boolean, default: false },
+  updateReviewId: { type: Number, default: null }
 })
 
 const emit = defineEmits(['close', 'refresh'])
 
 const authStore = useAuthStore()
 const memberId = authStore.memberId
-const review = ref({})
+
+const isEdit = computed(() => props.update && !!props.updateReviewId)
+const isSubmitting = ref(false)
+
+// 評分項目配置
+const ratingCategories = [
+  { key: 'environment', label: '環境' },
+  { key: 'price', label: '價格' },
+  { key: 'service', label: '服務' }
+]
+
+// Ratings 狀態響應式物件
+const ratings = ref({ environment: 0, price: 0, service: 0 })
+const hoverRatings = ref({ environment: 0, price: 0, service: 0 })
+
+const reviewContent = ref('')
 const reviewPhotos = ref([])
 const originReviewPhotoList = ref([])
 const removeImageList = ref([])
-const rating1 = ref(0)
-const tempRating1 = ref(0)
-const rating2 = ref(0)
-const tempRating2 = ref(0)
-const rating3 = ref(0)
-const tempRating3 = ref(0)
 
-// environment rating
-const setRating1 = (value) => {
-  rating1.value = value
-}
-const hoverRating1 = (value) => {
-  tempRating1.value = value
-}
-const resetHover1 = () => {
-  tempRating1.value = 0
-}
+// 過濾掉被標記刪除的原有圖片
+const activeOriginPhotos = computed(() => {
+  return originReviewPhotoList.value.filter(photo => !removeImageList.value.includes(photo.id))
+})
 
-// price rating
-const setRating2 = (value) => {
-  rating2.value = value
-}
-const hoverRating2 = (value) => {
-  tempRating2.value = value
-}
-const resetHover2 = () => {
-  tempRating2.value = 0
-}
-
-// service rating
-const setRating3 = (value) => {
-  rating3.value = value
-}
-const hoverRating3 = (value) => {
-  tempRating3.value = value
-}
-const resetHover3 = () => {
-  tempRating3.value = 0
-}
-
+// 圖片上傳處理
 const handleFileUpload = (event) => {
   const files = Array.from(event.target.files)
-
-  // 確保圖片存入 review.value.reviewPhotos
-  const newPhotos = files.map((file) => ({
+  const newPhotos = files.map(file => ({
     file,
-    previewUrl: URL.createObjectURL(file),
+    previewUrl: URL.createObjectURL(file)
   }))
-
   reviewPhotos.value.push(...newPhotos)
+  event.target.value = '' // 清空 input 讓重複選相同檔案也能觸發
 }
 
 const removeImage = (index) => {
-  // 釋放內存
   URL.revokeObjectURL(reviewPhotos.value[index].previewUrl)
-  // 移除圖片
   reviewPhotos.value.splice(index, 1)
 }
-
 
 const removeOriginImage = (photoId) => {
   if (!removeImageList.value.includes(photoId)) {
@@ -173,184 +144,185 @@ const removeOriginImage = (photoId) => {
   }
 }
 
-const submitAdd = async () => {
-  if (!review.value.content || !rating1.value || !rating2.value || !rating3.value) {
-    Swal.fire({
-      title: '欄位未填寫完整',
-      icon: 'error',
-      confirmButtonText: '確定',
-    })
-    return
+// 表單驗證
+const validateForm = () => {
+  if (Object.values(ratings.value).some(score => score === 0)) {
+    Swal.fire({ title: '請完成所有項目的評分', icon: 'warning', confirmButtonText: '確定' })
+    return false
   }
-
-  try {
-    await vendorApi.addVendorReview(
-      props.vendorId,
-      memberId,
-      rating1.value,
-      rating2.value,
-      rating3.value,
-      review.value.content,
-      reviewPhotos.value
-    )
-
-    await Swal.fire({
-      title: '提送成功',
-      icon: 'success',
-      confirmButtonText: '確定',
-    })
-  } catch (error) {
-    console.error('提交失敗:', error)
-    alert('提交失敗，請重試！')
-  }
+  return true
 }
 
-const submitUpdate = async () => {
-  const ask = await Swal.fire({
-    title: '確定修改？',
-    icon: 'warning',
-    allowOutsideClick: false,
-    showCancelButton: true,
-    confirmButtonText: '確認',
-    cancelButtonText: '返回',
-    reverseButtons: true,
-  })
-
-  if (!ask.isConfirmed) return
-
-  try {
-    await vendorApi.updateVendorReview(
-      props.vendorId,
-      props.updateReviewId,
-      rating1.value,
-      rating2.value,
-      rating3.value,
-      review.value.content,
-      reviewPhotos.value,
-      removeImageList.value
-    )
-
-    await Swal.fire({
-      title: '修改成功',
-      icon: 'success',
-      confirmButtonText: '確定',
-    })
-  } catch (error) {
-    console.error('提交失敗:', error)
-    alert('留言修改失敗，請重試！')
-  }
-}
-
+// 提交表單
 const handleSubmit = async () => {
-  if (props.add) {
-    await submitAdd()
-  } else if (props.update) {
-    await submitUpdate()
-  }
+  if (!validateForm()) return
+  isSubmitting.value = true
 
-  emit('close')
-  emit('refresh')
+  try {
+    if (isEdit.value) {
+      await vendorApi.updateVendorReview(
+        props.vendorId,
+        props.updateReviewId,
+        ratings.value.environment,
+        ratings.value.price,
+        ratings.value.service,
+        reviewContent.value,
+        reviewPhotos.value,
+        removeImageList.value
+      )
+
+      await Swal.fire({ title: '修改成功', icon: 'success', timer: 1500, showConfirmButton: false })
+    } else {
+      await vendorApi.addVendorReview(
+        props.vendorId,
+        memberId,
+        ratings.value.environment,
+        ratings.value.price,
+        ratings.value.service,
+        reviewContent.value,
+        reviewPhotos.value
+      )
+
+      await Swal.fire({ title: '發佈成功', icon: 'success', timer: 1500, showConfirmButton: false })
+    }
+
+    emit('refresh')
+    emit('close')
+  } catch (error) {
+    console.error('提交失敗:', error)
+    Swal.fire({ title: '提交失敗', text: '請稍後再試！', icon: 'error' })
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
+// 重置評論
 const resetReview = async () => {
   const ask = await Swal.fire({
-    title: '確定重置？',
+    title: '確定重置嗎？',
+    text: '尚未儲存的修改將會遺失',
     icon: 'warning',
-    allowOutsideClick: false,
     showCancelButton: true,
-    confirmButtonText: '確認',
-    cancelButtonText: '返回',
-    reverseButtons: true,
+    confirmButtonText: '重置',
+    cancelButtonText: '取消'
   })
 
-  if (!ask.isConfirmed) return
-
-  const res = await vendorApi.getVendorReview(props.vendorId, props.updateReviewId)
-  review.value.content = res.review.reviewContent
-  rating1.value = res.review.ratingEnvironment
-  rating2.value = res.review.ratingPrice
-  rating3.value = res.review.ratingService
-
-  originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(props.vendorId, props.updateReviewId)
-
-  removeImageList.value = []
-  reviewPhotos.value = []
+  if (ask.isConfirmed) {
+    await fetchReviewData()
+  }
 }
 
-const closeModal = async () => {
-  const ask = await Swal.fire({
-    title: '確定取消？',
-    icon: 'warning',
-    allowOutsideClick: false,
-    showCancelButton: true,
-    confirmButtonText: '確認',
-    cancelButtonText: '返回',
-    reverseButtons: true,
-  })
-
-  if (!ask.isConfirmed) return
-
-  review.value = ""
-  reviewPhotos.value = []
-  originReviewPhotoList.value = []
-  removeImageList.value = []
-  rating1.value = 0
-  rating2.value = 0
-  rating3.value = 0
-
+// 取消並關閉 Modal
+const handleCancel = () => {
+  cleanUpBlobUrls()
   emit('close')
 }
 
-onMounted(async () => {
-  if (props.updateReviewId) {
+// 載入資料
+const fetchReviewData = async () => {
+  if (!props.updateReviewId) return
+  try {
     const res = await vendorApi.getVendorReview(props.vendorId, props.updateReviewId)
-    review.value.content = res.review.reviewContent
-    rating1.value = res.review.ratingEnvironment
-    rating2.value = res.review.ratingPrice
-    rating3.value = res.review.ratingService
+    reviewContent.value = res.review.reviewContent
+    ratings.value = {
+      environment: res.review.ratingEnvironment,
+      price: res.review.ratingPrice,
+      service: res.review.ratingService
+    }
 
     originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(props.vendorId, props.updateReviewId)
+    removeImageList.value = []
+    cleanUpBlobUrls()
+    reviewPhotos.value = []
+  } catch (err) {
+    console.error('讀取評論失敗:', err)
   }
+}
+
+// 清理內存中的 Blob URL
+const cleanUpBlobUrls = () => {
+  reviewPhotos.value.forEach(photo => {
+    if (photo.previewUrl) URL.revokeObjectURL(photo.previewUrl)
+  })
+}
+
+onMounted(() => {
+  if (isEdit.value) {
+    fetchReviewData()
+  }
+})
+
+// 元件銷毀時自動釋放圖片內存
+onUnmounted(() => {
+  cleanUpBlobUrls()
 })
 </script>
 
 <style scoped>
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+}
+
 .popup-review {
   background: white;
   padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   text-align: center;
-
-  width: 500px;
+  width: 520px;
   max-width: 90%;
+}
+
+.rating-label {
+  min-width: 60px;
+  text-align: right;
+  font-size: 1rem;
 }
 
 .stars {
   display: flex;
-  justify-content: center;
-  font-size: 30px;
+  font-size: 26px;
   cursor: pointer;
 }
 
 .star {
-  color: gray;
-  transition: color 0.2s;
+  color: #dee2e6;
+  transition: color 0.15s ease-in-out;
+  user-select: none;
 }
 
 .star.active {
-  color: gold;
+  color: #ffc107;
 }
 
-.star.hover {
-  color: gold;
+.rating-num {
+  min-width: 40px;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.scroll-container {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 10px;
 }
 
 .image-preview {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .image-container {
@@ -358,22 +330,32 @@ onMounted(async () => {
 }
 
 .preview-img {
-  width: 90px;
-  height: 90px;
+  width: 75px;
+  height: 75px;
   object-fit: cover;
   border-radius: 8px;
+  border: 1px solid #dee2e6;
 }
 
 .img-button {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  background: red;
+  top: -6px;
+  right: -6px;
+  background: #dc3545;
   color: white;
   border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 12px;
-  padding: 2px 5px;
-  border-radius: 4px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>
