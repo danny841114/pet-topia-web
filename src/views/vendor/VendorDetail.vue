@@ -267,46 +267,25 @@
   </section>
   <!-- 店家列表 -->
 
-  <!-- 留言視窗 START -->
+
+  <!-- 留言視窗 -->
   <Review v-if="isPopupReviewVisible" :is-open="isPopupReviewVisible" :vendor-id="props.vendorId" :add="commentButton"
     :update="rewriteButton" :update-review-id="rewriteReviewId" @close="closeReview"
     @refresh="fetchLatestReviewAndRatings">
   </Review>
-  <!-- 留言視窗 END -->
 
   <!-- 放大圖片視窗 -->
   <div v-if="isImageOpen" class="overlay" @click="closeImage">
     <img :src="imageSrc" alt="Large Image" class="large-image" @click.stop />
   </div>
-  <!-- 放大圖片視窗 -->
 
   <!-- 收藏名單視窗 -->
-  <div v-if="isPopupMemberVisible" class="overlay">
-    <div class="popup">
-      <h3><b>有誰收藏</b></h3>
-      <div class="scroll-container" v-if="memberList.length != 0">
-        <div v-for="(member, index) in memberList" :key="index" style="font-size: 24px">
-          <img :src="member.profilePhotoBase64" class="img-fluid rounded-4" alt="image"
-            style="max-width: 30px; max-height: 30px; margin: 10px"
-            onerror="this.src='/user_static/images/tool/no-photo.png';" />
-
-          <span v-if="member.name">{{ member.name }}</span>
-          <span v-else style="color: gray">( 無名稱 )</span>
-        </div>
-      </div>
-      <div v-else style="color: gray; margin: 50px">目前沒有人收藏唷～</div>
-      <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
-        @click="closeMember()">
-        關閉
-      </button>
-    </div>
-  </div>
-  <!-- 收藏名單視窗 -->
+  <LikeMember v-if="isPopupMemberVisible" :members="memberList" @close="closeMember">
+  </LikeMember>
 
   <!-- 同類別店家視窗 -->
   <SameCategory v-if="isPopupCategoryVisible" :category-vendors="categoryVendorList" @close="closeCategory">
   </SameCategory>
-  <!-- 同類別店家視窗 -->
 
   <!-- 檢視評分視窗 -->
   <div v-if="isRateVisible" class="overlay">
@@ -344,14 +323,13 @@
       </h3>
     </div>
   </div>
-
-  <!-- 檢視評分視窗 -->
 </template>
 
 <script setup>
 import 'swiper/css'
 import 'swiper/css/pagination'
 import Review from '@/components/vendor/Review.vue'
+import LikeMember from '@/components/vendor/LikeMember.vue'
 import SameCategory from '@/components/vendor/SameCategory.vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation } from 'swiper/modules'
@@ -794,38 +772,6 @@ onMounted(loadPageData);
   max-width: 90%;
 }
 
-/* .popup-review {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  text-align: center;
-
-  width: 500px;
-  max-width: 90%;
-} */
-
-/* 星星樣式 */
-/* .stars {
-  display: flex;
-  justify-content: center;
-  font-size: 30px;
-  cursor: pointer;
-}
-
-.star {
-  color: gray;
-  transition: color 0.2s;
-}
-
-.star.active {
-  color: gold;
-}
-
-.star.hover {
-  color: gold;
-} */
-
 /* 列表視窗 */
 .scroll-container {
   max-height: 240px;
@@ -837,38 +783,6 @@ onMounted(loadPageData);
   padding: 10px;
   /* 可選，增加內邊距 */
 }
-
-/* 上傳圖片預覽 */
-/* .image-preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
-} */
-
-/* .image-container {
-  position: relative;
-} */
-
-/* .preview-img {
-  width: 90px;
-  height: 90px;
-  object-fit: cover;
-  border-radius: 8px;
-} */
-
-/* .img-button {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: red;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 12px;
-  padding: 2px 5px;
-  border-radius: 4px;
-} */
 
 /* 圖片放大 */
 .large-image {
