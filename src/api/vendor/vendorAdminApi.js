@@ -1,21 +1,10 @@
-import axios from 'axios'
+import apiClient from '../apiClient'
 
-const apiClient = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/api/vendor_admin`,
-  timeout: 10000,
-})
-
-apiClient.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    console.error('API Error:', error)
-    return Promise.reject(error)
-  },
-)
+const API_PREFIX = '/api/vendor_admin'
 
 export const vendorAdminApi = {
   getActivityReviews(activityId) {
-    return apiClient.get(`/activityreviews`, {
+    return apiClient.get(`${API_PREFIX}/activityreviews`, {
       params: {
         vendorActivityId: activityId,
       },
@@ -23,15 +12,15 @@ export const vendorAdminApi = {
   },
 
   deleteActivityReview(activityId, reviewId) {
-    return apiClient.delete(`/activityreviews/delete/${reviewId}`)
+    return apiClient.delete(`${API_PREFIX}/activityreviews/delete/${reviewId}`)
   },
 
   getTop5Activities() {
-    return apiClient.get('/activity/top5')
+    return apiClient.get(`${API_PREFIX}/activity/top5`)
   },
 
   getActivitiesByUserId(userId, token) {
-    return apiClient.get(`/activity/${userId}`, {
+    return apiClient.get(`${API_PREFIX}/activity/${userId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -39,7 +28,7 @@ export const vendorAdminApi = {
   },
 
   checkTimeConflict(vendorId, activityId, startTime, endTime) {
-    return apiClient.get(`/activity/checkConflictDetail`, {
+    return apiClient.get(`${API_PREFIX}/activity/checkConflictDetail`, {
       params: {
         vendorId,
         activityId,
@@ -50,7 +39,7 @@ export const vendorAdminApi = {
   },
 
   checkTimeConflicts(vendorId, startTime, endTime) {
-    return apiClient.get(`/activity/checkConflict`, {
+    return apiClient.get(`${API_PREFIX}/activity/checkConflict`, {
       params: {
         vendorId,
         startTime,
@@ -60,7 +49,7 @@ export const vendorAdminApi = {
   },
 
   getActivity(activityId) {
-    return apiClient.get(`/vendor_admin_activityDetail`, {
+    return apiClient.get(`${API_PREFIX}/vendor_admin_activityDetail`, {
       params: {
         activityId,
       },
@@ -68,7 +57,7 @@ export const vendorAdminApi = {
   },
 
   getActivityRegistrations(activityId) {
-    return apiClient.get(`/activity/registration`, {
+    return apiClient.get(`${API_PREFIX}/activity/registration`, {
       params: {
         activityId,
       },
@@ -76,16 +65,16 @@ export const vendorAdminApi = {
   },
 
   acceptRegister(registerId) {
-    return apiClient.put(`/registration/confirmById/${registerId}`)
+    return apiClient.put(`${API_PREFIX}/registration/confirmById/${registerId}`)
   },
 
   rejectRegister(registerId) {
-    return apiClient.put(`/registration/cancelById/${registerId}`)
+    return apiClient.put(`${API_PREFIX}/registration/cancelById/${registerId}`)
   },
 
   // API 需要修改
   notifyMember(memberId, activityId, title, content, token) {
-    return apiClient.post(`/registration/notification/${memberId}/${activityId}`, {
+    return apiClient.post(`${API_PREFIX}/registration/notification/${memberId}/${activityId}`, {
       params: {
         title,
         content,
@@ -97,11 +86,11 @@ export const vendorAdminApi = {
   },
 
   deleteRegister(registerId) {
-    return apiClient.delete(`/registration/deleteById/${registerId}`)
+    return apiClient.delete(`${API_PREFIX}/registration/deleteById/${registerId}`)
   },
 
   getActivitiesByUserIdWithoutToken(userId) {
-    return apiClient.get(`/activity/${userId}`)
+    return apiClient.get(`${API_PREFIX}/activity/${userId}`)
   },
 
   addActivity(
@@ -114,7 +103,7 @@ export const vendorAdminApi = {
     endTime,
     isRegistrationRequired,
     maxParticipants,
-    imagePreviews,
+    imagePreviews
   ) {
     const formdata = new FormData()
     formdata.append('vendor_id', vendorId)
@@ -130,16 +119,16 @@ export const vendorAdminApi = {
       formdata.append('files', preview.file)
     })
 
-    return apiClient.post(`/add`, formdata)
+    return apiClient.post(`${API_PREFIX}/add`, formdata)
   },
 
   getActivityTypes() {
-    return apiClient.get(`/activity/allTypes`)
+    return apiClient.get(`${API_PREFIX}/activity/allTypes`)
   },
 
   // API要修改
   updateEvent(id, eventId, eventTitle, startTime, endTime, color) {
-    return apiClient.put(`/calendar/update/${eventId}`, null, {
+    return apiClient.put(`${API_PREFIX}/calendar/update/${eventId}`, null, {
       params: {
         id, // 重複
         eventId, // 重複
@@ -152,7 +141,7 @@ export const vendorAdminApi = {
   },
 
   getCalendarByVendor(vendorId) {
-    return apiClient.get(`/calendar/${vendorId}`)
+    return apiClient.get(`${API_PREFIX}/calendar/${vendorId}`)
   },
 
   addCalendar(vendorId, eventTitle, startTime, endTime, color) {
@@ -163,12 +152,12 @@ export const vendorAdminApi = {
     formData.append('end_time', endTime)
     formData.append('color', color)
 
-    return apiClient.post(`/calendar/add`, formData)
+    return apiClient.post(`${API_PREFIX}/calendar/add`, formData)
   },
 
   // API 需要修改
   updateCalendar(eventId, eventTitle, startTime, endTime, color) {
-    return apiClient.put(`/calendar/update/${eventId}`, null, {
+    return apiClient.put(`${API_PREFIX}/calendar/update/${eventId}`, null, {
       params: {
         eventTitle,
         start_time: startTime,
@@ -179,15 +168,15 @@ export const vendorAdminApi = {
   },
 
   deleteCalendar(eventId) {
-    return apiClient.delete(`/calendar/delete/${eventId}`)
+    return apiClient.delete(`${API_PREFIX}/calendar/delete/${eventId}`)
   },
 
   getCertificationByVendorId(vendorId) {
-    return apiClient.get(`/certification/${vendorId}`)
+    return apiClient.get(`${API_PREFIX}/certification/${vendorId}`)
   },
 
   isCertificationExisiting(vendorId, tagId) {
-    return apiClient.get(`/certification/exists/${vendorId}/${tagId}`)
+    return apiClient.get(`${API_PREFIX}/certification/exists/${vendorId}/${tagId}`)
   },
 
   addCertification(vendorId, tagId) {
@@ -195,29 +184,48 @@ export const vendorAdminApi = {
     formData.append('vendorId', vendorId)
     formData.append('tagId', tagId)
 
-    return apiClient.post(`/certification/add`, formData)
+    return apiClient.post(`${API_PREFIX}/certification/add`, formData)
   },
 
   deleteCertification(recordId) {
-    return apiClient.delete(`/certification/delete/${recordId}`)
+    return apiClient.delete(`${API_PREFIX}/certification/delete/${recordId}`)
   },
 
   getProfile(vendorId, token) {
-    return apiClient.get(`/profile`, {
+    return apiClient.get(`${API_PREFIX}/profile`, {
       params: { vendorId },
       headers: { Authorization: `Bearer ${token}` },
     })
   },
 
   getVendorReviews(vendorId) {
-    return apiClient.get(`/review`, { params: { vendorId } })
+    return apiClient.get(`${API_PREFIX}/review`, { params: { vendorId } })
   },
 
   deleteVendorReview(reviewId) {
-    return apiClient.delete(`/review/delete/${reviewId}`)
+    return apiClient.delete(`${API_PREFIX}/review/delete/${reviewId}`)
   },
 
   getUserStatus(userId) {
-    return apiClient.get(`/status/${userId}`)
+    return apiClient.get(`${API_PREFIX}/status/${userId}`)
+  },
+
+  deleteActivity(activityId) {
+    return apiClient.delete(`${API_PREFIX}/${activityId}`)
+  },
+
+  getActivityPhotos(activityId) {
+    return apiClient.get(`${API_PREFIX}/photos/ids`, {
+      params: { vendorActivityId: activityId },
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  },
+
+  getActivityPhotoById(photoId, token) {
+    return apiClient.get(`${API_PREFIX}/photos/download`, {
+      params: { photoId },
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: 'blob',
+    })
   },
 }

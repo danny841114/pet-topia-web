@@ -111,7 +111,7 @@ const loadEventImages = async () => {
   for (let event of events.value) {
     try {
       const token = localStorage.getItem('token')
-      const imageIds = await adminApi.getActivityPhotos(event.id)
+      const imageIds = await vendorAdminApi.getActivityPhotos(event.id)
 
       if (imageIds.length > 0) {
         event.imageUrl = await getImageBlob(imageIds[0]) // 獲取圖片 Blob 並轉換
@@ -129,7 +129,7 @@ const loadEventImages = async () => {
 const getImageBlob = async (photoId) => {
   try {
     const token = localStorage.getItem('token')
-    const res = await adminApi.getActivityPhotoById(photoId, token)
+    const res = await vendorAdminApi.getActivityPhotoById(photoId, token)
     return URL.createObjectURL(res)
   } catch (e) {
     console.error('圖片下載失敗', e)
@@ -170,7 +170,7 @@ const getEventImageUrl = async (eventId) => {
   // 如果缓存没有，从服务器请求
   try {
     const token = localStorage.getItem('token')
-    const imageIds = await adminApi.getActivityPhotos(eventId, token)
+    const imageIds = await vendorAdminApi.getActivityPhotos(eventId, token)
     const firstImageId = imageIds.length > 0 ? imageIds[0] : null
 
     if (firstImageId) {
@@ -318,7 +318,7 @@ const updateDataTable = async () => {
 // 刪除活動
 const deleteEvent = async (activityId) => {
   try {
-    await adminApi.deleteActivity(activityId)
+    await vendorAdminApi.deleteActivity(activityId)
     events.value = events.value.filter((event) => event.id !== activityId)
 
     // 更新 DataTable

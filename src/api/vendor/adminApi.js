@@ -1,17 +1,4 @@
-import axios from 'axios'
-
-const apiClient = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}`,
-  timeout: 10000,
-})
-
-apiClient.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    console.error('API Error:', error)
-    return Promise.reject(error)
-  }
-)
+import apiClient from '../apiClient'
 
 export const adminApi = {
   getProfilePhotos(vendorId, token) {
@@ -82,24 +69,5 @@ export const adminApi = {
     imagePreviews.forEach((img) => formData.append('files', img.file))
 
     return apiClient.post('/api/vendor_activity/update', formData) // post要改put
-  },
-
-  getActivityPhotoById(photoId, token) {
-    return apiClient.get(`/photos/download`, {
-      params: { photoId },
-      headers: { Authorization: `Bearer ${token}` },
-      responseType: 'blob',
-    })
-  },
-
-  getActivityPhotos(activityId) {
-    return apiClient.get(`/photos/ids`, {
-      params: { vendorActivityId: activityId },
-      headers: { Authorization: `Bearer ${token}` },
-    })
-  },
-
-  deleteActivity(activityId) {
-    return apiClient.delete(`${activityId}`)
   },
 }

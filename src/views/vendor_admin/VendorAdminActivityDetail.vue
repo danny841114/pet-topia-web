@@ -234,7 +234,7 @@ async function fetchActivityDetail() {
 const loadImages = () => {
   try {
     vendorActivityImageIdList.value.forEach(async (imageId, index) => {
-      const res = await adminApi.getActivityPhotoById(imageId, userToken)
+      const res = await vendorAdminApi.getActivityPhotoById(imageId, userToken)
       const url = URL.createObjectURL(res);
       imageUrls.value[index] = url;
     })
