@@ -96,15 +96,15 @@
         <tr v-for="(activity, index) in activityList" :key="activity.id">
           <th scope="row">{{ index + 1 }}</th>
           <td>
-            <a :href="`/activity/detail/${activity.id}`">{{ activity.name }}</a>
+            <RouterLink :to="`/activity/detail/${activity.id}`">{{ activity.name }}</RouterLink>
           </td>
-          <td>{{ activity.activityType.name }}</td>
+          <td>{{ activity.activityType?.name }}</td>
           <td>{{ activity.description }}</td>
           <td>{{ formatDate(activity.startTime) }}</td>
           <td>{{ formatDate(activity.endTime) }}</td>
-          <td style="text-align: center">
-            <span v-if="activity.isRegistrationRequired" style="color: red">是</span>
-            <span v-else>否</span>
+          <td class="text-center">
+            <span v-if="activity.isRegistrationRequired" class="text-danger fw-bold">是</span>
+            <span v-else class="text-secondary">否</span>
           </td>
         </tr>
       </tbody>
@@ -127,9 +127,8 @@
           nextEl: '.custom-next',
           prevEl: '.custom-prev',
         }" :slides-per-view="4" :space-between="300">
-          <SwiperSlide v-for="(image, index) in imageList">
-            <img :key="index" :src="`${apiBase}${image.imgUrl}`" class="img-fluid rounded-4" alt="image"
-              style="max-width: 500px; max-height: 300px; margin: 10px"
+          <SwiperSlide v-for="(image, index) in imageList" :key="image.id || index">
+            <img :src="`${apiBase}${image.imgUrl}`" class="img-fluid rounded-4 cursor-pointer" alt="店家圖片"
               @click="openImage(`${apiBase}${image.imgUrl}`)" />
           </SwiperSlide>
         </Swiper>
@@ -244,17 +243,18 @@
       <div class="row">
         <div class="item bird col-md-4 col-lg-3 my-4" v-for="vendorEach in vendorList" :key="vendorEach.id">
           <div class="card position-relative">
-            <a :href="`/vendor/detail/${vendorEach.id}`">
+            <RouterLink :to="`/vendor/detail/${vendorEach.id}`">
               <img :src="`${apiBase}${vendorEach.logoImgUrl}`" class="img-fluid rounded-4" alt="image"
                 style="max-width: 200px; max-height: 200px"
-                onerror="this.src='/user_static/images/tool/no-photo.png';" /></a>
+                onerror="this.src='/user_static/images/tool/no-photo.png';" />
+            </RouterLink>
+
             <div class="card-body p-0">
-              <a :href="`/vendor/detail/${vendorEach.id}`" v-if="vendorEach.name">
-                <h2 class="card-title pt-4 m-0">{{ vendorEach.name }}</h2>
-              </a>
-              <a :href="`/vendor/detail/${vendorEach.id}`" v-else>
-                <h2 class="card-title pt-4 m-0" style="color: #d3d3d3">無店家名稱</h2>
-              </a>
+              <RouterLink :to="`/vendor/detail/${vendorEach.id}`">
+                <h2 class="card-title pt-4 m-0" :class="{ 'text-muted': !vendorEach.name }">
+                  {{ vendorEach.name || '無店家名稱' }}
+                </h2>
+              </RouterLink>
 
               <div class="card-text">
                 <span class="rating secondary-font">{{ vendorEach.description }}</span>
@@ -304,28 +304,8 @@
   <!-- 收藏名單視窗 -->
 
   <!-- 同類別店家視窗 -->
-  <div v-if="isPopupCategoryVisible" class="overlay">
-    <div class="popup">
-      <h3>
-        <b v-if="categoryVendorList.length != 0">同類別店家：<span style="color: red">{{
-          categoryVendorList[0].vendorCategory.name
-            }}</span></b><b v-else>同類別店家</b>
-      </h3>
-      <div class="scroll-container" v-if="categoryVendorList.length != 0">
-        <div v-for="(vendor, index) in categoryVendorList" :key="index" style="font-size: 24px">
-          <img :src="vendor.logoImgBase64" class="img-fluid rounded-4" alt="image"
-            style="max-width: 30px; max-height: 30px; margin: 10px"
-            onerror="this.src='/user_static/images/tool/no-photo.png';" />
-          <a :href="`/vendor/detail/${vendor.id}`">{{ vendor.name }}</a>
-        </div>
-      </div>
-      <div v-else style="color: gray; margin: 50px">目前沒有其他同類別店家～</div>
-      <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
-        @click="closeCategory()">
-        關閉
-      </button>
-    </div>
-  </div>
+  <SameCategory v-if="isPopupCategoryVisible" :category-vendors="categoryVendorList" @close="closeCategory">
+  </SameCategory>
   <!-- 同類別店家視窗 -->
 
   <!-- 檢視評分視窗 -->
@@ -372,6 +352,7 @@
 import 'swiper/css'
 import 'swiper/css/pagination'
 import Review from '@/components/vendor/Review.vue'
+import SameCategory from '@/components/vendor/SameCategory.vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation } from 'swiper/modules'
 import { ref, onMounted, watch } from 'vue'
@@ -759,18 +740,30 @@ const fetchLatestReviewAndRatings = () => {
 //   loadGoogleMaps()
 // })
 
-onMounted(() => {
-  fetchVendorData(),
-    fetchVendorImageList(),
-    fetchVendorReviewList(),
-    fetchVendorList(),
-    getReviewIsExisied(),
-    getTag(),
-    getActivities(),
-    getLikeStatus(),
-    fetchAvgRate()
+const loadPageData = async () => {
+  await fetchVendorData()
+  fetchVendorImageList()
+  fetchVendorReviewList()
+  fetchVendorList()
+  getReviewIsExisied()
+  getTag()
+  getActivities()
+  getLikeStatus()
+  fetchAvgRate()
 }
-);
+
+watch(
+  () => props.vendorId,
+  async (newId) => {
+    if (newId) {
+      closeCategory()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      await loadPageData()
+    }
+  }
+)
+
+onMounted(loadPageData);
 </script>
 
 <style scoped>
