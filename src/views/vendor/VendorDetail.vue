@@ -50,14 +50,14 @@
           <p>
             評分：<b><span style="color: #ffd300; font-size: 24px">⁥★</span> {{ avgRate.totalRating }}</b><button
               class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin-left: 10px"
-              @click="openRate()">
+              @click="openRate">
               完整評分
             </button>
           </p>
 
           <div class="d-flex">
             <div class="d-flex flex-wrap mt-3">
-              <button class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" @click="toggleLike()">
+              <button class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" @click="toggleLike">
                 {{ likeStatus }}
               </button>
               <button class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" :disabled="isAddReviewDisabled"
@@ -67,7 +67,7 @@
             </div>
           </div>
           <br />
-          <div @click="openMember()" :style="{ cursor: cursorStyle }" @mouseover="cursorStyle = 'zoom-in'"
+          <div @click="openMember" :style="{ cursor: cursorStyle }" @mouseover="cursorStyle = 'zoom-in'"
             @mouseleave="cursorStyle = 'default'">
             <b>查看誰收藏</b>
           </div>
@@ -288,41 +288,8 @@
   </SameCategory>
 
   <!-- 檢視評分視窗 -->
-  <div v-if="isRateVisible" class="overlay">
-    <div class="popup">
-      <h3>
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th scope="col">項目</th>
-              <th scope="col">評分</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="color: red"><b>整體</b></td>
-              <td style="color: red">{{ avgRate.totalRating }}</td>
-            </tr>
-            <tr>
-              <td>環境</td>
-              <td>{{ avgRate.avgRatingEnvironment }}</td>
-            </tr>
-            <tr>
-              <td>價格</td>
-              <td>{{ avgRate.avgRatingPrice }}</td>
-            </tr>
-            <tr>
-              <td>服務</td>
-              <td>{{ avgRate.avgRatingService }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" @click="closeRate()">
-          關閉
-        </button>
-      </h3>
-    </div>
-  </div>
+  <Rate v-if="isRateVisible" :avg-rate="avgRate" @close="closeRate">
+  </Rate>
 </template>
 
 <script setup>
@@ -331,6 +298,7 @@ import 'swiper/css/pagination'
 import Review from '@/components/vendor/Review.vue'
 import LikeMember from '@/components/vendor/LikeMember.vue'
 import SameCategory from '@/components/vendor/SameCategory.vue'
+import Rate from '@/components/vendor/Rate.vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation } from 'swiper/modules'
 import { ref, onMounted, watch } from 'vue'
@@ -643,12 +611,6 @@ const closeRate = () => {
   isRateVisible.value = false
 }
 
-const fetchLatestReviewAndRatings = () => {
-  fetchVendorReviewList()
-  fetchAvgRate()
-  getReviewIsExisied()
-}
-
 /* 19. 取得店家座標 */
 // const coordinate = ref({})
 // const fetchCoordinate = async () => {
@@ -717,6 +679,12 @@ const fetchLatestReviewAndRatings = () => {
 //   await fetchCoordinate() // 確保先取得座標
 //   loadGoogleMaps()
 // })
+
+const fetchLatestReviewAndRatings = () => {
+  fetchVendorReviewList()
+  fetchAvgRate()
+  getReviewIsExisied()
+}
 
 const loadPageData = async () => {
   await fetchVendorData()
