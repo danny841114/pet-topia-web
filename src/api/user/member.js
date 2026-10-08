@@ -1,21 +1,10 @@
-import axios from 'axios'
+import apiClient from '../apiClient'
 
-const apiClient = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/api/member`,
-  timeout: 10000,
-})
-
-apiClient.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    console.error('API Error:', error)
-    return Promise.reject(error)
-  }
-)
+const API_PREFIX = '/api/member'
 
 export const memberApi = {
   getProfile(token) {
-    return apiClient.get('/profile', {
+    return apiClient.get(`${API_PREFIX}/profile`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -23,7 +12,7 @@ export const memberApi = {
   },
 
   getProfileWithNoCache(token) {
-    return apiClient.get('/profile', {
+    return apiClient.get(`${API_PREFIX}/profile`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Cache-Control': 'no-cache',
@@ -33,7 +22,7 @@ export const memberApi = {
 
   updateProfile(name, phone, gender, address, birthdate, token) {
     return apiClient.put(
-      '/profile',
+      `${API_PREFIX}/profile`,
       {
         name,
         phone,
@@ -54,7 +43,7 @@ export const memberApi = {
     const formData = new FormData()
     formData.append('photo', photoFile)
 
-    return apiClient.put('/upload-photo', formData, {
+    return apiClient.put(`${API_PREFIX}/upload-photo`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Cache-Control': 'no-cache', // 防止快取
@@ -63,7 +52,7 @@ export const memberApi = {
   },
 
   getProfilePhoto(token) {
-    return apiClient.get('/profile-photo', {
+    return apiClient.get(`${API_PREFIX}/profile-photo`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -72,7 +61,7 @@ export const memberApi = {
 
   // 與上面函數合併
   getProfilePhotoByTimestamp(timestamp, token) {
-    return apiClient.get('/profile-photo', {
+    return apiClient.get(`${API_PREFIX}/profile-photo`, {
       params: {
         t: timestamp,
       },

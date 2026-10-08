@@ -1,25 +1,11 @@
-import axios from 'axios'
+import apiClient from '../apiClient'
 
-const apiClient = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/api/auth`,
-  timeout: 10000,
-})
-
-apiClient.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    console.error('API Error:', error)
-
-    const errorData = error.response?.data || { message: error.message || '系統發生錯誤' }
-
-    return Promise.reject(errorData)
-  }
-)
+const API_PREFIX = '/api/auth'
 
 export const authApi = {
   sendVerificationCode(email, token) {
     return apiClient.post(
-      '/send-verification',
+      `${API_PREFIX}/send-verification`,
       { email },
       { headers: { Authorization: `Bearer ${token}` } }
     )
@@ -27,12 +13,12 @@ export const authApi = {
 
   // 疑似重複
   localSendVerificationCode(email) {
-    return apiClient.post('/local-password/send-verification', { email })
+    return apiClient.post(`${API_PREFIX}/local-password/send-verification`, { email })
   },
 
   verifyCode(email, code, token) {
     return apiClient.post(
-      '/verify-code',
+      `${API_PREFIX}/verify-code`,
       {
         email,
         code,
@@ -43,7 +29,7 @@ export const authApi = {
 
   // 疑似重複
   localVerifyCode(email, code) {
-    return apiClient.post('/local-password/verify-code', {
+    return apiClient.post(`${API_PREFIX}/local-password/verify-code`, {
       email,
       code,
     })
@@ -51,7 +37,7 @@ export const authApi = {
 
   changePassword(email, newPassword, token) {
     return apiClient.post(
-      '/change-password',
+      `${API_PREFIX}/change-password`,
       {
         email,
         newPassword,
@@ -62,31 +48,31 @@ export const authApi = {
 
   // 疑似重複
   loclaChangePassword(email, newPassword) {
-    return apiClient.post('/local-password/set-password', {
+    return apiClient.post(`${API_PREFIX}/local-password/set-password`, {
       email,
       newPassword,
     })
   },
 
   checkEmailStatus(email) {
-    return apiClient.get('/local-password/check', {
+    return apiClient.get(`${API_PREFIX}/local-password/check`, {
       params: { email },
     })
   },
 
   checkToken(token) {
-    return apiClient.get('/status', { headers: { Authorization: `Bearer ${token}` } })
+    return apiClient.get(`${API_PREFIX}/status`, { headers: { Authorization: `Bearer ${token}` } })
   },
 
   login(email, password) {
-    return apiClient.post('/login', {
+    return apiClient.post(`${API_PREFIX}/login`, {
       email,
       password,
     })
   },
 
   register(email, password, confirmPassword) {
-    return apiClient.post('/register', {
+    return apiClient.post(`${API_PREFIX}/register`, {
       email,
       password,
       confirmPassword,
@@ -94,7 +80,7 @@ export const authApi = {
   },
 
   getStatus(token) {
-    return apiClient.get('/status', {
+    return apiClient.get(`${API_PREFIX}/status`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
