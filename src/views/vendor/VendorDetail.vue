@@ -269,9 +269,8 @@
 
 
   <!-- 留言視窗 -->
-  <Review v-if="isPopupReviewVisible" :is-open="isPopupReviewVisible" :vendor-id="props.vendorId" :add="commentButton"
-    :update="rewriteButton" :update-review-id="rewriteReviewId" @close="closeReview"
-    @refresh="fetchLatestReviewAndRatings">
+  <Review v-if="isPopupReviewVisible" :vendor-id="props.vendorId" :add="commentButton" :update="rewriteButton"
+    :update-review-id="rewriteReviewId" @close="closeReview" @refresh="fetchLatestReviewAndRatings">
   </Review>
 
   <!-- 放大圖片視窗 -->
@@ -500,9 +499,10 @@ const closeImage = () => {
 
 /* 14. 留言改寫視窗 */
 const openUpdateReview = async (reviewId) => {
-  isPopupReviewVisible.value = true
   rewriteButton.value = true
   rewriteReviewId.value = reviewId
+  commentButton.value = false
+  isPopupReviewVisible.value = true
 }
 
 /* 14. 留言刪除 */

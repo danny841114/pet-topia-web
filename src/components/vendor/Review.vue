@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpen" class="overlay">
+  <div class="overlay">
     <div class="popup-review">
       <h3><b v-if="add">新增評論</b></h3>
       <h3><b v-if="update">修改評論</b></h3>
@@ -93,7 +93,6 @@ import { vendorApi } from '@/api/vendor/vendorApi'
 import Swal from 'sweetalert2'
 
 const props = defineProps({
-  isOpen: Boolean,
   vendorId: Number,
   add: Boolean,
   update: Boolean,
@@ -242,7 +241,7 @@ const submitUpdate = async () => {
   }
 }
 
-const handleSubmit = async() => {
+const handleSubmit = async () => {
   if (props.add) {
     await submitAdd()
   } else if (props.update) {
