@@ -28,9 +28,10 @@
                 <tr v-for="(like, index) in likeList" :key="index">
                   <td>{{ index + 1 }}</td>
                   <td>
-                    <a :href="`/vendor/detail/${like.vendorId}`"><span v-if="like.vendorName">{{ like.vendorName
+                    <RouterLink :to="`/vendor/detail/${like.vendorId}`"><span v-if="like.vendorName">{{ like.vendorName
                         }}</span>
-                      <span v-else style="color: #cfcfcf"> 無店家名稱 </span></a>
+                      <span v-else style="color: #cfcfcf"> 無店家名稱 </span>
+                    </RouterLink>
                   </td>
                   <td>{{ like.vendorCategory }}</td>
                   <td>{{ like.vendorDescription }}</td>
@@ -64,19 +65,21 @@
                 <tr v-for="(review, index) in reviewList" :key="index">
                   <td>{{ index + 1 }}</td>
                   <td>
-                    <a :href="`/vendor/detail/${review.vendorId}`"><span v-if="review.vendorName">{{ review.vendorName
+                    <RouterLink :to="`/vendor/detail/${review.vendor?.id}`"><span v-if="review.vendor?.name">{{
+                      review.vendor.name
                         }}</span>
-                      <span v-else style="color: #cfcfcf"> 無店家名稱 </span></a>
+                      <span v-else style="color: #cfcfcf"> 無店家名稱 </span>
+                    </RouterLink>
                   </td>
                   <td>{{ review.reviewContent }}</td>
-                  <td>{{ review.ratingEnvironment }}</td>
+                  <td>{{ review.ratingEnv }}</td>
                   <td>{{ review.ratingPrice }}</td>
                   <td>{{ review.ratingService }}</td>
                   <td>
                     <span class="hover-area" @click="openReviewPhoto(review.reviewId, index)"
-                      v-if="review.reviewPhotos?.length">{{ review.reviewPhotos?.length }}張</span><span v-else>0張</span>
+                      v-if="review.photoUrls?.length">{{ review.photoUrls?.length }}張</span><span v-else>0張</span>
                   </td>
-                  <td>{{ formatDate(review.reviewTime) }}</td>
+                  <td>{{ formatDate(review.time) }}</td>
                   <td>
                     <button class="btn btn-danger btn-sm" @click="openReview(review.reviewId, index)">
                       修改

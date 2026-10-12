@@ -132,7 +132,7 @@ export const vendorApi = {
   },
 
   getVendorReviewsByMemberId(memberId) {
-    return apiClient.get(`${API_PREFIX}/member/${memberId}/like`)
+    return apiClient.get(`${API_PREFIX}/member/${memberId}/review`)
   },
 
   deleteLike(likeId) {
