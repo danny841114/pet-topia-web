@@ -274,9 +274,7 @@
   </Review>
 
   <!-- 放大圖片視窗 -->
-  <div v-if="isImageOpen" class="overlay" @click="closeImage">
-    <img :src="imageSrc" alt="Large Image" class="large-image" @click.stop />
-  </div>
+  <BigPicture v-if="isImageOpen" :img-src="imageSrc" @close="closeImage"></BigPicture>
 
   <!-- 收藏名單視窗 -->
   <LikeMember v-if="isPopupMemberVisible" :members="memberList" @close="closeMember">
@@ -298,6 +296,7 @@ import Review from '@/components/vendor/Review.vue'
 import LikeMember from '@/components/vendor/LikeMember.vue'
 import SameCategory from '@/components/vendor/SameCategory.vue'
 import Rate from '@/components/vendor/Rate.vue'
+import BigPicture from '@/components/BigPicture.vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation } from 'swiper/modules'
 import { ref, onMounted, watch } from 'vue'
@@ -713,51 +712,6 @@ onMounted(loadPageData);
 </script>
 
 <style scoped>
-/* 遮罩層樣式 */
-.overlay {
-  display: flex;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  justify-content: center;
-  align-items: center;
-
-  z-index: 1;
-}
-
-/* 彈出框樣式 */
-.popup {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  text-align: center;
-
-  width: 500px;
-  max-width: 90%;
-}
-
-/* 列表視窗 */
-.scroll-container {
-  max-height: 240px;
-  /* 設定最大高度，超過則產生滾動條 */
-  overflow-y: auto;
-  /* 當內容超過 max-height 時顯示垂直滾動條 */
-  border: 1px solid #ccc;
-  /* 可選，增加邊框以區分區塊 */
-  padding: 10px;
-  /* 可選，增加內邊距 */
-}
-
-/* 圖片放大 */
-.large-image {
-  max-width: 90%;
-  max-height: 90%;
-}
-
 /* 避免標籤換行 */
 .tag-item {
   margin-right: 10px;
