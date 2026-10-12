@@ -11,6 +11,7 @@
             </button>
             <button class="btn btn-primary" @click="switchReviewPage()">評論</button>
           </nav>
+
           <!-- 店家收藏 -->
           <div class="container mt-4" v-if="isLikeVisible">
             <h2 class="mb-3">店家收藏列表</h2>
@@ -108,20 +109,8 @@
   </VendorReview>
 
   <!-- 評論圖片視窗 -->
-  <div v-if="isPopupPhotoVisible" class="overlay">
-    <div class="popup-review">
-      <h3><b>評論圖片</b></h3>
-      <span v-for="(photo, index) in originReviewPhotoList" :key="index" class="image-container" style="margin: 10px">
-        <img :src="`${apiBase}${photo.imgUrl}`" alt="評論圖片" width="100" />
-      </span>
-      <div>
-        <button type="button" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" @click="closePhoto()"
-          style="margin: 5px">
-          關閉
-        </button>
-      </div>
-    </div>
-  </div>
+  <VendorReviewPhotos v-if="isPopupPhotoVisible" :vendor-id="reviewVendorId" :review-id="rewriteReviewId"
+    @close="closePhoto"></VendorReviewPhotos>
 </template>
 
 <script setup>
@@ -132,8 +121,8 @@ import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
 import ProfileSidebar from '@/components/ProfileSidebar.vue'
 import VendorReview from '@/components/vendor/VendorReview.vue'
+import VendorReviewPhotos from '@/components/vendor/VendorReviewPhotos.vue'
 
-const apiBase = import.meta.env.VITE_API_URL
 const authStore = useAuthStore()
 const memberId = authStore.memberId
 const formatDate = dateUtil.formatDateTime
@@ -141,7 +130,6 @@ const likeList = ref([])
 const reviewList = ref([])
 const isPopupReviewVisible = ref(false)
 const rewriteReviewId = ref(null)
-const originReviewPhotoList = ref([])
 const isPopupPhotoVisible = ref(false)
 const reviewVendorId = ref(null)
 const reviewVendorName = ref(null)
@@ -236,13 +224,8 @@ const switchReviewPage = () => {
 
 /* 8. 開啟評論圖片 */
 const openReviewPhoto = async (reviewId) => {
+  rewriteReviewId.value = reviewId
   isPopupPhotoVisible.value = true
-
-  try {
-    originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(null, reviewId);
-  } catch (error) {
-    console.error(`Get review photos of review ID '${reviewId}' failed: `, error)
-  }
 }
 
 const closePhoto = () => {
@@ -259,9 +242,7 @@ onMounted(() => {
 /* 限制表格最大寬度 */
 .table-container {
   max-width: 800px;
-  /* 可依需求調整 */
   overflow-x: auto;
-  /* 若超出則允許橫向滾動 */
 }
 
 /* 頁面容器樣式 */
@@ -297,66 +278,6 @@ onMounted(() => {
   padding: 2rem;
   border-radius: 10px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* 遮罩層樣式 */
-.overlay {
-  display: flex;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  justify-content: center;
-  align-items: center;
-
-  z-index: 100;
-}
-
-/* 彈出框樣式 */
-.popup-review {
-  background: white !important;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  text-align: center;
-
-  width: 500px;
-  max-width: 90%;
-  z-index: 110;
-}
-
-/* 上傳圖片預覽 */
-.image-preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.image-container {
-  position: relative;
-}
-
-.preview-img {
-  width: 90px;
-  height: 90px;
-  object-fit: cover;
-  border-radius: 8px;
-}
-
-.img-button {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: red;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 12px;
-  padding: 2px 5px;
-  border-radius: 4px;
 }
 
 .hover-area {
