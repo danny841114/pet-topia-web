@@ -103,9 +103,9 @@
 
 
   <!-- 留言修改視窗 -->
-  <Review v-if="isPopupReviewVisible" :vendor-id="reviewVendorId" :vendor-name="reviewVendorName"
+  <VendorReview v-if="isPopupReviewVisible" :vendor-id="reviewVendorId" :vendor-name="reviewVendorName"
     :update-reviewId="rewriteReviewId" :update="true" @close=closeReview @refresh="fetchVendorReviews">
-  </Review>
+  </VendorReview>
 
   <!-- 評論圖片視窗 -->
   <div v-if="isPopupPhotoVisible" class="overlay">
@@ -131,7 +131,7 @@ import { vendorApi } from '@/api/vendor/vendorApi'
 import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
 import ProfileSidebar from '@/components/ProfileSidebar.vue'
-import Review from '@/components/vendor/Review.vue'
+import VendorReview from '@/components/vendor/VendorReview.vue'
 
 const apiBase = import.meta.env.VITE_API_URL
 const authStore = useAuthStore()

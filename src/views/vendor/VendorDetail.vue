@@ -268,33 +268,33 @@
 
 
   <!-- 留言視窗 -->
-  <Review v-if="isPopupReviewVisible" :vendor-id="props.vendorId" :add="commentButton" :update="rewriteButton"
+  <VendorReview v-if="isPopupReviewVisible" :vendor-id="props.vendorId" :add="commentButton" :update="rewriteButton"
     :update-review-id="rewriteReviewId" @close="closeReview" @refresh="fetchLatestReviewAndRatings">
-  </Review>
+  </VendorReview>
 
   <!-- 放大圖片視窗 -->
   <BigPicture v-if="isImageOpen" :img-src="imageSrc" @close="closeImage"></BigPicture>
 
   <!-- 收藏名單視窗 -->
-  <LikeMember v-if="isPopupMemberVisible" :members="memberList" @close="closeMember">
-  </LikeMember>
+  <VendorLike v-if="isPopupMemberVisible" :members="memberList" @close="closeMember">
+  </VendorLike>
 
   <!-- 同類別店家視窗 -->
-  <SameCategory v-if="isPopupCategoryVisible" :category-vendors="categoryVendorList" @close="closeCategory">
-  </SameCategory>
+  <VendorCategory v-if="isPopupCategoryVisible" :category-vendors="categoryVendorList" @close="closeCategory">
+  </VendorCategory>
 
   <!-- 檢視評分視窗 -->
-  <Rate v-if="isRateVisible" :avg-rate="avgRate" @close="closeRate">
-  </Rate>
+  <VendorRating v-if="isRateVisible" :avg-rate="avgRate" @close="closeRate">
+  </VendorRating>
 </template>
 
 <script setup>
 import 'swiper/css'
 import 'swiper/css/pagination'
-import Review from '@/components/vendor/Review.vue'
-import LikeMember from '@/components/vendor/LikeMember.vue'
-import SameCategory from '@/components/vendor/SameCategory.vue'
-import Rate from '@/components/vendor/Rate.vue'
+import VendorReview from '@/components/vendor/VendorReview.vue'
+import VendorLike from '@/components/vendor/VendorLike.vue'
+import VendorCategory from '@/components/vendor/VendorCategory.vue'
+import VendorRating from '@/components/vendor/VendorRating.vue'
 import BigPicture from '@/components/BigPicture.vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation } from 'swiper/modules'
