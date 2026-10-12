@@ -67,8 +67,7 @@
             </div>
           </div>
           <br />
-          <div @click="openMember" :style="{ cursor: cursorStyle }" @mouseover="cursorStyle = 'zoom-in'"
-            @mouseleave="cursorStyle = 'default'">
+          <div @click="openMember" class="cursor-zoom">
             <b>查看誰收藏</b>
           </div>
         </div>
@@ -144,8 +143,8 @@
       <h2 class="display-6 fw-normal">留言區</h2>
     </div>
 
-    <section v-for="review in reviewList" :key="review.reviewId">
-      <div class="comment" :data-id="review.reviewId">
+    <section v-for="review in reviewList" :key="review.id">
+      <div class="comment" :data-id="review.id">
         <div class="container rounded-3" style="background-color: #f9f3ec; padding: 20px">
           <div class="row">
             <div class="col-lg-3">
@@ -200,14 +199,14 @@
                 <!-- 評論之圖片 -->
                 <div>
                   留言圖片：
-                  <span>
-                    <span v-if="review.photoUrls?.length == 0" style="color: gray">( 沒有圖片 )</span>
-                    <span v-else style="display: flex; flex-wrap: wrap">
-                      <img v-for="(photo, index) in review.photoUrls" :key="index" :src="`${apiBase}${photo}`"
-                        class="img-fluid rounded-4" alt="image"
-                        style="max-width: 150px; max-height: 150px; margin: 10px"
-                        @click="openImage(`${apiBase}${photo}`)" />
-                    </span>
+                  <span v-if="!review.photoUrls || review.photoUrls.length === 0" style="color: gray">
+                    ( 沒有圖片 )
+                  </span>
+                  <span v-else class="d-flex flex-wrap">
+                    <img v-for="(photo, index) in review.photoUrls" :key="index" :src="`${apiBase}${photo}`"
+                      class="img-fluid rounded-4 cursor-pointer" alt="image"
+                      style="max-width: 150px; max-height: 150px; margin: 10px"
+                      @click="openImage(`${apiBase}${photo}`)" />
                   </span>
                 </div>
                 <!-- 評論之圖片 -->
@@ -312,7 +311,6 @@ const formatDate = dateUtil.formatDateTime
 const props = defineProps({
   vendorId: Number,
 })
-const cursorStyle = ref('default')
 const authStore = useAuthStore()
 const memberId = authStore.memberId
 const vendor = ref({});
@@ -335,7 +333,7 @@ const isImageOpen = ref(false)
 const categoryVendorList = ref([])
 const isPopupCategoryVisible = ref(false)
 const isRateVisible = ref(false)
-const avgRate = ref([])
+const avgRate = ref({})
 
 /* 2. 店家資料 */
 const fetchVendorData = async () => {
@@ -687,14 +685,16 @@ const fetchLatestReviewAndRatings = () => {
 
 const loadPageData = async () => {
   await fetchVendorData()
-  fetchVendorImageList()
-  fetchVendorReviewList()
-  fetchVendorList()
-  getReviewIsExisied()
-  getTag()
-  getActivities()
-  getLikeStatus()
-  fetchAvgRate()
+  await Promise.all([
+    fetchVendorImageList(),
+    fetchVendorReviewList(),
+    fetchVendorList(),
+    getReviewIsExisied(),
+    getTag(),
+    getActivities(),
+    getLikeStatus(),
+    fetchAvgRate()
+  ])
 }
 
 watch(
@@ -735,5 +735,9 @@ onMounted(loadPageData);
 .custom-prev:hover,
 .custom-next:hover {
   background: rgba(0, 0, 0, 0.8);
+}
+
+.cursor-zoom {
+  cursor: zoom-in;
 }
 </style>
