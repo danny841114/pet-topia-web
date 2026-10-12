@@ -4,6 +4,10 @@
       <h3 class="fw-bold mb-3">
         {{ isEdit ? '修改評論' : '新增評論' }}
       </h3>
+      <span v-if="props.vendorName"></span>
+      <h5>
+        {{ props.vendorName }}
+      </h5>
 
       <form @submit.prevent="handleSubmit">
         <!-- 評論內容 -->
@@ -88,9 +92,10 @@ import Swal from 'sweetalert2'
 
 const props = defineProps({
   vendorId: { type: Number, required: true },
+  vendorName: { type: String, required: false },
+  updateReviewId: { type: Number, default: null },
   add: { type: Boolean, default: false },
   update: { type: Boolean, default: false },
-  updateReviewId: { type: Number, default: null }
 })
 
 const emit = defineEmits(['close', 'refresh'])

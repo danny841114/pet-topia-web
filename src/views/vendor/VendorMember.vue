@@ -28,8 +28,8 @@
                 <tr v-for="(like, index) in likeList" :key="index">
                   <td>{{ index + 1 }}</td>
                   <td>
-                    <RouterLink :to="`/vendor/detail/${like.vendorId}`"><span v-if="like.vendorName">{{ like.vendorName
-                        }}</span>
+                    <RouterLink :to="`/vendor/detail/${like.vendorId}`">
+                      <span v-if="like.vendorName">{{ like.vendorName }}</span>
                       <span v-else style="color: #cfcfcf"> 無店家名稱 </span>
                     </RouterLink>
                   </td>
@@ -76,16 +76,16 @@
                   <td>{{ review.ratingPrice }}</td>
                   <td>{{ review.ratingService }}</td>
                   <td>
-                    <span class="hover-area" @click="openReviewPhoto(review.reviewId, index)"
+                    <span class="hover-area" @click="openReviewPhoto(review.id, index)"
                       v-if="review.photoUrls?.length">{{ review.photoUrls?.length }}張</span><span v-else>0張</span>
                   </td>
                   <td>{{ formatDate(review.time) }}</td>
                   <td>
-                    <button class="btn btn-danger btn-sm" @click="openReview(review.reviewId, index)">
+                    <button class="btn btn-danger btn-sm"
+                      @click="openReview(review.id, review.vendor?.id, review.vendor?.name)">
                       修改
                     </button>
-                    <button class="btn btn-danger btn-sm" style="margin-left: 10px"
-                      @click="deleteReview(review.reviewId)">
+                    <button class="btn btn-danger btn-sm" style="margin-left: 10px" @click="deleteReview(review.id)">
                       刪除
                     </button>
                   </td>
@@ -100,68 +100,11 @@
     </div>
   </div>
 
+
   <!-- 留言修改視窗 -->
-  <div v-if="isPopupReviewVisible" class="overlay">
-    <div class="popup-review">
-      <h3><b>修改評論</b></h3>
-      <div style="margin-bottom: 5px">評論編號：{{ reviewIndexId }}</div>
-
-      <form>
-        <textarea v-model="review.content" placeholder="輸入感想" style="width: 400px; height: 100px" required></textarea>
-        <br />
-
-        <div>
-          環境：<input v-model="review.ratingEnvironment" type="number" min="1" max="5" />
-          價格：<input v-model="review.ratingPrice" type="number" min="1" max="5" /> 服務：<input
-            v-model="review.ratinService" type="number" min="1" max="5" />
-        </div>
-        <br />
-
-        <input type="file" multiple @change="handleFileUpload"
-          class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin-bottom: 20px" />
-
-        <div class="scroll-container">
-          <!-- 原有圖片 -->
-          <div v-if="originReviewPhotoList.length != 0">=== 原有圖片 ===</div>
-          <div class="image-preview">
-            <div v-for="(photo, index) in originReviewPhotoList" :key="index" class="image-container">
-              <img :src="photo.photoBase64" alt="選擇的圖片" class="preview-img" width="100"
-                v-if="!removeImageList.includes(photo.id)" />
-              <button type="button" class="img-button" @click="removeOriginImage(photo.id)"
-                v-if="!removeImageList.includes(photo.id)">
-                刪除
-              </button>
-            </div>
-          </div>
-          <!-- 原有圖片 -->
-
-          <!-- 新增圖片 -->
-          <div v-if="reviewPhotos.length != 0">=== 新增圖片 ===</div>
-          <div class="image-preview">
-            <div v-for="(photo, index) in reviewPhotos" :key="index" class="image-container">
-              <img :src="photo.previewUrl" alt="選擇的圖片" class="preview-img" width="100" />
-              <button type="button" class="img-button" @click="removeImage(index)">刪除</button>
-            </div>
-          </div>
-          <!-- 新增圖片 -->
-        </div>
-        <br />
-
-        <button type="button" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" @click="closeReview()">
-          取消
-        </button>
-        &emsp;
-        <button type="button" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" @click="resetComment()">
-          重設
-        </button>
-        &emsp;
-        <button type="button" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" @click="submitRewirte">
-          修改
-        </button>
-      </form>
-    </div>
-  </div>
-  <!-- 留言修改視窗 -->
+  <Review v-if="isPopupReviewVisible" :vendor-id="reviewVendorId" :vendor-name="reviewVendorName"
+    :update-reviewId="rewriteReviewId" :update="true" @close=closeReview @refresh="fetchVendorReviews">
+  </Review>
 
   <!-- 評論圖片視窗 -->
   <div v-if="isPopupPhotoVisible" class="overlay">
@@ -179,7 +122,6 @@
       </div>
     </div>
   </div>
-  <!-- 評論圖片視窗 -->
 </template>
 
 <script setup>
@@ -189,25 +131,25 @@ import { vendorApi } from '@/api/vendor/vendorApi'
 import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
 import ProfileSidebar from '@/components/ProfileSidebar.vue'
+import Review from '@/components/vendor/Review.vue'
 
 const authStore = useAuthStore()
+const memberId = authStore.memberId
 const formatDate = dateUtil.formatDateTime
-const authMemberId = authStore.memberId
-const memberId = ref(authMemberId)
 const likeList = ref([])
 const reviewList = ref([])
-const review = ref({})
-const reviewPhotos = ref([])
 const isPopupReviewVisible = ref(false)
-const rewriteReviewId = ref(0) // 此全域變數為修改留言送出之使用
+const rewriteReviewId = ref(null)
 const originReviewPhotoList = ref([])
-const removeImageList = ref([])
-const reviewIndexId = ref() // 此全域變數為留言列表流水號
+const isPopupPhotoVisible = ref(false)
+const reviewIndexId = ref()
+const reviewVendorId = ref(null)
+const reviewVendorName = ref(null)
 
 /* 1. 獲取收藏列表 */
 const fetchVendorLikes = async () => {
   try {
-    likeList.value = await vendorApi.getVendorLikesByMemberId(memberId.value);
+    likeList.value = await vendorApi.getVendorLikesByMemberId(memberId);
   } catch (error) {
     console.error('獲取收藏資料失敗:', error)
   }
@@ -216,7 +158,7 @@ const fetchVendorLikes = async () => {
 /* 2. 獲取評論列表 */
 const fetchVendorReviews = async () => {
   try {
-    reviewList.value = await vendorApi.getVendorReviewsByMemberId(memberId.value)
+    reviewList.value = await vendorApi.getVendorReviewsByMemberId(memberId)
   } catch (error) {
     console.error('獲取評論資料失敗:', error)
   }
@@ -245,124 +187,15 @@ const deleteLike = async (likeId) => {
 }
 
 /* 4. 修改評論 */
-const closeReview = async () => {
-  const ask = await Swal.fire({
-    title: '確定取消？',
-    icon: 'warning',
-    allowOutsideClick: false,
-    showCancelButton: true,
-    confirmButtonText: '確認',
-    cancelButtonText: '返回',
-    reverseButtons: true,
-  })
-
-  if (!ask.isConfirmed) return
-
-  isPopupReviewVisible.value = false
-  removeImageList.value = []
-}
-
-const handleFileUpload = (event) => {
-  const files = Array.from(event.target.files)
-
-  const newPhotos = files.map((file) => ({
-    file,
-    previewUrl: URL.createObjectURL(file),
-  }))
-
-  reviewPhotos.value.push(...newPhotos)
-}
-
-const removeImage = (index) => {
-  URL.revokeObjectURL(reviewPhotos.value[index].previewUrl)
-  reviewPhotos.value.splice(index, 1)
-}
-
-const removeOriginImage = (photoId) => {
-  if (!removeImageList.value.includes(photoId)) {
-    removeImageList.value.push(photoId)
-  }
-  console.log(removeImageList.value)
-}
-
-const openReview = async (reviewId, index) => {
+const openReview = async (reviewId, vendorId, vendorName) => {
   isPopupReviewVisible.value = true
-  rewriteReviewId.value = reviewId // 存到全域變數
-  reviewIndexId.value = index + 1
-
-  // fix params afterwards
-  const res = await vendorApi.getVendorReview(null, reviewId);
-
-  review.value.content = res.review.reviewContent
-  review.value.ratingEnvironment = res.review.ratingEnvironment
-  review.value.ratingPrice = res.review.ratingPrice
-  review.value.ratinService = res.review.ratingService
-
-  originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(null, reviewId)
+  reviewVendorId.value = vendorId
+  reviewVendorName.value = vendorName
+  rewriteReviewId.value = reviewId
 }
 
-const submitRewirte = async () => {
-  const ask = await Swal.fire({
-    title: '確定修改？',
-    icon: 'warning',
-    allowOutsideClick: false,
-    showCancelButton: true,
-    confirmButtonText: '確認',
-    cancelButtonText: '返回',
-    reverseButtons: true,
-  })
-
-  if (!ask.isConfirmed) return
-
-  try {
-    await vendorApi.updateVendorReview(
-      null,
-      rewriteReviewId.value,
-      review.value.ratingEnvironment,
-      review.value.ratingPrice,
-      review.value.ratinService,
-      review.value.content,
-      reviewPhotos.value,
-      removeImageList.value
-    );
-
-    await Swal.fire({
-      title: '修改成功',
-      icon: 'success',
-      confirmButtonText: '確定',
-    })
-    window.location.reload()
-  } catch (error) {
-    console.error('提交失敗:', error)
-    alert('留言修改失敗，請重試！')
-  }
-}
-
-const resetComment = async () => {
-  const ask = await Swal.fire({
-    title: '確定重置？',
-    icon: 'warning',
-    allowOutsideClick: false,
-    showCancelButton: true,
-    confirmButtonText: '確認',
-    cancelButtonText: '返回',
-    reverseButtons: true,
-  })
-
-  if (!ask.isConfirmed) return
-
-  // fix params afterwards
-  const res = await vendorApi.getVendorReview(null, rewriteReviewId.value);
-
-  review.value.content = res.review.reviewContent
-  review.value.ratingEnvironment = res.review.ratingEnvironment
-  review.value.ratingPrice = res.review.ratingPrice
-  review.value.ratinService = res.review.ratingService
-
-  originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(null, rewriteReviewId.value)
-
-  removeImageList.value = []
-  reviewPhotos.value = []
+const closeReview = async () => {
+  isPopupReviewVisible.value = false
 }
 
 /* 5. 刪除評論 */
@@ -381,7 +214,7 @@ const deleteReview = async (reviewId) => {
 
   try {
     await vendorApi.deleteVendorReview(null, reviewId)
-    reviewList.value = reviewList.value.filter((review) => review.reviewId !== reviewId)
+    reviewList.value = reviewList.value.filter((review) => review.id !== reviewId)
   } catch (error) {
     console.error('刪除評論失敗:', error)
   }
@@ -402,13 +235,16 @@ const switchReviewPage = () => {
 }
 
 /* 8. 開啟評論圖片 */
-const isPopupPhotoVisible = ref(false)
 const openReviewPhoto = async (reviewId, index) => {
   isPopupPhotoVisible.value = true
   rewriteReviewId.value = reviewId // 存到全域變數
   reviewIndexId.value = index + 1
 
-  originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(null, reviewId);
+  try {
+    originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(null, reviewId);
+  } catch (error) {
+    console.error(`Get review photos of review ID '${reviewId}' failed: `, error)
+  }
 }
 
 const closePhoto = () => {
