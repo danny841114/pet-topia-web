@@ -65,9 +65,8 @@
                 <tr v-for="(review, index) in reviewList" :key="index">
                   <td>{{ index + 1 }}</td>
                   <td>
-                    <RouterLink :to="`/vendor/detail/${review.vendor?.id}`"><span v-if="review.vendor?.name">{{
-                      review.vendor.name
-                        }}</span>
+                    <RouterLink :to="`/vendor/detail/${review.vendor?.id}`">
+                      <span v-if="review.vendor?.name">{{ review.vendor.name }}</span>
                       <span v-else style="color: #cfcfcf"> 無店家名稱 </span>
                     </RouterLink>
                   </td>
@@ -76,8 +75,10 @@
                   <td>{{ review.ratingPrice }}</td>
                   <td>{{ review.ratingService }}</td>
                   <td>
-                    <span class="hover-area" @click="openReviewPhoto(review.id, index)"
-                      v-if="review.photoUrls?.length">{{ review.photoUrls?.length }}張</span><span v-else>0張</span>
+                    <span class="hover-area" @click="openReviewPhoto(review.id)" v-if="review.photoUrls?.length">
+                      {{ review.photoUrls?.length }}張
+                    </span>
+                    <span v-else>0張</span>
                   </td>
                   <td>{{ formatDate(review.time) }}</td>
                   <td>
@@ -110,9 +111,8 @@
   <div v-if="isPopupPhotoVisible" class="overlay">
     <div class="popup-review">
       <h3><b>評論圖片</b></h3>
-      <div></div>
       <span v-for="(photo, index) in originReviewPhotoList" :key="index" class="image-container" style="margin: 10px">
-        <img :src="photo.photoBase64" alt="評論圖片" width="100" />
+        <img :src="`${apiBase}${photo.imgUrl}`" alt="評論圖片" width="100" />
       </span>
       <div>
         <button type="button" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" @click="closePhoto()"
@@ -133,6 +133,7 @@ import Swal from 'sweetalert2'
 import ProfileSidebar from '@/components/ProfileSidebar.vue'
 import Review from '@/components/vendor/Review.vue'
 
+const apiBase = import.meta.env.VITE_API_URL
 const authStore = useAuthStore()
 const memberId = authStore.memberId
 const formatDate = dateUtil.formatDateTime
@@ -142,7 +143,6 @@ const isPopupReviewVisible = ref(false)
 const rewriteReviewId = ref(null)
 const originReviewPhotoList = ref([])
 const isPopupPhotoVisible = ref(false)
-const reviewIndexId = ref()
 const reviewVendorId = ref(null)
 const reviewVendorName = ref(null)
 
@@ -235,10 +235,8 @@ const switchReviewPage = () => {
 }
 
 /* 8. 開啟評論圖片 */
-const openReviewPhoto = async (reviewId, index) => {
+const openReviewPhoto = async (reviewId) => {
   isPopupPhotoVisible.value = true
-  rewriteReviewId.value = reviewId // 存到全域變數
-  reviewIndexId.value = index + 1
 
   try {
     originReviewPhotoList.value = await vendorApi.getVendorReviewPhotos(null, reviewId);
