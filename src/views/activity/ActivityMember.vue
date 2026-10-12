@@ -32,9 +32,9 @@
                 <tr v-for="(like, index) in likeList" :key="index">
                   <td>{{ index + 1 }}</td>
                   <td>
-                    <a :href="`/activity/detail/${like.vendorActivity.id}`">{{
-                      like.vendorActivity.name
-                    }}</a>
+                    <RouterLink :to="`/activity/detail/${like.vendorActivity.id}`">
+                      {{ like.vendorActivity.name }}
+                    </RouterLink>
                   </td>
                   <td>{{ like.vendorActivity.activityType.name }}</td>
                   <td>{{ formatDate(like.vendorActivity.startTime) }}</td>
@@ -65,9 +65,9 @@
                 <tr v-for="(review, index) in reviewList" :key="index">
                   <td>{{ index + 1 }}</td>
                   <td>
-                    <a :href="`/activity/detail/${review.vendorActivity.id}`">{{
-                      review.vendorActivity.name
-                    }}</a>
+                    <RouterLink :to="`/activity/detail/${review.vendorActivity.id}`">
+                      {{ review.vendorActivity.name }}
+                    </RouterLink>
                   </td>
 
                   <!-- 判斷是否在編輯模式 -->
@@ -124,9 +124,9 @@
                 <tr v-for="(registration, index) in registrationList" :key="index">
                   <td>{{ index + 1 }}</td>
                   <td>
-                    <a :href="`/activity/detail/${registration.vendorActivity.id}`">{{
-                      registration.vendorActivity.name
-                    }}</a>
+                    <RouterLink :to="`/activity/detail/${registration.vendorActivity.id}`">
+                      {{ registration.vendorActivity.name }}
+                    </RouterLink>
                   </td>
                   <td>{{ formatDate(registration.registrationTime) }}</td>
                   <td v-if="registration.status == 'confirmed'">成功</td>

@@ -15,7 +15,7 @@
           /> -->
           <div class="mb-3">
             <h2 class="display-6 fw-semibold">
-              <a :href="`/activity/detail/${activity.id}`">{{ activity.name }}</a>
+              <RouterLink :to="`/activity/detail/${activity.id}`">{{ activity.name }}</RouterLink>
             </h2>
           </div>
         </div>
@@ -74,7 +74,7 @@
             alt="image"
             style="max-width: 30px; max-height: 30px; margin: 10px"
           /> -->
-          <a :href="`/activity/detail/${activity.id}`">{{ activity.name }}</a>
+          <RouterLink :to="`/activity/detail/${activity.id}`">{{ activity.name }}</RouterLink>
         </div>
       </div>
       <div v-else style="color: gray; margin: 50px">目前沒有其他同類別活動～</div>

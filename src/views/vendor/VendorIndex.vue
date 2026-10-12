@@ -1,6 +1,6 @@
 <template>
   <!-- Google Maps -->
-  <div class="container" style="width: 30%">
+  <!-- <div class="container" style="width: 30%">
     <div class="input-group mb-3">
       <span class="input-group-text" id="inputGroup-sizing-default">關鍵字</span>
       <input type="text" class="form-control" aria-label="Sizing example input"
@@ -17,10 +17,9 @@
     </div>
   </div>
 
-  <div id="map" style="height: 700px; width: 70%; margin: 20px auto; display: block"></div>
-  <!-- Google Maps -->
+  <div id="map" style="height: 700px; width: 70%; margin: 20px auto; display: block"></div> -->
 
-  <!-- 店家列表開始 -->
+  <!-- 店家列表 -->
   <section class="my-5">
     <div class="container my-5 py-5">
       <div class="section-header d-md-flex justify-content-between align-items-center">
@@ -44,21 +43,21 @@
         <div v-for="vendor in filteredVendors" :key="vendor.id"
           :class="['item', vendor.id, 'col-md-4', 'col-lg-3', 'my-4']">
           <div class="card position-relative">
-            <a :href="`/vendor/detail/${vendor.id}`">
+            <RouterLink :to="`/vendor/detail/${vendor.id}`">
               <span v-if="vendor.logoImgBase64">
                 <img :src="vendor.logoImgBase64" class="img-fluid rounded-4" alt="店家圖片" />
               </span>
               <span v-else>
                 <img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="店家圖片" />
               </span>
-            </a>
+            </RouterLink>
             <div class="card-body p-0">
-              <a :href="`/vendor/detail/${vendor.id}`" v-if="vendor.name">
+              <RouterLink :to="`/vendor/detail/${vendor.id}`" v-if="vendor.name">
                 <h2 class="card-title pt-4 m-0">{{ vendor.name }}</h2>
-              </a>
-              <a :href="`/vendor/detail/${vendor.id}`" v-else>
+              </RouterLink>
+              <RouterLink :to="`/vendor/detail/${vendor.id}`" v-else>
                 <h2 class="card-title pt-4 m-0" style="color: #d3d3d3">無店家名稱</h2>
-              </a>
+              </RouterLink>
               <div class="card-text">
                 <span class="rating secondary-font">{{ vendor.description }}</span>
               </div>
@@ -68,7 +67,6 @@
       </div>
     </div>
   </section>
-  <!-- 店家列表結束 -->
 </template>
 
 <script setup>

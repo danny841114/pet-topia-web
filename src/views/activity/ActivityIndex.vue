@@ -7,13 +7,20 @@
         <SwiperSlide v-for="(slide, index) in activityRandomList" :key="index" class="py-5">
           <div class="row banner-content align-items-center">
             <div class="img-wrapper col-md-5" style="text-align: center">
-              <span v-if="slide.vendor.logoImgBase64"><img :src="slide.vendor.logoImgBase64" class="img-fluid"
-                  alt="image" width="300" style="margin-bottom: 15px" /></span>
-              <span v-else><img src="/user_static/images/tool/no-photo.png" class="img-fluid" alt="image" width="300"
-                  style="margin-bottom: 15px" /></span>
+              <span v-if="slide.vendor.logoImgBase64">
+                <img :src="slide.vendor.logoImgBase64" class="img-fluid" alt="image" width="300"
+                  style="margin-bottom: 15px">
+              </span>
+              <span v-else>
+                <img src="/user_static/images/tool/no-photo.png" class="img-fluid" alt="image" width="300"
+                  style="margin-bottom: 15px" />
+              </span>
               <h3>
-                主辦店家：<a :href="`/vendor/detail/${slide.vendor.id}`"><span v-if="slide.vendor.name">{{ slide.vendor.name
-                    }}</span><span v-else style="gray">無店家名稱</span></a>
+                主辦店家：
+                <RouterLink :to="`/vendor/detail/${slide.vendor.id}`">
+                  <span v-if="slide.vendor.name">{{ slide.vendor.name }}</span>
+                  <span v-else style="gray">無店家名稱</span>
+                </RouterLink>
               </h3>
             </div>
             <div class="content-wrapper col-md-7 p-5 mb-5">
@@ -24,18 +31,17 @@
                 {{ slide.name }}
               </h2>
               <div>
-                {{ formatDate(slide.startTime) }}&nbsp;&nbsp;~&nbsp;&nbsp;{{
-                  formatDate(slide.endTime)
-                }}
+                {{ formatDate(slide.startTime) }}&nbsp;&nbsp;~&nbsp;&nbsp;
+                {{ formatDate(slide.endTime) }}
               </div>
               <div class="d-flex">
-                <a :href="`/activity/detail/${slide.id}`"
+                <RouterLink :to="`/activity/detail/${slide.id}`"
                   class="btn btn-outline-dark btn-lg text-uppercase fs-4 rounded-1 me-4" :style="{ marginTop: '30px' }">
                   前往活動
                   <svg width="24" height="24" viewBox="0 0 24 24" class="mb-1">
                     <use xlink:href="#arrow-right"></use>
                   </svg>
-                </a>
+                </RouterLink>
               </div>
             </div>
           </div>
@@ -84,18 +90,19 @@
             :class="['item', activity.id, 'col-md-4', 'col-lg-3', 'my-4']">
             <th scope="row">{{ index + 1 }}</th>
             <td>
-              <a :href="`/activity/detail/${activity.id}`">{{ activity.name }}</a>
+              <RouterLink :to="`/activity/detail/${activity.id}`">{{ activity.name }}</RouterLink>
             </td>
             <td>{{ activity.activityType.name }}</td>
             <td>
-              <a :href="`/vendor/detail/${activity.vendor.id}`"><span v-if="activity.vendor.name">{{
-                activity.vendor.name }}</span>
-                <span v-else style="color: #c0c0c0">無店家名稱</span></a>
+              <RouterLink :to="`/vendor/detail/${activity.vendor.id}`">
+                <span v-if="activity.vendor.name">{{ activity.vendor.name }}</span>
+                <span v-else :style="{ color: '#c0c0c0' }">無店家名稱</span>
+              </RouterLink>
             </td>
             <td>{{ formatDate(activity.startTime) }}</td>
             <td>{{ formatDate(activity.endTime) }}</td>
-            <td style="text-align: center">
-              <span v-if="activity.isRegistrationRequired" style="color: red">是</span>
+            <td>
+              <span v-if="activity.isRegistrationRequired" :style="{ color: 'red' }">是</span>
               <span v-else>否</span>
             </td>
           </tr>

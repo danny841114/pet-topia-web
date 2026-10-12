@@ -43,11 +43,16 @@
           </p>
 
           <p>
-            主辦店家：<span style="margin: 5px" v-if="activity.vendor?.logoImgBase64">
-              <img :src="activity.vendor?.logoImgBase64" alt="店家圖片" class="img-fluid rounded-4" width="30" /></span><a
-              :href="`/vendor/detail/${activity.vendor?.id}`" v-if="activity.vendor?.name"><b>{{ activity.vendor?.name
-                }}</b></a><a :href="`/vendor/detail/${activity.vendor?.id}`" v-else style="color: gray"><b>( 無店家名稱
-                )</b></a>
+            主辦店家：
+            <span style="margin: 5px" v-if="activity.vendor?.logoImgBase64">
+              <img :src="activity.vendor?.logoImgBase64" alt="店家圖片" class="img-fluid rounded-4" width="30" />
+            </span>
+            <RouterLink :to="`/vendor/detail/${activity.vendor?.id}`" v-if="activity.vendor?.name">
+              <b>{{ activity.vendor?.name }}</b>
+            </RouterLink>
+            <RouterLink :to="`/vendor/detail/${activity.vendor?.id}`" v-else style="color: gray">
+              <b>( 無店家名稱)</b>
+            </RouterLink>
           </p>
           <p>
             開始時間：<b>{{ formatDate(activity.startTime) }}</b>
@@ -180,14 +185,14 @@
         <tr v-for="(activity, index) in activityList" :key="activity.id">
           <th scope="row">{{ index + 1 }}</th>
           <td>
-            <a :href="`/activity/detail/${activity.id}`">{{ activity.name }}</a>
+            <RouterLink :to="`/activity/detail/${activity.id}`">{{ activity.name }}</RouterLink>
           </td>
           <td>{{ activity.activityType?.name }}</td>
           <td>
-            <a :href="`/vendor/detail/${activity.vendor?.id}`"><span v-if="activity.vendor?.name">{{
-              activity.vendor?.name
-                }}</span>
-              <span v-else style="color: #c0c0c0">無店家名稱</span></a>
+            <RouterLink :to="`/vendor/detail/${activity.vendor?.id}`">
+              <span v-if="activity.vendor?.name">{{ activity.vendor?.name }}</span>
+              <span v-else style="color: #c0c0c0">無店家名稱</span>
+            </RouterLink>
           </td>
           <td>{{ formatDate(activity.startTime) }}</td>
           <td>{{ formatDate(activity.endTime) }}</td>
@@ -294,7 +299,7 @@
             alt="image"
             style="max-width: 30px; max-height: 30px; margin: 10px"
           /> -->
-          <a :href="`/activity/detail/${activity.id}`">{{ activity.name }}</a>
+          <RouterLink :to="`/activity/detail/${activity.id}`">{{ activity.name }}</RouterLink>
         </div>
       </div>
       <div v-else style="color: gray; margin: 50px">目前沒有其他同類別活動～</div>

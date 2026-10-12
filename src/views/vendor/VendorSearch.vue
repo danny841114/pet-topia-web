@@ -13,7 +13,7 @@
         <div class="col-md-5 mt-5 mt-md-0">
           <div class="mb-3">
             <h2 class="display-6 fw-semibold">
-              <a :href="`/vendor/detail/${vendor.id}`">{{ vendor.name }}</a>
+              <RouterLink :to="`/vendor/detail/${vendor.id}`">{{ vendor.name }}</RouterLink>
             </h2>
           </div>
           <p>{{ vendor.description }}</p>
@@ -54,8 +54,8 @@
       <div class="scroll-container" v-if="categoryVendorList.length != 0">
         <div v-for="(vendor, index) in categoryVendorList" :key="index" style="font-size: 24px">
           <img :src="vendor.logoImgBase64" class="img-fluid rounded-4" alt="image"
-            style="max-width: 30px; max-height: 30px; margin: 10px" /><a :href="`/vendor/detail/${vendor.id}`">{{
-              vendor.name }}</a>
+            style="max-width: 30px; max-height: 30px; margin: 10px" />
+          <RouterLink :to="`/vendor/detail/${vendor.id}`">{{ vendor.name }}</RouterLink>
         </div>
       </div>
       <div v-else style="color: gray; margin: 50px">
