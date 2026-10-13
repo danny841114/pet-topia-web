@@ -24,12 +24,12 @@ import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthStore } from './stores/auth';
 
-import HeaderIndex from "./components/HeaderIndex.vue";
-import HeaderShop from "./components/HeaderShop.vue";
-import HeaderVendor from "./components/HeaderVendor.vue";
-import HeaderVendorAdmin from "./components/HeaderVendorAdmin.vue";
+import HeaderIndex from "./components/header/HeaderIndex.vue";
+import HeaderShop from "./components/header/HeaderShop.vue";
+import HeaderVendor from "./components/header/HeaderVendor.vue";
+import HeaderVendorAdmin from "./components/header/HeaderVendorAdmin.vue";
+import HeaderActivity from "./components/header/HeaderActivity.vue";
 import VendorAdminSidebar from "./components/sidebar/VendorAdminSidebar.vue/index.js";
-import HeaderActivity from "./components/HeaderActivity.vue";
 import Footer from "./components/Footer.vue";
 import ChatRoom from './components/ChatRoom.vue';
 
