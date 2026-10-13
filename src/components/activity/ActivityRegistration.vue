@@ -58,7 +58,6 @@ const pendingList = ref([])
 const props = defineProps({
   activityId: Number,
 })
-
 const emit = defineEmits(['close'])
 
 const getRegisteredMembers = async () => {

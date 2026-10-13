@@ -208,7 +208,7 @@
 
 
   <!-- 報名狀態視窗 -->
-  <ActivityRegistration v-if="isPopupConditionVisible" :activity-id="props.activityId" @close=closeRegistrationConditon>
+  <ActivityRegistration v-if="isPopupConditionVisible" :activity-id=props.activityId @close=closeRegistrationConditon>
   </ActivityRegistration>
 
   <!-- 留言視窗 -->
@@ -240,33 +240,8 @@
   <!-- 留言視窗 -->
 
   <!-- 同類別店家視窗 -->
-  <div v-if="isPopupTypeVisible" class="overlay">
-    <div class="popup">
-      <h3>
-        <b v-if="typeActivityList.length != 0">同類別活動：<span style="color: red">{{
-          typeActivityList[0].activityType.name
-            }}</span></b><b v-else>同類別活動</b>
-      </h3>
-      <div class="scroll-container" v-if="typeActivityList.length != 0">
-        <div v-for="(activity, index) in typeActivityList" :key="index" style="font-size: 24px">
-          <!-- 圖片抓法要改 -->
-          <!-- <img
-            :src="activity.logoImgBase64"
-            class="img-fluid rounded-4"
-            alt="image"
-            style="max-width: 30px; max-height: 30px; margin: 10px"
-          /> -->
-          <RouterLink :to="`/activity/detail/${activity.id}`">{{ activity.name }}</RouterLink>
-        </div>
-      </div>
-      <div v-else style="color: gray; margin: 50px">目前沒有其他同類別活動～</div>
-      <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
-        @click="closeSameType()">
-        關閉
-      </button>
-    </div>
-  </div>
-  <!-- 同類別店家視窗 -->
+  <ActivityType v-if="isPopupTypeVisible" :activity-id=props.activityId :type-id=specifiedTypeId @close=closeSameType>
+  </ActivityType>
 
   <!-- 收藏名單視窗 -->
   <div v-if="isPopupMemberVisible" class="overlay">
@@ -278,7 +253,8 @@
               alt="image" style="max-width: 30px; max-height: 30px; margin: 10px" /></span>
           <span v-else><img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="image"
               style="max-width: 30px; max-height: 30px; margin: 10px" /></span>
-          <span v-if="member.name">{{ member.name }}</span><span v-else style="color: gray">( 無名稱 )</span>
+          <span v-if="member.name">{{ member.name }}</span>
+          <span v-else style="color: gray">( 無名稱 )</span>
         </div>
       </div>
       <div v-else style="color: gray; margin: 50px">目前沒有人收藏唷～</div>
@@ -315,7 +291,7 @@
         &emsp;
         <div @click="shareOnX()">
           <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/X_logo_2023.svg/450px-X_logo_2023.svg.png"
-            alt="LINE Logo" width="100px" height="100px" />
+            alt="X Logo" width="100px" height="100px" />
         </div>
       </div>
       <br />
@@ -348,6 +324,7 @@ import { activityApi } from '@/api/vendor/activityApi'
 import { listUtil } from '@/utils/listUtil'
 import { dateUtil } from '@/utils/dateUtil'
 import ActivityRegistration from '@/components/activity/ActivityRegistration.vue'
+import ActivityType from '@/components/activity/ActivityType.vue'
 import Swal from 'sweetalert2'
 
 const authStore = useAuthStore()
@@ -381,11 +358,11 @@ const reviewIdForRewrite = ref()
 const rewriteButton = ref(false)
 const isPopupMemberVisible = ref(false)
 const memberList = ref([])
-const typeActivityList = ref([])
 const isPopupTypeVisible = ref(false)
 const isPopupShareVisible = ref(false)
 const shareUrl = ref(window.location.href)
 const copyMessage = ref()
+const specifiedTypeId = ref()
 
 /* 2. 活動資料 */
 const fetchActivityData = async () => {
@@ -806,13 +783,9 @@ watch(isPopupTypeVisible, (newValue) => {
   }
 })
 
-const fetchSameTypeActivitiesExceptOne = async (typeId) => {
-  typeActivityList.value = await activityApi.getOtherActivitiesByType(props.activityId, typeId)
-}
-
 const openSameType = (typeId) => {
+  specifiedTypeId.value = typeId
   isPopupTypeVisible.value = true
-  fetchSameTypeActivitiesExceptOne(typeId)
 }
 
 const closeSameType = () => {
