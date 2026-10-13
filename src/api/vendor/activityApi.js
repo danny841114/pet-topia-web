@@ -123,11 +123,11 @@ export const activityApi = {
     return apiClient.post(`${API_PREFIX}/find`, { keyword })
   },
 
-  addReview(activityId, content) {
-    return apiClient.post(`${API_PREFIX}/${activityId}/review/add`, { content })
+  addReview(activityId, memberId, content) {
+    return apiClient.post(`${API_PREFIX}/${activityId}/review/add`, { memberId, content })
   },
 
   updateReview(activityId, reviewId, content) {
-    return apiClient.post(`${API_PREFIX}/review/${reviewId}/rewrite`, { content })
+    return apiClient.put(`${API_PREFIX}/review/${reviewId}/rewrite`, { content })
   },
 }

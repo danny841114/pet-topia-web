@@ -88,7 +88,7 @@
                 {{ likeStatus }}
               </button>
               <button class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" :disabled="isAddReviewDisabled"
-                @click="openComment">
+                @click="openAdd">
                 {{ addReviewButton }}
               </button>
               <button class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" @click="openShare">
@@ -204,38 +204,14 @@
   <!-- 活動列表 -->
 
 
-  <!-- 報名狀態視窗 -->
+  <!-- 報名狀態 -->
   <ActivityRegistration v-if="isPopupConditionVisible" :activity-id="props.activityId"
     @close="closeRegistrationConditon">
   </ActivityRegistration>
 
-  <!-- 留言視窗 -->
-  <div v-if="isPopupCommentVisible" class="overlay">
-    <div class="popup">
-      <h3>
-        <b>
-          <span v-if="commentButton">新增留言</span>
-          <span v-else-if="rewriteButton">修改留言</span></b>
-      </h3>
-      <textarea placeholder="輸入感想" rows="5" col="10" style="resize: none" v-model="commentForm.content"
-        required></textarea>
-      <div>
-        <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
-          @click="closeComment">
-          關閉
-        </button>
-        <button v-if="commentButton" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          style="margin: 5px" @click="submitComment">
-          送出
-        </button>
-        <button v-if="rewriteButton" class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4"
-          style="margin: 5px" @click="submitRewrite(reviewIdForRewrite)">
-          修改
-        </button>
-      </div>
-    </div>
-  </div>
-  <!-- 留言視窗 -->
+  <!-- 評論留言 -->
+  <ActivityReview v-if="isPopupCommentVisible" :activity-id="props.activityId" :update-review-id="targetReviewId"
+    :add="isAddComment" :update="isUpdateComment" @close="closeComment" @refresh="fetchReviews"></ActivityReview>
 
   <!-- 同類別店家 -->
   <ActivityType v-if="isPopupTypeVisible" :activity-id="props.activityId" :type-id="specifiedTypeId"
@@ -265,6 +241,7 @@ import { dateUtil } from '@/utils/dateUtil'
 import BigPicture from '@/components/BigPicture.vue'
 import ActivityLike from '@/components/activity/ActivityLike.vue'
 import ActivityRegistration from '@/components/activity/ActivityRegistration.vue'
+import ActivityReview from '@/components/activity/ActivityReview.vue'
 import ActitvyShare from '@/components/activity/ActivityShare.vue'
 import ActivityType from '@/components/activity/ActivityType.vue'
 import Swal from 'sweetalert2'
@@ -293,14 +270,13 @@ const pendingList = ref([])
 const confirmedList = ref([])
 const likeStatus = ref('收藏')
 const isPopupCommentVisible = ref(false)
-const commentButton = ref(false)
-const commentForm = ref({})
-const reviewIdForRewrite = ref()
-const rewriteButton = ref(false)
 const isPopupMemberVisible = ref(false)
 const isPopupTypeVisible = ref(false)
 const isPopupShareVisible = ref(false)
 const specifiedTypeId = ref()
+const isAddComment = ref(false)
+const isUpdateComment = ref(false)
+const targetReviewId = ref()
 const defaultAvatar = "/user_static/images/tool/no-photo.png"
 
 /* 2. 活動資料 */
@@ -551,9 +527,9 @@ watch(isPopupCommentVisible, (newValue) => {
   }
 })
 
-const openComment = async () => {
+const openAdd = () => {
   if (memberId == null) {
-    await Swal.fire({
+    Swal.fire({
       title: '無法留言',
       text: '請先登入再執行',
       icon: 'error',
@@ -563,97 +539,23 @@ const openComment = async () => {
     return
   }
 
+  isAddComment.value = true
+  isUpdateComment.value = false
   isPopupCommentVisible.value = true
-  commentButton.value = true
 }
 
 const closeComment = () => {
   isPopupCommentVisible.value = false
-  commentButton.value = false
-  rewriteButton.value = false
-}
-
-const submitComment = async () => {
-  const ask = await Swal.fire({
-    title: '確定送出？',
-    icon: 'warning',
-    allowOutsideClick: false,
-    showCancelButton: true,
-    confirmButtonText: '確認',
-    cancelButtonText: '返回',
-    reverseButtons: true,
-  })
-
-  if (!ask.isConfirmed) return
-
-  try {
-    await activityApi.addReview(props.activityId, commentForm.value.content)
-
-    const ask = await Swal.fire({
-      title: '成功送出',
-      icon: 'success',
-      confirmButtonText: '關閉',
-    })
-
-    closeComment()
-
-    addReviewButton.value = '已留言'
-    isAddReviewDisabled.value = true
-
-    if (ask.isConfirmed) window.location.reload()
-  } catch (error) {
-    console.error('新增留言失敗:', error)
-  }
+  isAddComment.value = false
+  isUpdateComment.value = false
 }
 
 /* 15. 修改留言 */
 const openRewirte = async (reviewId) => {
+  isUpdateComment.value = true
+  isAddComment.value = false
+  targetReviewId.value = reviewId
   isPopupCommentVisible.value = true
-  rewriteButton.value = true
-  reviewIdForRewrite.value = reviewId
-
-  try {
-    const result = await activityApi.getReview(props.activityId, reviewId)
-    commentForm.value.content = result.review.reviewContent
-  } catch (error) {
-    console.error('獲取留言失敗:', error)
-  }
-}
-
-const submitRewrite = async (reviewId) => {
-  const ask = await Swal.fire({
-    title: '確定送出？',
-    icon: 'warning',
-    allowOutsideClick: false,
-    showCancelButton: true,
-    confirmButtonText: '確認',
-    cancelButtonText: '返回',
-    reverseButtons: true,
-  })
-
-  if (!ask.isConfirmed) return
-
-  try {
-    await activityApi.updateReview(props.activityId, reviewId, commentForm.value.content)
-
-    Swal.fire({
-      title: '成功送出',
-      icon: 'success',
-      confirmButtonText: '關閉',
-    })
-
-    closeComment()
-
-    const updatedReview = reviewList.value.find(
-      (review) => review.reviewId === reviewId //  find()找到reviewList陣列中符合reviewId的留言
-    )
-    if (updatedReview) {
-      updatedReview.reviewTime = new Date()
-      updatedReview.reviewContent = commentForm.value.content // 更新留言內容
-    }
-  } catch (error) {
-    console.error('修改留言失敗:', error)
-  }
 }
 
 /* 16. 刪除留言 */

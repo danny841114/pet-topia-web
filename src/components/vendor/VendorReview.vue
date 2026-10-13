@@ -4,15 +4,16 @@
       <h3 class="fw-bold mb-3">
         {{ isEdit ? '修改評論' : '新增評論' }}
       </h3>
-      <span v-if="props.vendorName"></span>
-      <h5>
-        {{ props.vendorName }}
-      </h5>
+
+      <span v-if="props.vendorName">
+        <h5>
+          {{ props.vendorName }}
+        </h5>
+      </span>
 
       <form @submit.prevent="handleSubmit">
         <!-- 評論內容 -->
-        <textarea v-model.trim="reviewContent" class="form-control mb-3" rows="4" placeholder="分享你的消費體驗與感想..."
-          required></textarea>
+        <textarea v-model.trim="reviewContent" class="form-control mb-3" rows="4" required></textarea>
 
         <!-- 星星評分區塊 -->
         <div class="ratings-container mb-3">
