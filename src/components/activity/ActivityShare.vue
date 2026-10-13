@@ -98,4 +98,12 @@ const copyUrl = () => {
   width: 500px;
   max-width: 90%;
 }
+
+.share-url {
+  width: 300px;
+  padding: 5px;
+  border: 2px solid black;
+  border-radius: 10px;
+  font-size: 14px;
+}
 </style>

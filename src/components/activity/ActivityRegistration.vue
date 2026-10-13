@@ -34,7 +34,7 @@
         </div>
 
         <div v-if="confirmedList.length === 0 && pendingList.length === 0" style="color: gray; margin: 50px">
-          目前沒有人報名唷
+          目前沒有人報名
         </div>
       </div>
 
@@ -50,15 +50,13 @@
 import { ref, onMounted } from 'vue'
 import { activityApi } from '@/api/vendor/activityApi'
 
-const defaultAvatarUrl = "/user_static/images/tool/no-photo.png"
-
 const confirmedList = ref([])
 const pendingList = ref([])
-
 const props = defineProps({
   activityId: Number,
 })
 const emit = defineEmits(['close'])
+const defaultAvatarUrl = "/user_static/images/tool/no-photo.png"
 
 const getRegisteredMembers = async () => {
   try {

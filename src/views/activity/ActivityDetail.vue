@@ -4,7 +4,7 @@
     <div class="container rounded-4" style="background-color: #f9f3ec; padding: 20px">
       <div class="row align-items-center mt-xl-5">
         <div class="h-auto offset-md-1 col-md-5">
-          <div class="d-flex justify-content-center" v-if="activityImageList.length != 0">
+          <div class="d-flex justify-content-center" v-if="activityImageList.length !== 0">
             <button class="swiper-button-prev custom-prev"></button>
             <Swiper :modules="[Pagination, Navigation]" :pagination="{
               clickable: true,
@@ -23,7 +23,7 @@
             <button class="swiper-button-next custom-next"></button>
           </div>
           <div class="d-flex justify-content-center" v-else>
-            <img src="/user_static/images/tool/no-photo.png" alt="活動圖片" class="img-fluid rounded-4" width="250" />
+            <img :src="defaultAvatar" alt="活動圖片" class="img-fluid rounded-4" width="250" />
           </div>
         </div>
 
@@ -97,8 +97,7 @@
             </div>
           </div>
           <br />
-          <div @click="openMember" :style="{ cursor: cursorStyle }" @mouseover="cursorStyle = 'zoom-in'"
-            @mouseleave="cursorStyle = 'default'">
+          <div @click="openMember" class="cursor-zoom">
             <b>查看誰收藏</b>
           </div>
           <br />
@@ -109,7 +108,7 @@
   <!-- 主要內容結束 -->
 
   <!-- 留言區開始 -->
-  <div class="container" style="padding: 20px" v-if="reviewList.length != 0">
+  <div class="container" style="padding: 20px" v-if="reviewList.length !== 0">
     <div class="section-header d-md-flex justify-content-between align-items-center mb-3">
       <h2 class="display-6 fw-normal">留言區</h2>
     </div>
@@ -124,8 +123,7 @@
                   style="max-width: 200px; max-height: 200px" />
               </div>
               <div class="image-container" v-else>
-                <img class="img-fluid rounded-4" src="/user_static/images/tool/no-photo.png" alt="alternative"
-                  style="max-width: 250px" />
+                <img class="img-fluid rounded-4" :src="defaultAvatar" alt="alternative" style="max-width: 250px" />
               </div>
             </div>
 
@@ -239,39 +237,16 @@
   </div>
   <!-- 留言視窗 -->
 
-  <!-- 同類別店家視窗 -->
+  <!-- 同類別店家 -->
   <ActivityType v-if="isPopupTypeVisible" :activity-id="props.activityId" :type-id="specifiedTypeId"
     @close="closeSameType">
   </ActivityType>
 
-  <!-- 收藏名單視窗 -->
-  <div v-if="isPopupMemberVisible" class="overlay">
-    <div class="popup">
-      <h3><b>有誰收藏</b></h3>
-      <div class="scroll-container" v-if="memberList.length != 0">
-        <div v-for="(member, index) in memberList" :key="index" style="font-size: 24px">
-          <span v-if="member.profilePhotoBase64"><img :src="member.profilePhotoBase64" class="img-fluid rounded-4"
-              alt="image" style="max-width: 30px; max-height: 30px; margin: 10px" /></span>
-          <span v-else><img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="image"
-              style="max-width: 30px; max-height: 30px; margin: 10px" /></span>
-          <span v-if="member.name">{{ member.name }}</span>
-          <span v-else style="color: gray">( 無名稱 )</span>
-        </div>
-      </div>
-      <div v-else style="color: gray; margin: 50px">目前沒有人收藏唷～</div>
-      <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
-        @click="closeMember">
-        關閉
-      </button>
-    </div>
-  </div>
-  <!-- 收藏名單視窗 -->
+  <!-- 收藏名單 -->
+  <ActivityLike v-if="isPopupMemberVisible" :activity-id="props.activityId" @click="closeMember"></ActivityLike>
 
   <!-- 圖片放大 -->
-  <div v-if="isImageOpen" class="overlay" @click="closeImage">
-    <img :src="imageSrc" alt="Large Image" class="large-image" @click.stop />
-  </div>
-  <!-- 圖片放大 -->
+  <BigPicture v-if="isImageOpen" @click="closeImage"></BigPicture>
 
   <!-- 活動分享 -->
   <ActitvyShare v-if="isPopupShareVisible" @close="closeShare"></ActitvyShare>
@@ -287,6 +262,8 @@ import { useAuthStore } from '@/stores/auth'
 import { activityApi } from '@/api/vendor/activityApi'
 import { listUtil } from '@/utils/listUtil'
 import { dateUtil } from '@/utils/dateUtil'
+import BigPicture from '@/components/BigPicture.vue'
+import ActivityLike from '@/components/activity/ActivityLike.vue'
 import ActivityRegistration from '@/components/activity/ActivityRegistration.vue'
 import ActitvyShare from '@/components/activity/ActivityShare.vue'
 import ActivityType from '@/components/activity/ActivityType.vue'
@@ -298,7 +275,6 @@ const memberId = authStore.memberId
 const props = defineProps({
   activityId: Number,
 })
-const cursorStyle = ref('default')
 const activity = ref({})
 const activityImageList = ref([])
 const reviewList = ref([])
@@ -322,10 +298,10 @@ const commentForm = ref({})
 const reviewIdForRewrite = ref()
 const rewriteButton = ref(false)
 const isPopupMemberVisible = ref(false)
-const memberList = ref([])
 const isPopupTypeVisible = ref(false)
 const isPopupShareVisible = ref(false)
 const specifiedTypeId = ref()
+const defaultAvatar = "/user_static/images/tool/no-photo.png"
 
 /* 2. 活動資料 */
 const fetchActivityData = async () => {
@@ -725,12 +701,6 @@ watch(isPopupMemberVisible, (newValue) => {
 
 const openMember = async () => {
   isPopupMemberVisible.value = true
-
-  try {
-    memberList.value = await activityApi.getActivityLikes(props.activityId);
-  } catch (error) {
-    console.error('讀取會員失敗:', error)
-  }
 }
 
 const closeMember = () => {
@@ -807,18 +777,6 @@ onMounted(async () => {
   max-width: 90%;
 }
 
-/* 列表視窗 */
-.scroll-container {
-  max-height: 240px;
-  /* 設定最大高度，超過則產生滾動條 */
-  overflow-y: auto;
-  /* 當內容超過 max-height 時顯示垂直滾動條 */
-  border: 1px solid #ccc;
-  /* 可選，增加邊框以區分區塊 */
-  padding: 10px;
-  /* 可選，增加內邊距 */
-}
-
 /* 圖片自訂按鈕樣式 */
 .custom-prev,
 .custom-next {
@@ -845,29 +803,12 @@ onMounted(async () => {
   background: rgba(0, 0, 0, 0.8);
 }
 
-/* Sweet Alert */
-.swal2-container {
-  z-index: 9999 !important;
-  /* 設定比你的自定義視窗更高 */
-}
-
-/* 圖片放大 */
-.large-image {
-  max-width: 90%;
-  max-height: 90%;
-}
-
 .thumbnail {
   width: 200px;
   cursor: zoom-in;
 }
 
-/* 分享網址列 */
-.share-url {
-  width: 300px;
-  padding: 5px;
-  border: 2px solid black;
-  border-radius: 10px;
-  font-size: 14px;
+.cursor-zoom {
+  cursor: zoom-in;
 }
 </style>

@@ -8,7 +8,7 @@
             @click="openImage(`${apiBase}${vendor.logoImgUrl}`)" />
         </div>
         <div class="h-auto offset-md-1 col-md-5" v-else>
-          <img src="/user_static/images/tool/no-photo.png" alt="店家圖片" class="img-fluid rounded-4" width="300" />
+          <img :src="defaultAvatar" alt="店家圖片" class="img-fluid rounded-4" width="300" />
         </div>
 
         <div class="col-md-5 mt-5 mt-md-0">
@@ -153,7 +153,7 @@
                   style="max-width: 200px; max-height: 200px" />
               </div>
               <div class="image-container" v-else>
-                <img src="/user_static/images/tool/no-photo.png" alt="店家圖片" class="img-fluid rounded-4" width="250" />
+                <img :src="defaultAvatar" alt="店家圖片" class="img-fluid rounded-4" width="250" />
               </div>
             </div>
 
@@ -244,8 +244,7 @@
           <div class="card position-relative">
             <RouterLink :to="`/vendor/detail/${vendorEach.id}`">
               <img :src="`${apiBase}${vendorEach.logoImgUrl}`" class="img-fluid rounded-4" alt="image"
-                style="max-width: 200px; max-height: 200px"
-                onerror="this.src='/user_static/images/tool/no-photo.png';" />
+                style="max-width: 200px; max-height: 200px" @error="($event.target.src = defaultAvatar)" />
             </RouterLink>
 
             <div class="card-body p-0">
@@ -334,6 +333,7 @@ const categoryVendorList = ref([])
 const isPopupCategoryVisible = ref(false)
 const isRateVisible = ref(false)
 const avgRate = ref({})
+const defaultAvatar = "/user_static/images/tool/no-photo.png"
 
 /* 2. 店家資料 */
 const fetchVendorData = async () => {
