@@ -204,55 +204,12 @@
       </tbody>
     </table>
   </div>
-
   <!-- 活動列表 -->
 
+
   <!-- 報名狀態視窗 -->
-  <div v-if="isPopupConditionVisible" class="overlay">
-    <div class="popup">
-      <h3><b>報名狀況</b></h3>
-
-      <div class="scroll-container">
-        <div v-if="confirmedList.length != 0">
-          <h5><b>核准名單</b></h5>
-          <div v-for="(confirmed, index) in confirmedList" :key="index" style="font-size: 24px">
-            <span v-if="confirmed.member.profilePhotoBase64">
-              <img :src="confirmed.member.profilePhotoBase64" class="img-fluid rounded-4" alt="image"
-                style="max-width: 30px; max-height: 30px; margin: 10px" />
-            </span>
-            <span v-else>
-              <img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="image"
-                style="max-width: 30px; max-height: 30px; margin: 10px" />
-            </span>
-            <span v-if="confirmed.member.name">{{ confirmed.member.name }}</span><span v-else style="color: gray">( 無名稱
-              )</span>
-          </div>
-        </div>
-
-        <div v-if="pendingList.length != 0">
-          <h5><b>待核准名單</b></h5>
-          <div v-for="(pending, index) in pendingList" :key="index" style="font-size: 24px">
-            <span v-if="pending.member.profilePhotoBase64"><img :src="pending.member.profilePhotoBase64"
-                class="img-fluid rounded-4" alt="image"
-                style="max-width: 30px; max-height: 30px; margin: 10px" /></span>
-            <span v-else><img src="/user_static/images/tool/no-photo.png" class="img-fluid rounded-4" alt="image"
-                style="max-width: 30px; max-height: 30px; margin: 10px" /></span>
-            <span v-if="pending.member.name">{{ pending.member.name }}</span><span v-else style="color: gray">( 無名稱
-              )</span>
-          </div>
-        </div>
-
-        <div v-if="confirmedList.length == 0 && pendingList.length == 0" style="color: gray; margin: 50px">
-          目前沒有人報名唷
-        </div>
-      </div>
-      <button class="btn btn-outline-dark btn-1g text-uppercase fs-5 rounded-4" style="margin: 5px"
-        @click="closeRegistrationConditon()">
-        關閉
-      </button>
-    </div>
-  </div>
-  <!-- 報名狀態視窗 -->
+  <ActivityRegistration v-if="isPopupConditionVisible" :activity-id="props.activityId" @close=closeRegistrationConditon>
+  </ActivityRegistration>
 
   <!-- 留言視窗 -->
   <div v-if="isPopupCommentVisible" class="overlay">
@@ -390,6 +347,7 @@ import { useAuthStore } from '@/stores/auth'
 import { activityApi } from '@/api/vendor/activityApi'
 import { listUtil } from '@/utils/listUtil'
 import { dateUtil } from '@/utils/dateUtil'
+import ActivityRegistration from '@/components/activity/ActivityRegistration.vue'
 import Swal from 'sweetalert2'
 
 const authStore = useAuthStore()
