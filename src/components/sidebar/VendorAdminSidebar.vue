@@ -107,8 +107,12 @@ onMounted(async () => {
 
     if (!vendorStatus.value) {
       // 管理員未認證，跳回設定頁面
-      router.push('/vendor/admin/profile');
+      // 暫時取消以方便開發
+      // router.push('/vendor/admin/profile');
     }
+
+    // 方便測試
+    vendorStatus.value=true
   } catch (error) {
     console.error('獲取店家狀態失敗', error);
   }

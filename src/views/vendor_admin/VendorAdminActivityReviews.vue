@@ -32,7 +32,7 @@
         </table>
       </div>
       <!-- 傳遞 activity 資料到子組件 -->
-      <activityreviews v-if="activeReview" :activity="currentActivity" :reviews="reviews"
+      <ActivityReviewComponent v-if="activeReview" :activity="currentActivity" :reviews="reviews"
         @toggle-reviews="toggleReviews" />
     </div>
   </div>
@@ -42,7 +42,7 @@
 import { ref, onMounted, nextTick } from 'vue';
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi.js';
-import activityreviews from './activityreviews.vue'; // 引入子組件
+import ActivityReviewComponent from '../../components/vendor-admin/ActivityReviewComponent.vue'; // 引入子組件
 import DataTable from 'datatables.net-dt'
 import 'datatables.net-dt/css/dataTables.dataTables.css'
 const activities = ref([]);
