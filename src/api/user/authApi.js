@@ -86,4 +86,12 @@ export const authApi = {
       },
     })
   },
+
+  logout(token) {
+    return apiClient.post(`${API_PREFIX}/logout`, {}, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+  }
 }

@@ -58,7 +58,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRoute } from 'vue-router';
-import { memberApi } from '@/api/user/member';
+import { memberApi } from '@/api/user/memberApi';
 
 const authStore = useAuthStore();
 const route = useRoute();

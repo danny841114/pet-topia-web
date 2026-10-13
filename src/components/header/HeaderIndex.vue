@@ -244,12 +244,16 @@
     </div>
   </header>
 </template>
+
 <script setup>
 import { Icon } from '@iconify/vue'
 import { useAuthStore } from '@/stores/auth'
 import { computed, onMounted, ref, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
+import { memberApi } from '@/api/user/memberApi'
+import { authApi } from '@/api/user/authApi'
+import { vendorApi } from '@/api/vendor/vendorApi'
 
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -479,32 +483,19 @@ const fetchAvatar = async () => {
 
   try {
     const timestamp = Date.now() // 添加時間戳防止快取
-    const response = await fetch(`/api/member/profile-photo?t=${timestamp}`, {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-      },
-    })
+    const data = await memberApi.getProfilePhotoByTimestamp(timestamp, authStore.token)
 
-    console.log('頭像請求響應:', {
-      status: response.status,
-      ok: response.ok,
-    })
-
-    if (response.ok) {
-      const blob = await response.blob()
-      if (blob.size > 0) {
-        // 釋放舊的 URL
-        if (avatarUrl.value && avatarUrl.value.startsWith('blob:')) {
-          URL.revokeObjectURL(avatarUrl.value)
-        }
-        const newAvatarUrl = URL.createObjectURL(blob)
-        avatarUrl.value = newAvatarUrl
-        console.log('成功更新頭像 URL:', newAvatarUrl)
-
-        // 觸發重新渲染
-        shouldForceRefreshUserData.value = !shouldForceRefreshUserData.value
+    if (data.size > 0) {
+      // 釋放舊的 URL
+      if (avatarUrl.value && avatarUrl.value.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarUrl.value)
       }
+      const newAvatarUrl = URL.createObjectURL(blob)
+      avatarUrl.value = newAvatarUrl
+      console.log('成功更新頭像 URL:', newAvatarUrl)
+
+      // 觸發重新渲染
+      shouldForceRefreshUserData.value = !shouldForceRefreshUserData.value
     }
   } catch (error) {
     console.error('獲取頭像失敗:', error)
@@ -739,42 +730,36 @@ const router = useRouter()
 
 const handleLogout = async () => {
   try {
-    const response = await fetch('/api/auth/logout', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${authStore.token}`
-      }
-    });
+    await authApi.logout(authStore.token)
 
-    if (response.ok) {
-      // 清理頭像 blob URL
-      if (avatarUrl.value && avatarUrl.value.startsWith('blob:')) {
-        URL.revokeObjectURL(avatarUrl.value);
-        avatarUrl.value = null;
-      }
-
-      // 清除認證資料
-      authStore.clearToken();
-
-      // 清除用戶相關的本地存儲
-      localStorage.removeItem('userData');
-      localStorage.removeItem('oauth2_provider');
-      localStorage.removeItem('oauth2_timestamp');
-      localStorage.removeItem('oauth2_email');
-
-      // 清除名稱緩存
-      const keys = Object.keys(localStorage);
-      const nameCacheKeys = keys.filter(key => key.startsWith('db_name_'));
-      nameCacheKeys.forEach(key => localStorage.removeItem(key));
-
-      // 關閉用戶選單
-      showUserMenu.value = false;
-
-      // 導航到登入頁面
-      router.push('/login?logout=true');
-    } else {
-      console.error('登出失敗');
+    // 清理頭像 blob URL
+    if (avatarUrl.value && avatarUrl.value.startsWith('blob:')) {
+      URL.revokeObjectURL(avatarUrl.value);
+      avatarUrl.value = null;
     }
+
+    // 清除認證資料
+    authStore.clearToken();
+
+    // 清除用戶相關的本地存儲
+    localStorage.removeItem('userData');
+    localStorage.removeItem('oauth2_provider');
+    localStorage.removeItem('oauth2_timestamp');
+    localStorage.removeItem('oauth2_email');
+
+    // 清除名稱緩存
+    const keys = Object.keys(localStorage);
+    const nameCacheKeys = keys.filter(key => key.startsWith('db_name_'));
+    nameCacheKeys.forEach(key => localStorage.removeItem(key));
+
+    // 關閉用戶選單
+    showUserMenu.value = false;
+
+    // 導航到登入頁面
+    router.push({
+      path: '/login',
+      query: { logout: 'true' }
+    });
   } catch (error) {
     console.error('登出過程中發生錯誤:', error);
     // 即使發生錯誤，也清除本地狀態
@@ -782,8 +767,12 @@ const handleLogout = async () => {
       URL.revokeObjectURL(avatarUrl.value);
       avatarUrl.value = null;
     }
+
     authStore.clearToken();
-    router.push('/login?logout=true');
+    router.push({
+      path: '/login',
+      query: { logout: 'true' }
+    });
   }
 }
 
@@ -920,25 +909,7 @@ const handleBecomeVendor = async () => {
     console.log('處理成為商家請求')
 
     // 首先檢查用戶是否有資格成為商家
-    const checkResponse = await fetch('/api/vendor/convert/check', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-      },
-    })
-
-    if (!checkResponse.ok) {
-      const errorData = await checkResponse.json()
-      Swal.fire({
-        icon: 'error',
-        title: '錯誤',
-        text: `無法檢查商家資格: ${errorData.error || '未知錯誤'}`,
-        confirmButtonColor: '#2b4f76'
-      })
-      return
-    }
-
-    const checkResult = await checkResponse.json()
+    const checkResult = await vendorApi.checkVendorEligibility(authStore.token)
     console.log('商家資格檢查結果:', checkResult)
 
     if (!checkResult.eligible) {
@@ -1017,28 +988,7 @@ const switchToVendor = async () => {
       userRole: authStore.userRole
     });
 
-    const response = await fetch('/api/vendor/convert', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authStore.token}`,
-      },
-      body: JSON.stringify({ confirm: true }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('切換到商家帳號失敗:', errorData);
-      Swal.fire({
-        icon: 'error',
-        title: '切換失敗',
-        text: `切換到商家帳號失敗: ${errorData.error || '未知錯誤'}`,
-        confirmButtonColor: '#2b4f76'
-      });
-      return;
-    }
-
-    const result = await response.json();
+    const result = await vendorApi.getVendorEligibility(authStore.token)
     console.log('切換到商家帳號成功，收到資料:', result);
 
     // 驗證返回的資料
@@ -1096,27 +1046,7 @@ const switchToVendor = async () => {
 // 創建並轉換為新的商家帳號
 const convertToVendor = async () => {
   try {
-    const response = await fetch('/api/vendor/convert', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authStore.token}`,
-      },
-      body: JSON.stringify({ confirm: true }),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      Swal.fire({
-        icon: 'error',
-        title: '轉換失敗',
-        text: `成為商家失敗: ${errorData.error || '未知錯誤'}`,
-        confirmButtonColor: '#2b4f76'
-      })
-      return
-    }
-
-    const result = await response.json()
+    const result = await vendorApi.getVendorEligibility(authStore.token)
     console.log('成為商家成功:', result)
 
     // 更新認證狀態
@@ -1157,19 +1087,7 @@ const handleProfileUpdate = async (event) => {
   console.log('收到個人資料更新事件:', event.detail)
 
   try {
-    // 強制從資料庫獲取最新資料
-    const response = await fetch('/api/member/profile', {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-        'Cache-Control': 'no-cache', // 防止快取
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('獲取用戶資料失敗')
-    }
-
-    const userData = await response.json()
+    const userData = await memberApi.getProfileWithNoCache(authStore.token)
     console.log('從資料庫獲取的最新用戶資料:', userData)
 
     // 更新 authStore
@@ -1243,6 +1161,7 @@ watch(
   { deep: true }
 )
 </script>
+
 <style scoped>
 .user-profile {
   position: relative;

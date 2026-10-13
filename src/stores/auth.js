@@ -1,4 +1,4 @@
-import { memberApi } from '@/api/user/member'
+import { memberApi } from '@/api/user/memberApi'
 import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', {

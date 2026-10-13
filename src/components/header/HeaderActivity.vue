@@ -345,7 +345,7 @@ import { useAuthStore } from '@/stores/auth'
 import { activityApi } from '@/api/vendor/activityApi'
 import { vendorApi } from '@/api/vendor/vendorApi'
 import Swal from 'sweetalert2'
-import { memberApi } from '@/api/user/member'
+import { memberApi } from '@/api/user/memberApi'
 import { emailUtil } from '@/utils/emailUtil'
 
 const authStore = useAuthStore()
