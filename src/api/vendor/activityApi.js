@@ -50,7 +50,7 @@ export const activityApi = {
     return apiClient.get(`${API_PREFIX}/${activityId}/member/${memberId}/review/exist`)
   },
 
-  isActivityAvalible(activityId) {
+  isActivityAvailable(activityId) {
     return apiClient.get(`${API_PREFIX}/${activityId}/registration/status`)
   },
 

@@ -66,8 +66,9 @@
           <p>需要報名：<b v-if="activity.registrationRequired">是</b><b v-else>否</b></p>
 
           <p v-if="activity.registrationRequired">
-            報名人數：<b>{{ currentPeople }}</b><button :disabled="!isAvalible" style="margin-left: 10px"
-              class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" @click="registActivityConfirm">
+            報名人數：<b>{{ currentPeople }}</b>
+            <button :disabled="!isAvailable" style="margin-left: 10px"
+              class="btn btn-primary btn-lg text-uppercase fs-5 rounded-4 me-4" @click="registerActivity">
               {{ registractionStatus }}
             </button>
 
@@ -261,13 +262,10 @@ const currentPeople = ref()
 const maxPeople = ref()
 const addReviewButton = ref('留言')
 const isAddReviewDisabled = ref(false)
-const imageSrc = ref()
 const isImageOpen = ref(false)
 const registractionStatus = ref()
-const isAvalible = ref(true)
+const isAvailable = ref(true)
 const isPopupConditionVisible = ref(false)
-const pendingList = ref([])
-const confirmedList = ref([])
 const likeStatus = ref('收藏')
 const isPopupCommentVisible = ref(false)
 const isPopupMemberVisible = ref(false)
@@ -338,21 +336,25 @@ const getParticipantCount = async () => {
 
 /* 8. 是否能留言*/
 const isReviewExisting = async () => {
-  let result = await activityApi.isReviewExisting(props.activityId, memberId);
+  try {
+    const result = await activityApi.isReviewExisting(props.activityId, memberId);
 
-  if (result.action) {
-    addReviewButton.value = '已留言'
-    isAddReviewDisabled.value = true
-  } else {
-    addReviewButton.value = '留言'
-    isAddReviewDisabled.value = false
+    if (result.action) {
+      addReviewButton.value = '已留言'
+      isAddReviewDisabled.value = true
+    } else {
+      addReviewButton.value = '留言'
+      isAddReviewDisabled.value = false
+    }
+  } catch (error) {
+    console.error("Check if the comment exists failed: ", error)
   }
 }
 
 /* 10. 圖片放大 */
-const openImage = (image) => {
+const openImage = (imageSrc) => {
   isImageOpen.value = true
-  imageSrc.value = image
+  imageSrc.value = imageSrc
   document.body.style.overflow = 'hidden'
 }
 
@@ -362,31 +364,32 @@ const closeImage = () => {
 }
 
 /* 11. 活動報名 */
-const isActivityAvalible = async () => {
-  // 判斷人數是否達上限，達到上限true，未達上限true
-  const res = await activityApi.isActivityAvalible(props.activityId)
-  isAvalible.value = res
+const isActivityAvailable = async () => {
+  try {
+    const isActivtyAvailable = await activityApi.isActivityAvailable(props.activityId)
+    isAvailable.value = isActivtyAvailable
 
-  // 判斷報名狀態
-  const isRegistered = await activityApi.isActivityRegistered(props.activityId, memberId)
+    const isRegistered = await activityApi.isActivityRegistered(props.activityId, memberId)
 
-  // 報名達上限還可以取消報名
-  if (res == false && isRegistered.action == true) {
-    isAvalible.value = true
+    // 報名達上限還可以取消報名
+    if (isActivtyAvailable === false && isRegistered.action === true) {
+      isAvailable.value = true
+    }
+  } catch (error) {
+    console.error("Check if the activity is available failed: ", error)
   }
 }
 
 const getRegistractionStatus = async () => {
-  let result = await activityApi.isActivityRegistered(props.activityId, memberId)
-
-  if (result.action) {
-    registractionStatus.value = '已報名'
-  } else {
-    registractionStatus.value = '報名'
+  try {
+    const result = await activityApi.isActivityRegistered(props.activityId, memberId)
+    registractionStatus.value = result.action ? '已報名' : '報名'
+  } catch (error) {
+    console.error("Get registraction status failed: ", error)
   }
 }
 
-const registActivityConfirm = async () => {
+const registerActivity = async () => {
   if (memberId == null) {
     await Swal.fire({
       title: '無法報名',
@@ -398,60 +401,64 @@ const registActivityConfirm = async () => {
     return
   }
 
-  let regisitrationStatus = await activityApi.isActivityRegistered(props.activityId, memberId)
+  try {
+    const regisitrationStatus = await activityApi.isActivityRegistered(props.activityId, memberId)
 
-  if (regisitrationStatus.action) {
-    const result = await Swal.fire({
-      title: '取消報名？',
-      icon: 'warning',
-      showCancelButton: true,
-      allowOutsideClick: false,
-      cancelButtonText: '返回',
-      confirmButtonText: '確認',
-      reverseButtons: true,
-    })
+    if (regisitrationStatus.action) {
+      const result = await Swal.fire({
+        title: '取消報名？',
+        icon: 'warning',
+        showCancelButton: true,
+        allowOutsideClick: false,
+        cancelButtonText: '返回',
+        confirmButtonText: '確認',
+        reverseButtons: true,
+      })
 
-    if (result.isConfirmed) toggleRegistration()
-  } else {
-    const result = await Swal.fire({
-      title: '執行報名？',
-      icon: 'warning',
-      showCancelButton: true,
-      allowOutsideClick: false,
-      cancelButtonText: '返回',
-      confirmButtonText: '確認',
-      reverseButtons: true,
-    })
+      if (result.isConfirmed) toggleRegistration()
+    } else {
+      const result = await Swal.fire({
+        title: '執行報名？',
+        icon: 'warning',
+        showCancelButton: true,
+        allowOutsideClick: false,
+        cancelButtonText: '返回',
+        confirmButtonText: '確認',
+        reverseButtons: true,
+      })
 
-    if (result.isConfirmed) toggleRegistration()
+      if (result.isConfirmed) toggleRegistration()
+    }
+  } catch (error) {
+    console.error("Check whether there is registraction failed: ", error)
   }
 }
 
 const toggleRegistration = async () => {
-  let regisitrationStatus = await activityApi.toggleRegistration(props.activityId, memberId)
+  try {
+    const regisitrationStatus = await activityApi.toggleRegistration(props.activityId, memberId)
 
-  if (!isActivityAvalible.value) {
-    isActivityAvalible.value = true
-  }
+    if (regisitrationStatus.action) {
+      currentPeople.value += 1
+      Swal.fire({
+        title: '報名成功',
+        icon: 'success',
+        confirmButtonText: '確定',
+      })
 
-  if (regisitrationStatus.action) {
-    currentPeople.value += 1
-    Swal.fire({
-      title: '報名成功',
-      icon: 'success',
-      confirmButtonText: '確定',
-    })
+      registractionStatus.value = '已報名'
+    } else {
+      currentPeople.value -= 1
+      Swal.fire({
+        title: '報名取消',
+        icon: 'success',
+        confirmButtonText: '確定',
+      })
 
-    registractionStatus.value = '已報名'
-  } else {
-    currentPeople.value -= 1
-    Swal.fire({
-      title: '報名取消',
-      icon: 'success',
-      confirmButtonText: '確定',
-    })
-
-    registractionStatus.value = '報名'
+      registractionStatus.value = '報名'
+    }
+  } catch (error) {
+    console.error("Toggle registraction failed: ", error)
   }
 }
 
@@ -466,8 +473,6 @@ watch(isPopupConditionVisible, (newValue) => {
 
 const openRegistrationConditon = async () => {
   isPopupConditionVisible.value = true
-  pendingList.value = await activityApi.getPendingMembers(props.activityId)
-  confirmedList.value = await activityApi.getConfirmedMembers(props.activityId)
 }
 
 const closeRegistrationConditon = () => {
@@ -476,12 +481,11 @@ const closeRegistrationConditon = () => {
 
 /* 13. 切換收藏 */
 const getLikeStatus = async () => {
-  let result = await activityApi.isLikeExisting(props.activityId, memberId)
-
-  if (result.action) {
-    likeStatus.value = '已收藏'
-  } else {
-    likeStatus.value = '收藏'
+  try {
+    const result = await activityApi.isLikeExisting(props.activityId, memberId)
+    likeStatus.value = result.action ? "已收藏" : "收藏"
+  } catch (error) {
+    console.error("Get like status failed: ", error)
   }
 }
 
@@ -497,24 +501,28 @@ const toggleLike = async () => {
     return
   }
 
-  const result = await activityApi.toggleLike(props.activityId, memberId)
+  try {
+    const result = await activityApi.toggleLike(props.activityId, memberId)
 
-  if (result.action) {
-    Swal.fire({
-      title: '成功收藏',
-      icon: 'success',
-      confirmButtonText: '確定',
-    })
+    if (result.action) {
+      Swal.fire({
+        title: '成功收藏',
+        icon: 'success',
+        confirmButtonText: '確定',
+      })
 
-    likeStatus.value = '已收藏'
-  } else {
-    Swal.fire({
-      title: '取消收藏',
-      icon: 'success',
-      confirmButtonText: '確定',
-    })
+      likeStatus.value = '已收藏'
+    } else {
+      Swal.fire({
+        title: '取消收藏',
+        icon: 'success',
+        confirmButtonText: '確定',
+      })
 
-    likeStatus.value = '收藏'
+      likeStatus.value = '收藏'
+    }
+  } catch (error) {
+    console.error("Toggle like failed: ", error)
   }
 }
 
@@ -637,7 +645,6 @@ const closeShare = () => {
 }
 
 onMounted(async () => {
-  console.log('活動ID:', props.activityId)
   await fetchActivityData()
   fetchActivityImages()
   fetchReviews()
@@ -645,7 +652,7 @@ onMounted(async () => {
   getViewCount()
   getParticipantCount()
   isReviewExisting()
-  isActivityAvalible()
+  isActivityAvailable()
   getRegistractionStatus()
   getLikeStatus()
 })
