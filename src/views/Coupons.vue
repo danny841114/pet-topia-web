@@ -74,7 +74,7 @@
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { fetchCartCouponsForMember } from '@/api/shop/couponApi';
-import ProfileSidebar from '@/components/ProfileSidebar.vue';
+import ProfileSidebar from '@/components/sidebar/ProfileSidebar.vue';
 import { Icon } from '@iconify/vue';
 import { dateUtil } from '@/utils/dateUtil';
 

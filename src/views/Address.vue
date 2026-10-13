@@ -138,7 +138,7 @@
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import ProfileSidebar from '@/components/ProfileSidebar.vue';
+import ProfileSidebar from '@/components/sidebar/ProfileSidebar.vue';
 
 const authStore = useAuthStore();
 const success = ref(null);

@@ -119,7 +119,7 @@ import { useAuthStore } from '@/stores/auth'
 import { vendorApi } from '@/api/vendor/vendorApi'
 import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
-import ProfileSidebar from '@/components/ProfileSidebar.vue'
+import ProfileSidebar from '@/components/sidebar/ProfileSidebar.vue'
 import VendorReview from '@/components/vendor/VendorReview.vue'
 import VendorReviewPhotos from '@/components/vendor/VendorReviewPhotos.vue'
 

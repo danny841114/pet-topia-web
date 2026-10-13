@@ -77,7 +77,7 @@ import { ref, reactive } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { authApi } from '@/api/user/authApi';
 import Swal from 'sweetalert2';
-import ProfileSidebar from '@/components/ProfileSidebar.vue';
+import ProfileSidebar from '@/components/sidebar/ProfileSidebar.vue';
 
 const authStore = useAuthStore();
 const isLoading = ref(false);

@@ -107,7 +107,7 @@
 import { ref, computed, onMounted, reactive } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRoute } from 'vue-router';
-import ProfileSidebar from '@/components/ProfileSidebar.vue';
+import ProfileSidebar from '@/components/sidebar/ProfileSidebar.vue';
 import { memberApi } from '@/api/user/member';
 
 const authStore = useAuthStore();

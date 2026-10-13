@@ -155,7 +155,7 @@ import { useAuthStore } from '@/stores/auth'
 import { activityApi } from '@/api/vendor/activityApi'
 import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
-import ProfileSidebar from '@/components/ProfileSidebar.vue'
+import ProfileSidebar from '@/components/sidebar/ProfileSidebar.vue'
 
 const authStore = useAuthStore()
 const formatDate = dateUtil.formatDateTime

@@ -28,7 +28,7 @@ import HeaderIndex from "./components/HeaderIndex.vue";
 import HeaderShop from "./components/HeaderShop.vue";
 import HeaderVendor from "./components/HeaderVendor.vue";
 import HeaderVendorAdmin from "./components/HeaderVendorAdmin.vue";
-import VendorAdminSidebar from "./components/VendorAdminSidebar.vue";
+import VendorAdminSidebar from "./components/sidebar/VendorAdminSidebar.vue/index.js";
 import HeaderActivity from "./components/HeaderActivity.vue";
 import Footer from "./components/Footer.vue";
 import ChatRoom from './components/ChatRoom.vue';
