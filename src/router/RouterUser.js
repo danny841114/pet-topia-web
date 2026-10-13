@@ -8,12 +8,12 @@
 // import UserSettings from '@/views/user/UserSettings.vue';
 // import UserFavorites from '@/views/user/UserFavorites.vue';
 
-import Profile from '@/views/Profile.vue'
+import Profile from '@/views/user/Profile.vue'
 import VendorMember from '@/views/vendor/VendorMember.vue'
 import ActivityMember from '@/views/activity/ActivityMember.vue'
-import Coupons from '@/views/Coupons.vue'
-import ChangePassword from '@/views/ChangePassword.vue'
-import Address from '@/views/Address.vue'
+import Coupons from '@/views/user/Coupons.vue'
+import ChangePassword from '@/views/user/ChangePassword.vue'
+import Address from '@/views/user/Address.vue'
 
 export default [
   {
@@ -67,8 +67,8 @@ export default [
     component: ChangePassword,
     meta: {
       requiresAuth: true,
-      title: '更改密碼'
-    }
+      title: '更改密碼',
+    },
   },
   {
     path: '/profile/address',
