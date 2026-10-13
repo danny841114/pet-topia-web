@@ -246,7 +246,7 @@
 </template>
 <script setup>
 import { Icon } from '@iconify/vue'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import { computed, onMounted, ref, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'

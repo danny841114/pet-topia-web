@@ -29,7 +29,7 @@ import HeaderShop from "./components/header/HeaderShop.vue";
 import HeaderVendor from "./components/header/HeaderVendor.vue";
 import HeaderVendorAdmin from "./components/header/HeaderVendorAdmin.vue";
 import HeaderActivity from "./components/header/HeaderActivity.vue";
-import VendorAdminSidebar from "./components/sidebar/VendorAdminSidebar.vue/index.js";
+import VendorAdminSidebar from "./components/sidebar/VendorAdminSidebar.vue";
 import Footer from "./components/Footer.vue";
 import ChatRoom from './components/ChatRoom.vue';
 

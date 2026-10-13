@@ -339,7 +339,7 @@ import { ref, computed, onMounted, nextTick, watch, onUnmounted } from 'vue'
 import { Modal } from 'bootstrap'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import { vendorApi } from '@/api/vendor/vendorApi'
 import Swal from 'sweetalert2'
 
