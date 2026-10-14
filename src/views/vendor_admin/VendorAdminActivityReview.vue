@@ -1,5 +1,4 @@
 <template>
-
   <div class="container">
     <h2>活動評論管理</h2>
 
@@ -48,12 +47,11 @@ import 'datatables.net-dt/css/dataTables.dataTables.css'
 const activities = ref([]);
 const reviews = ref({});
 const activeReviews = ref({});
-const activeReview = ref(null); // 用於追蹤當前顯示評論的活動ID
+const activeReview = ref(null);
 const currentActivity = ref(null);
-const currentActivityId = ref(null); // 當前打開評論的活動ID
-let dataTable = null
-const authStore = useAuthStore()
-const userId = authStore.userId
+const authStore = useAuthStore();
+const userId = authStore.userId;
+let dataTable = null;
 
 // 初始化 DataTables
 const initializeDataTable = () => {
@@ -124,7 +122,7 @@ const toggleReviews = (activityId) => {
 };
 
 onMounted(async () => {
-  loadActivities();
+  await loadActivities();
   initializeDataTable()
 });
 </script>
