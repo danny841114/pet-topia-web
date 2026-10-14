@@ -51,7 +51,7 @@ export const vendorAdminApi = {
   getActivity(activityId) {
     return apiClient.get(`${API_PREFIX}/vendor_admin_activityDetail`, {
       params: {
-        activityId,
+        id: activityId,
       },
     })
   },
@@ -120,6 +120,40 @@ export const vendorAdminApi = {
     })
 
     return apiClient.post(`${API_PREFIX}/add`, formdata)
+  },
+
+  updateActivity(
+    vendorId,
+    activityId,
+    activityName,
+    typeId,
+    description,
+    address,
+    startTime,
+    endTime,
+    isRegistrationRequired,
+    maxParticipants,
+    deletedImageIds,
+    images
+  ) {
+    const formData = new FormData()
+
+    formData.append('vendorId', vendorId)
+    formData.append('activityId', activityId)
+    formData.append('activityName', activityName)
+    formData.append('typeId', typeId)
+    formData.append('description', description)
+    formData.append('address', address)
+    formData.append('startTime', startTime)
+    formData.append('endTime', endTime)
+    formData.append('isRegistrationRequired', isRegistrationRequired)
+    formData.append('maxParticipants', maxParticipants)
+
+    deletedImageIds.forEach((id) => formData.append('deletedImageIds', id))
+
+    images.forEach((img) => formData.append('files', img.file))
+
+    return apiClient.put(`${API_PREFIX}/update`, formData)
   },
 
   getActivityTypes() {

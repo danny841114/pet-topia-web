@@ -53,6 +53,7 @@
             <th>操作</th>
           </tr>
         </thead>
+
         <tbody v-if="filteredRegisters.length > 0">
           <tr v-for="(register, index) in filteredRegisters" :key="register.id">
             <td>{{ index + 1 }}</td>
@@ -81,25 +82,7 @@
         </tbody>
 
       </table>
-      <!-- Bootstrap Modal -->
-      <!-- <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="confirmModalLabel">操作确认</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            {{ modalMessage }}
-                        </div>
-                        <div class="modal-footer">
 
-                            <button type="button" class="btn btn-primary" @click="confirmAction">确定</button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">拒絕</button>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
       <!-- 通知 Card -->
       <div v-if="sendNotificationVisible" class="notification-card">
         <h4>報名通知</h4>
@@ -114,13 +97,10 @@
           </div>
           <button class="btn btn-secondary" @click="operationType === 'confirm' ? updateDemoData1() : updateDemoData2()"
             type="button">Demo</button>
-          <button class="btn btn-primary" type="submit">發送</button> <!-- 修改为 type="submit" -->
+          <button class="btn btn-primary" type="submit">發送</button>
           <button type="button" class="btn btn-secondary" @click="closeModal">取消</button>
         </form>
       </div>
-
-
-
     </div>
   </div>
 </template>
@@ -707,11 +687,8 @@ onMounted(async () => {
 
 .container {
   width: 90%;
-  /* 增加寬度 */
   max-width: 1200px;
-  /* 設定最大寬度 */
   margin: 0 auto;
-  /* 讓 container 置中 */
   display: flex;
   flex-direction: column;
   padding: 20px;
