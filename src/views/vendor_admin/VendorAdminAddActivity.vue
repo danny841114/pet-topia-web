@@ -93,7 +93,9 @@ import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 import Swal from 'sweetalert2'
 import { dateUtil } from '@/utils/dateUtil'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const userId = authStore.userId
 
@@ -231,7 +233,7 @@ const submitForm = async () => {
       timer: 1000
     })
 
-    window.location.reload()
+    router.push("/vendor/admin/activity")
   } catch (e) {
     await Swal.fire({
       icon: 'error',

@@ -96,27 +96,27 @@ export const vendorAdminApi = {
   addActivity(
     vendorId,
     activityName,
-    activityTypeId,
-    activityDescription,
-    activityAddress,
+    typeId,
+    description,
+    address,
     startTime,
     endTime,
     isRegistrationRequired,
     maxParticipants,
-    imagePreviews
+    images
   ) {
     const formdata = new FormData()
-    formdata.append('vendor_id', vendorId)
-    formdata.append('activity_name', activityName)
-    formdata.append('activity_type_id', activityTypeId)
-    formdata.append('activity_description', activityDescription)
-    formdata.append('activity_address', activityAddress)
-    formdata.append('start_time', startTime)
-    formdata.append('end_time', endTime)
-    formdata.append('is_registration_required', isRegistrationRequired)
-    formdata.append('max_participants', maxParticipants)
-    imagePreviews.forEach((preview) => {
-      formdata.append('files', preview.file)
+    formdata.append('vendorId', vendorId)
+    formdata.append('activityName', activityName)
+    formdata.append('typeId', typeId)
+    formdata.append('description', description)
+    formdata.append('address', address)
+    formdata.append('startTime', startTime)
+    formdata.append('endTime', endTime)
+    formdata.append('isRegistrationRequired', isRegistrationRequired)
+    formdata.append('maxParticipants', maxParticipants)
+    images.forEach((image) => {
+      formdata.append('files', image.file)
     })
 
     return apiClient.post(`${API_PREFIX}/add`, formdata)
