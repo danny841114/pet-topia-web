@@ -236,8 +236,12 @@ export const vendorAdminApi = {
     return apiClient.get(`${API_PREFIX}/review`, { params: { vendorId } })
   },
 
+  getVendorReviewById(reviewId) {
+    return apiClient.get(`${API_PREFIX}/vendor-reviews/${reviewId}`)
+  },
+
   deleteVendorReview(reviewId) {
-    return apiClient.delete(`${API_PREFIX}/review/delete/${reviewId}`)
+    return apiClient.delete(`${API_PREFIX}/vendor-reviews/${reviewId}`)
   },
 
   getUserStatus(userId) {

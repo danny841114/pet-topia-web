@@ -97,7 +97,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
-import { adminApi } from '@/api/vendor/adminApi';
 import { dateUtil } from '@/utils/dateUtil'
 import moment from "moment";
 import Swal from 'sweetalert2'
@@ -233,7 +232,6 @@ const removePreview = (index) => {
 // 表单提交处理
 const submitForm = async () => {
   if (vendorActivity.value.startTime && vendorActivity.value.endTime) {
-    // 輸出原始的 startTime 和 endTime
     const formattedStartTime = dateUtil.formatDbDateTime(vendorActivity.value.startTime);
     const formattedEndTime = dateUtil.formatDbDateTime(vendorActivity.value.endTime);
 
@@ -306,8 +304,6 @@ const submitForm = async () => {
   }
 }
 
-
-// 页面加载时初始化状态
 onMounted(async () => {
   await fetchActivityDetail();
   loadImages();

@@ -24,7 +24,7 @@ const emit = defineEmits(['close'])
   justify-content: center;
   align-items: center;
 
-  z-index: 1;
+  z-index: 1100;
 }
 
 .large-image {

@@ -12,7 +12,6 @@
           <canvas id="ratingChart" style="width: 80%; max-width: 800px; margin: auto;"></canvas>
         </div>
 
-
         <!-- 評價表格 -->
         <div class="table-responsive">
           <table id="reviewsTable" class="table table-bordered table-hover shadow-sm rounded">
@@ -27,8 +26,8 @@
             </thead>
             <tbody>
               <tr v-for="review in ratingsData.reviews" :key="review.id" v-if="ratingsData.reviews.length > 0"
-                @click="toggleReviewDetails(review)">
-                <td>{{ review.memberId }}</td>
+                @click="toggleReviewDetails(review.id)">
+                <td>{{ review.member?.id }}</td>
                 <td>{{ formatReviewDate(review.reviewTime) }}</td>
                 <td>{{ review.reviewContent }}</td>
                 <td>⭐ ({{ calculateAverageRating(review) }})</td>
@@ -39,46 +38,19 @@
             </tbody>
           </table>
         </div>
-        <!-- 評論詳情卡片 -->
-        <div v-if="reviewDetailVisible" class="review-card">
-          <div class="card">
-            <div class="card-header d-flex justify-content-between">
-              <h5 class="mb-0">評論詳情</h5>
-              <button class="btn-close" @click="reviewDetailVisible = false"></button>
-            </div>
-            <div class="card-body">
-              <p><strong>環境評分：</strong> {{ generateStars(Math.round(selectedReview.ratingEnvironment)) }} ({{
-                selectedReview.ratingEnvironment }})</p>
-              <p><strong>價格評分：</strong> {{ generateStars(Math.round(selectedReview.ratingPrice)) }} ({{
-                selectedReview.ratingPrice }})</p>
-              <p><strong>服務評分：</strong> {{ generateStars(Math.round(selectedReview.ratingService)) }} ({{
-                selectedReview.ratingService }})</p>
-              <hr>
-              <div class="photo-container">
-                <img v-for="(photoId, index) in reviewPhotos" :key="photoId" :src="photoUrls[index]" alt="Review Photo"
-                  class="review-photo" @click="showPhotoModal(photoId)">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 圖片放大模態視窗 -->
-        <div v-if="photoModalVisible" class="photo-modal" @click="photoModalVisible = false">
-          <div class="photo-modal-content">
-            <img :src="selectedPhoto" alt="Full Image">
-          </div>
-        </div>
       </div>
     </div>
   </div>
+
+  <VendorReviewCard v-if="reviewDetailVisible" :review-id="currentReviewId" @close="reviewDetailVisible = false" />
 </template>
 
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { adminApi } from '@/api/vendor/AdminApi'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 import { Chart as ChartJS, LinearScale, BarController, BarElement, CategoryScale, Title, Tooltip, Legend, ArcElement } from 'chart.js'
+import VendorReviewCard from '@/components/vendor-admin/VendorReviewCard.vue'
 import DataTable from 'datatables.net-dt'
 import Swal from 'sweetalert2'
 import 'datatables.net-dt/css/dataTables.dataTables.css'
@@ -88,15 +60,8 @@ let myChart = null
 let dataTable = null
 const ratingsData = ref({ reviews: [] })
 const overallRating = ref('-')
-const reviews = ref([]);
-const photoUrls = ref([]);
 const reviewDetailVisible = ref(false)
-const selectedReview = ref(null)
-const reviewPhotos = ref([])
-const photoModalVisible = ref(false)
-const selectedPhoto = ref('')
-const searchQuery = ref('')
-const filteredReviews = ref([])
+const currentReviewId = ref(null)
 const authStore = useAuthStore()
 const userId = authStore.userId
 
@@ -108,7 +73,6 @@ const calculateAverageRating = (review) => {
 const fetchReviews = async () => {
   try {
     ratingsData.value.reviews = await vendorAdminApi.getVendorReviews(userId)
-    console.log("獲取的評論資料:", ratingsData.value.reviews)
 
     calculateOverallRating()
     updateChart()
@@ -123,13 +87,6 @@ const calculateOverallRating = () => {
   let total = 0, count = ratingsData.value.reviews.length
   ratingsData.value.reviews.forEach(r => total += (r.ratingEnvironment + r.ratingPrice + r.ratingService) / 3)
   overallRating.value = count ? (total / count).toFixed(1) : '-'
-}
-const generateStars = (rating) => {
-  let stars = ''
-  for (let i = 0; i < 5; i++) {
-    stars += i < rating ? '⭐ ' : ' '
-  }
-  return stars
 }
 
 // 更新評價圖表
@@ -210,56 +167,9 @@ watch(ratingsData, () => {
 })
 
 // 顯示評論詳情
-const toggleReviewDetails = async (review) => {
-  if (selectedReview.value && selectedReview.value.id === review.id) {
-    reviewDetailVisible.value = false
-    selectedReview.value = null
-    reviewPhotos.value = []
-    photoUrls.value = []  // 清除之前的圖片 URL
-    return
-  }
-  selectedReview.value = review
+const toggleReviewDetails = async (reviewId) => {
+  currentReviewId.value = reviewId
   reviewDetailVisible.value = true
-
-  const token = localStorage.getItem('token')
-
-  // 獲取評論照片
-  try {
-    reviewPhotos.value = await adminApi.getVendorReviewPhotos(review.id, token)
-    console.log('評論照片:', reviewPhotos.value)
-
-    const urls = await Promise.all(
-      reviewPhotos.value.map(photoId => getImageSrc(photoId))
-    );
-
-    photoUrls.value = urls;
-    console.log('圖片 URL:', photoUrls.value)
-  } catch (e) {
-    console.error('獲取評論照片失敗:', e)
-  }
-}
-
-const getImageSrc = async (photoId) => {
-  try {
-    const token = localStorage.getItem('token')
-    const res = await adminApi.getVendorReviewPhotoById(photoId, token)
-    return URL.createObjectURL(res);  // 創建 blob URL
-  } catch (error) {
-    console.error('圖片加載失敗', error);
-  }
-}
-
-// 顯示圖片放大視窗
-const showPhotoModal = async (photoId) => {
-  try {
-    const token = localStorage.getItem('token')
-    const imageBlob = await adminApi.getVendorReviewPhotoById(photoId, token)
-    const imageUrl = URL.createObjectURL(imageBlob);
-    selectedPhoto.value = imageUrl;
-    photoModalVisible.value = true;
-  } catch (e) {
-    console.error('獲取圖片失敗:', e);
-  }
 }
 
 // 刪除評論
@@ -310,12 +220,6 @@ const deleteReview = async (event, reviewId) => {
   }
 };
 
-// 格式化日期
-// const formatReviewDate = (dateString) => {
-//   const date = new Date(dateString)
-//   return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}`
-// }
-
 const formatReviewDate = (dateString) => {
   let date = new Date(dateString)
   return (
@@ -325,25 +229,8 @@ const formatReviewDate = (dateString) => {
   )
 }
 
-const getAllPhotos = async () => {
-  try {
-    const urls = await Promise.all(
-      reviewPhotos.value.map(photoId => getImageSrc(photoId))
-    );
-    photoUrls.value = urls;
-  } catch (error) {
-    console.error('圖片加載失敗:', error);
-  }
-};
-
 onMounted(async () => {
-  // 等待評論資料抓取完成
   await fetchReviews();
-
-  // 加載所有圖片
-  await getAllPhotos();
-
-  // 初始化資料表
   initializeDataTable();
 });
 
