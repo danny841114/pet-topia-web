@@ -214,7 +214,7 @@ export const vendorAdminApi = {
     return apiClient.delete(`${API_PREFIX}/${activityId}`)
   },
 
-  getActivityPhotos(activityId) {
+  getActivityPhotos(activityId, token) {
     return apiClient.get(`${API_PREFIX}/photos/ids`, {
       params: { vendorActivityId: activityId },
       headers: { Authorization: `Bearer ${token}` },

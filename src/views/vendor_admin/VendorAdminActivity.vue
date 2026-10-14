@@ -73,14 +73,16 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 import { dateUtil } from '@/utils/dateUtil'
+import { useRouter } from 'vue-router'
 import * as XLSX from 'xlsx'
 import Swal from 'sweetalert2'
-import 'datatables.net-dt/css/dataTables.dataTables.css'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const userId = authStore.userId
 const events = ref([])
 const eventFilter = ref('all')
+
 const formatDate = dateUtil.formatDateTime
 
 const exportToExcel = async () => {
@@ -139,7 +141,8 @@ const fetchEvents = async () => {
 const loadEventImages = async () => {
   for (let event of events.value) {
     try {
-      const imageIds = await vendorAdminApi.getActivityPhotos(event.id)
+      const token = localStorage.getItem('token')
+      const imageIds = await vendorAdminApi.getActivityPhotos(event.id, token)
 
       if (imageIds.length > 0) {
         event.imageUrl = await getImageBlob(imageIds[0]) // 獲取圖片 Blob 並轉換
@@ -194,6 +197,14 @@ const deleteEvent = async (activityId) => {
   } catch (e) {
     console.error('刪除活動失敗', e)
   }
+}
+
+const viewDetail = (id) => {
+  router.push({ name: 'VendorAdminActivityDetail', params: { id } })
+}
+
+const viewRegistration = (id) => {
+  router.push({ name: 'VendorAdminActivityRegistration', params: { id } })
 }
 
 onMounted(async () => {
