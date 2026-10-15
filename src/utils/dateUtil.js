@@ -59,4 +59,11 @@ export const dateUtil = {
 
     return `${year}-${month}-${day}`
   },
+
+  formatReviewDate(dateString) {
+    const dateObject = new Date(dateString)
+    const date = dateObject.toLocaleDateString('zh-TW')
+    const time = dateObject.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
+    return date + ' ' + time
+  },
 }

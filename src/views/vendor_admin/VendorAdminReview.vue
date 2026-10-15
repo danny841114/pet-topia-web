@@ -28,7 +28,7 @@
               <tr v-for="review in ratingsData.reviews" :key="review.id" v-if="ratingsData.reviews.length > 0"
                 @click="toggleReviewDetails(review.id)">
                 <td>{{ review.member?.id }}</td>
-                <td>{{ formatReviewDate(review.reviewTime) }}</td>
+                <td>{{ dateUtil.formatReviewDate(review.reviewTime) }}</td>
                 <td>{{ review.reviewContent }}</td>
                 <td>⭐ ({{ calculateAverageRating(review) }})</td>
                 <td>
@@ -49,6 +49,7 @@
 import { ref, onMounted, watch, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
+import { dateUtil } from '@/utils/dateUtil'
 import { Chart as ChartJS, LinearScale, BarController, BarElement, CategoryScale, Title, Tooltip, Legend, ArcElement } from 'chart.js'
 import VendorReviewCard from '@/components/vendor-admin/VendorReviewCard.vue'
 import DataTable from 'datatables.net-dt'
@@ -130,6 +131,7 @@ const updateChart = () => {
 }
 
 // 初始化 DataTables
+// TODO: 改用 Vue 寫法
 const initializeDataTable = () => {
   nextTick(() => {
     if (dataTable) {
@@ -173,6 +175,7 @@ const toggleReviewDetails = async (reviewId) => {
 }
 
 // 刪除評論
+// TODO: 改用 Vue 寫法
 const deleteReview = async (event, reviewId) => {
   event.stopPropagation();
 
@@ -219,15 +222,6 @@ const deleteReview = async (event, reviewId) => {
     });
   }
 };
-
-const formatReviewDate = (dateString) => {
-  let date = new Date(dateString)
-  return (
-    date.toLocaleDateString('zh-TW') +
-    ' ' +
-    date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
-  )
-}
 
 onMounted(async () => {
   await fetchReviews();

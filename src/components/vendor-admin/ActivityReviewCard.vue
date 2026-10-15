@@ -1,32 +1,36 @@
 <template>
-  <div class="reviews-container">
-    <h4>評論</h4>
-    <div v-if="reviews[activity.id] && reviews[activity.id].length > 0" class="review-list">
-      <div v-for="review in reviews[activity.id]" :key="review.id" class="review-item">
-        <div class="review-header">
-          <span class="review-username">會員ID：{{ review.memberId }}</span>
-          <span class="review-date">{{ formatReviewDate(review.reviewTime) }}</span>
+  <div class="overlay" @click.self="emit('close')">
+    <div class="reviews-container">
+      <h4>評論</h4>
+      <div v-if="reviews[activity.id] && reviews[activity.id].length > 0" class="review-list">
+        <div v-for="review in reviews[activity.id]" :key="review.id" class="review-item">
+          <div class="review-header">
+            <span class="review-username">會員ID：{{ review.memberId }}</span>
+            <span class="review-date">{{ dateUtil.formatDateTime(review.reviewTime) }}</span>
+          </div>
+          <div class="review-body">
+            <p class="review-content">評論內容：{{ review.reviewContent }}</p>
+          </div>
+          <button class="btn btn-danger" @click="deleteReview(review.id, activity.id)">
+            刪除評論
+          </button>
         </div>
-        <div class="review-body">
-          <p class="review-content">評論內容：{{ review.reviewContent }}</p>
-        </div>
-        <button class="btn btn-danger" @click="deleteReview(review.id, activity.id)">
-          刪除評論
-        </button>
       </div>
+      <p v-else>此活動沒有評論！</p>
     </div>
-    <p v-else>此活動沒有評論！</p>
   </div>
 </template>
 
 <script setup>
 import Swal from 'sweetalert2';
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
+import { dateUtil } from '@/utils/dateUtil'
 
 const props = defineProps({
   activity: Object,
   reviews: Object
 });
+const emit = defineEmits(['close'])
 
 const loadReviews = async () => {
   try {
@@ -38,43 +42,43 @@ const loadReviews = async () => {
 
 const deleteReview = async (reviewId, activityId) => {
   try {
-    const response = await vendorAdminApi.deleteActivityReview(activityId, reviewId)
+    await vendorAdminApi.deleteActivityReview(activityId, reviewId)
 
-    if (response.data.message === '刪除成功') {
-      Swal.fire({
-        icon: 'success',
-        title: '刪除成功！',
-        timer: 1000,
-        showConfirmButton: false
-      });
+    Swal.fire({
+      icon: 'success',
+      title: '刪除成功！',
+      timer: 1000,
+      showConfirmButton: false
+    });
 
-      loadReviews(activityId);
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: '刪除失敗',
-        text: '找不到該評論！'
-      });
-    }
+    loadReviews(activityId);
   } catch (error) {
     console.error('Error deleting review:', error);
-  }
-};
 
-const formatReviewDate = (dateString) => {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  let hours = date.getHours();
-  const minutes = date.getMinutes();
-  const period = hours >= 12 ? '下午' : '上午';
-  hours = hours % 12 || 12;
-  return `${year}年${month}月${day}日 ${period} ${hours}:${minutes < 10 ? '0' + minutes : minutes}`;
+    Swal.fire({
+      icon: 'error',
+      title: '刪除失敗',
+      text: '請稍後再試'
+    });
+  }
 };
 </script>
 
 <style scoped>
+.overlay {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+
+  z-index: 10;
+}
+
 .reviews-container {
   width: 100%;
   background-color: #f8f9fa;
