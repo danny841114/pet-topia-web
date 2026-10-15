@@ -17,21 +17,12 @@
     </div>
 
     <div class="d-flex align-items-center gap-2">
-      <!-- <select v-model="registerFilter" class="form-select w-auto">
-                <option value="all">顯示全部</option>
-                <option value="pending">顯示待審核</option>
-                <option value="confirmed">顯示已確認</option>
-                <option value="canceled">顯示已拒絕</option>
-            </select> -->
-
-      <button class="btn btn-primary allcheck" @click="openNotificationCardBatch(filteredPendingRegisters, 'confirm')">
-        全部確認
+      <button class="btn btn-primary allcheck" @click="openNotificationCardBatch(filteredPendingRegisters, true)">
+        全部接受
       </button>
-
-      <button class="btn btn-danger allcheck" @click="openNotificationCardBatch(filteredPendingRegisters, 'cancel')">
+      <button class="btn btn-danger allcheck" @click="openNotificationCardBatch(filteredPendingRegisters, false)">
         全部拒絕
       </button>
-
       <button class="btn btn-success" @click="generateReport">生成報表</button>
     </div>
 
@@ -67,9 +58,9 @@
             <td>{{ getStatusLabel(register.status) }}</td>
             <td>
               <button class="btn btn-primary" v-if="register.status === 'pending'"
-                @click="openNotificationCard(register, 'confirm')">已確認</button>
+                @click="openNotificationCard(register, true)">接受</button>
               <button class="btn btn-primary" v-if="register.status === 'pending'"
-                @click="openNotificationCard(register, 'cancel')">已拒絕</button>
+                @click="openNotificationCard(register, false)">拒絕</button>
 
               <button class="btn btn-primary" v-if="register.status === 'confirmed'"
                 @click="deleteRegistration(register.id)">刪除</button>
@@ -80,29 +71,12 @@
             </td>
           </tr>
         </tbody>
-
       </table>
-
-      <!-- 通知 Card -->
-      <div v-if="sendNotificationVisible" class="notification-card">
-        <h4>報名通知</h4>
-        <form @submit.prevent="selectedRegisters.length > 0 ? handleBatchSubmit() : handleSubmit()">
-          <div class="mb-3">
-            <label class="form-label">標題</label>
-            <input type="text" class="form-control" v-model="notificationTitle" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">內容</label>
-            <textarea class="form-control" v-model="notificationContent" required></textarea>
-          </div>
-          <button class="btn btn-secondary" @click="operationType === 'confirm' ? updateDemoData1() : updateDemoData2()"
-            type="button">Demo</button>
-          <button class="btn btn-primary" type="submit">發送</button>
-          <button type="button" class="btn btn-secondary" @click="closeModal">取消</button>
-        </form>
-      </div>
     </div>
   </div>
+
+  <NotificationCard v-if="sendNotificationVisible" :operation-type="operationType" :registrations="registrations"
+    @close="closeModal" @refresh="fetchRegistrations" />
 </template>
 
 <script setup>
@@ -116,6 +90,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import * as XLSX from 'xlsx';
 import DataTable from 'datatables.net-dt'
 import Swal from 'sweetalert2'
+import NotificationCard from '@/components/vendor-admin/NotificationCard.vue';
 
 let dataTable = null
 let genderChart = null
@@ -127,13 +102,10 @@ const registers = ref([])
 const registerFilter = ref('all')
 const totalRegistrations = ref(0);
 const sendNotificationVisible = ref(false)
-const notificationTitle = ref('');
-const notificationContent = ref('');
-const selectedRegister = ref(null);
-const selectedRegisters = ref([]); // 儲存所有待審核的報名資料
-const operationType = ref(''); // 用于标识是"确认"操作还是"取消"操作
+const operationType = ref(true);
 const activityId = route.params.id;
 const activityName = ref('');
+const registrations = ref([])
 
 // 注册比例尺和其他必要的模块
 ChartJS.register(LinearScale, BarController, BarElement, CategoryScale, PieController, LineController, Title, Tooltip, Legend);
@@ -157,17 +129,6 @@ const generateReport = () => {
 
   // 導出 Excel 文件
   XLSX.writeFile(wb, `報名資料_${new Date().toLocaleDateString()}.xlsx`);
-};
-
-const updateDemoData1 = () => {
-  // 这里模拟更新数据，你可以根据需要更新任何数据
-  notificationTitle.value = '報名成功通知';
-  notificationContent.value = `您已成功報名 ${activityName.value} 活動！`;
-};
-const updateDemoData2 = () => {
-  // 这里模拟更新数据，你可以根据需要更新任何数据
-  notificationTitle.value = '報名失敗通知';
-  notificationContent.value = `抱歉， ${activityName.value} 活動報名失敗`;
 };
 
 // 初始化 DataTables
@@ -242,15 +203,13 @@ watch(registerFilter, async () => {
   }
 });
 
-const fetchRegistration = async () => {
+const fetchRegistrations = async () => {
   try {
-    const response = await vendorAdminApi.getActivityRegistrations(activityId)
-    console.log('獲取的活動報名:', response.data);
-
-    registers.value = response.data;
-    // activityName.value = registers.value[0].vendorActivity.name
+    registers.value = await vendorAdminApi.getActivityRegistrations(activityId)
     totalRegistrations.value = registers.value.length;
-    console.log(registers.value);
+    if (registers.value.length > 0) {
+      activityName.value = registers.value[0].vendorActivity.name
+    }
 
     nextTick(() => {
       updateGenderChart()
@@ -516,51 +475,10 @@ const calculateAge = (birthdate) => {
 }
 
 // 开启通知卡片，并设置操作类型
-const openNotificationCard = (register, type) => {
-  selectedRegister.value = register;
-  operationType.value = type; // 设置操作类型，'confirm' 或 'cancel'
+const openNotificationCard = (registration, type) => {
+  registrations.value = [registration];
+  operationType.value = type;
   sendNotificationVisible.value = true;
-};
-
-// 统一处理提交
-const handleSubmit = async () => {
-  if (!notificationTitle.value || !notificationContent.value) {
-    Swal.fire({
-      icon: 'warning',
-      title: '欄位未填寫',
-      text: '標題或內容不得為空',
-      confirmButtonText: 'OK'
-    })
-    return;
-  }
-
-  if (!selectedRegister.value) return;
-
-  try {
-    if (operationType.value === 'confirm') {
-      // 执行确认操作
-      await vendorAdminApi.acceptRegister(selectedRegister.value.id)
-      selectedRegister.value.status = "confirmed";
-    } else if (operationType.value === 'cancel') {
-      // 执行取消操作
-      await vendorAdminApi.rejectRegister(selectedRegister.value.id)
-      selectedRegister.value.status = "canceled";
-    }
-
-    // 发送通知
-    const token = localStorage.getItem('token');
-    await vendorAdminApi.notifyMember(
-      selectedRegister.value.member.id,
-      activityId,
-      notificationTitle.value,
-      notificationContent.value,
-      token
-    )
-
-    sendNotificationVisible.value = false; // 关闭通知卡片
-  } catch (error) {
-    console.error("發送通知失敗", error);
-  }
 };
 
 const filteredPendingRegisters = computed(() => {
@@ -569,58 +487,14 @@ const filteredPendingRegisters = computed(() => {
 
 // 批量操作：開啟通知卡片
 const openNotificationCardBatch = (registers, type) => {
-  selectedRegisters.value = registers;
-  operationType.value = type; // 'confirm' 或 'cancel'
+  registrations.value = registers;
+  operationType.value = type;
   sendNotificationVisible.value = true;
 };
 
 // 关闭模态框
 const closeModal = () => {
   sendNotificationVisible.value = false;
-};
-
-// 批量操作：確認或取消註冊並發送通知
-const handleBatchSubmit = async () => {
-  if (!notificationTitle.value || !notificationContent.value) {
-    await Swal.fire({
-      icon: 'warning',
-      title: '欄位未填寫',
-      text: '標題或內容不得為空',
-      confirmButtonText: 'OK'
-    })
-
-    return;
-  }
-
-  if (!selectedRegisters.value || selectedRegisters.value.length === 0) return;
-
-  try {
-    const requests = selectedRegisters.value.map(async (register) => {
-      if (operationType.value === 'confirm') {
-        await vendorAdminApi.acceptRegister(register.id)
-        register.status = "confirmed";
-      } else if (operationType.value === 'cancel') {
-        await vendorAdminApi.rejectRegister(register.id)
-        register.status = "canceled";
-      }
-
-      // 發送通知
-      const token = localStorage.getItem('token');
-      return vendorAdminApi.notifyMember(
-        register.member.id,
-        register.vendorActivity.id,
-        notificationTitle.value,
-        notificationContent.value,
-        token
-      )
-    });
-
-    await Promise.all(requests); // 等待所有請求完成
-
-    sendNotificationVisible.value = false; // 關閉通知卡片
-  } catch (error) {
-    console.error("批量發送通知失敗", error);
-  }
 };
 
 const deleteRegistration = async (registerId) => {
@@ -671,7 +545,7 @@ const getStatusLabel = (status) => {
 }
 
 onMounted(async () => {
-  await fetchRegistration()
+  await fetchRegistrations()
   nextTick(() => {
     setTimeout(() => {
       initializeDataTable();  // 稍微延迟初始化 DataTable
