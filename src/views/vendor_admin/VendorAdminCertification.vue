@@ -73,7 +73,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi';
-import { adminApi } from '@/api/vendor/AdminApi';
+import { adminApi } from '@/api/vendor/adminApi';
 import Swal from 'sweetalert2'
 
 const authStore = useAuthStore()

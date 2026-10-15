@@ -11,7 +11,7 @@
           <div class="review-body">
             <p class="review-content">評論內容：{{ review.reviewContent }}</p>
           </div>
-          <button class="btn btn-danger" @click="deleteReview(review.id, activity.id)">
+          <button class="btn btn-danger" @click="deleteReview(activity.id, review.id)">
             刪除評論
           </button>
         </div>
@@ -32,15 +32,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['close'])
 
-const loadReviews = async () => {
-  try {
-    props.reviews[props.activity.id] = await vendorAdminApi.getActivityReviews(props.activity.id)
-  } catch (error) {
-    console.error('Error fetching reviews:', error);
-  }
-};
-
-const deleteReview = async (reviewId, activityId) => {
+const deleteReview = async (activityId, reviewId) => {
   try {
     await vendorAdminApi.deleteActivityReview(activityId, reviewId)
 
@@ -51,7 +43,7 @@ const deleteReview = async (reviewId, activityId) => {
       showConfirmButton: false
     });
 
-    loadReviews(activityId);
+    emit('close')
   } catch (error) {
     console.error('Error deleting review:', error);
 

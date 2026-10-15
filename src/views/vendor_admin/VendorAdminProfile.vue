@@ -151,10 +151,12 @@ import { useAuthStore } from '@/stores/auth'
 import { vendorApi } from '@/api/vendor/vendorApi'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi'
 import { adminApi } from '@/api/vendor/adminApi'
+import { dateUtil } from '@/utils/dateUtil'
 import Swal from 'sweetalert2'
 
 const authStore = useAuthStore()
 const userId = authStore.userId
+const token = localStorage.getItem('token')
 
 // 初始化資料
 const vendor = ref({
@@ -182,8 +184,7 @@ const vendorLogoImg = ref('https://cdn0.popo.tw/uc/61/50365/O.jpg')
 const imageUpload = ref(null)
 const vendorImages = ref([])
 const imagePreviews = ref([])
-const deletedImageIds = ref([]) // 存放要刪除的圖片 ID
-const fileInput = ref(null)
+const deletedImageIds = ref([])
 const storeSlogans = ref([])
 
 const defaultImage = 'https://cdn0.popo.tw/uc/61/50365/O.jpg'; // 預設圖片網址
@@ -200,7 +201,6 @@ const validateForm = () => {
 };
 
 const updateDemoData = () => {
-  // 这里模拟更新数据，你可以根据需要更新任何数据
   vendor.value.name = '狗狗訓練';
   vendor.value.vendorCategory = { id: 6, name: '寵物訓練' };
   vendor.value.contactEmail = 'doggod@gmail.com';
@@ -281,30 +281,6 @@ const getSloganStyle = (index) => {
   }
 }
 
-// 格式化日期的函數
-const formatReviewDate = (dateString) => {
-  const date = new Date(dateString)
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1 // 月份從0開始
-  const day = date.getDate()
-  let hours = date.getHours()
-  const minutes = date.getMinutes()
-  const period = hours >= 12 ? '下午' : '上午'
-
-  // 轉換為12小時制
-  hours = hours % 12
-  hours = hours ? hours : 12 // 小時為0時顯示12
-
-  // 格式化為 'YYYY年M月D日 上午/下午 HH:mm'
-  return `${year}年${month}月${day}日 ${period} ${hours}:${minutes < 10 ? '0' + minutes : minutes}`
-}
-
-// 返回首頁
-const goHome = () => (window.location.href = '/vendor_admin/vendor_admin_activity')
-
-// 登出
-const logout = () => (window.location.href = '/logout')
-
 // 觸發圖片上傳
 const triggerFileInput = () => imageUpload.value.click()
 
@@ -350,11 +326,9 @@ const updateVendor = async () => {
   }
 }
 
-onMounted(async () => {
-  const token = localStorage.getItem('token')
+const getProfile = async () => {
   try {
     const res = await vendorAdminApi.getProfile(vendor.value.id, token)
-    console.log(res)
 
     vendor.value = res.vendor
     allcategory.value = res.allcategory
@@ -372,13 +346,14 @@ onMounted(async () => {
       vendorLogoImg.value = ''
     }
 
-    // 格式化註冊日期
-    const formattedDate = formatReviewDate(res.vendor.registrationDate)
+    const formattedDate = dateUtil.formatProfileDate(res.vendor.registrationDate)
     vendor.value.registrationDate = formattedDate
   } catch (e) {
     console.error('獲取商家資料時發生錯誤：', e)
   }
+}
 
+const getProfilePhotos = async () => {
   try {
     const res = await adminApi.getProfilePhotos(vendor.value.id, token)
 
@@ -398,14 +373,20 @@ onMounted(async () => {
   } catch (e) {
     console.error('獲取店家圖片時發生錯誤：', e)
   }
+}
 
-  // 假設你有一個 API 請求來獲取標語
+const getSlogans = async () => {
   try {
     storeSlogans.value = await vendorApi.getSlogans(vendor.value.id, token)
-    console.log(storeSlogans.value)
-  } catch (e) {
-    console.log('取得標語錯誤：', e)
+  } catch (error) {
+    console.log('Get slogans failed: ', error)
   }
+}
+
+onMounted(async () => {
+  await getProfile()
+  getProfilePhotos()
+  getSlogans()
 })
 </script>
 
@@ -450,24 +431,6 @@ onMounted(async () => {
   height: 90px;
   object-fit: cover;
 }
-
-/* .container {
-    max-width: 95%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-.content-box {
-    width: 95%;
-    max-width: 95%;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    position: relative;
-} */
 
 .back-button {
   position: absolute;

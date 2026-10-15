@@ -66,4 +66,22 @@ export const dateUtil = {
     const time = dateObject.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
     return date + ' ' + time
   },
+
+  formatProfileDate(dateString) {
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1 // 月份從0開始
+    const day = date.getDate()
+    let hours = date.getHours()
+    let minutes = date.getMinutes()
+
+    const period = hours >= 12 ? '下午' : '上午'
+
+    hours = hours % 12
+    hours = hours ? hours : 12
+
+    minutes = minutes < 10 ? '0' + minutes : minutes
+
+    return `${year}年${month}月${day}日 ${period} ${hours}:${minutes}`
+  },
 }
