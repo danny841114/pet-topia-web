@@ -1231,7 +1231,7 @@ const handleProfileUpdate = async (event) => {
 
   try {
     // 強制從資料庫獲取最新資料
-    const userData = await memberApi.getProfileWithNoCache(authStore.token)
+    const userData = await memberApi.getProfile(authStore.token)
     console.log('從資料庫獲取的最新用戶資料:', userData)
 
     // 更新 authStore

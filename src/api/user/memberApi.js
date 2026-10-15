@@ -11,15 +11,6 @@ export const memberApi = {
     })
   },
 
-  getProfileWithNoCache(token) {
-    return apiClient.get(`${API_PREFIX}/profile`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Cache-Control': 'no-cache',
-      },
-    })
-  },
-
   updateProfile(name, phone, gender, address, birthdate, token) {
     return apiClient.put(
       `${API_PREFIX}/profile`,
@@ -33,7 +24,6 @@ export const memberApi = {
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-cache', // 防止快取
         },
       }
     )
@@ -43,10 +33,9 @@ export const memberApi = {
     const formData = new FormData()
     formData.append('photo', photoFile)
 
-    return apiClient.put(`${API_PREFIX}/upload-photo`, formData, {
+    return apiClient.post(`${API_PREFIX}/upload-photo`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
-        'Cache-Control': 'no-cache', // 防止快取
       },
     })
   },
@@ -67,7 +56,6 @@ export const memberApi = {
       },
       headers: {
         Authorization: `Bearer ${token}`,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     })
   },

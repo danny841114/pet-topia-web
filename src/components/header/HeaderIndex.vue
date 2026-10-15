@@ -1087,7 +1087,7 @@ const handleProfileUpdate = async (event) => {
   console.log('收到個人資料更新事件:', event.detail)
 
   try {
-    const userData = await memberApi.getProfileWithNoCache(authStore.token)
+    const userData = await memberApi.getProfile(authStore.token)
     console.log('從資料庫獲取的最新用戶資料:', userData)
 
     // 更新 authStore
