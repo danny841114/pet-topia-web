@@ -67,8 +67,8 @@ const handleSubmit = async () => {
 
 const getDemo = () => {
   if (props.operationType) {
-    notificationTitle.value = '報名失敗通知';
-    notificationContent.value = '抱歉，活動報名失敗';
+    notificationTitle.value = '報名成功通知';
+    notificationContent.value = '恭喜，活動報名成功';
   } else {
     notificationTitle.value = '報名失敗通知';
     notificationContent.value = '抱歉，活動報名失敗';

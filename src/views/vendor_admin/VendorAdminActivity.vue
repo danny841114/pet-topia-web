@@ -80,6 +80,7 @@ import Swal from 'sweetalert2'
 const router = useRouter()
 const authStore = useAuthStore()
 const userId = authStore.userId
+const token = localStorage.getItem('token')
 const events = ref([])
 const eventFilter = ref('all')
 
@@ -129,7 +130,6 @@ const exportToExcel = async () => {
 // 獲取活動列表
 const fetchEvents = async () => {
   try {
-    const token = localStorage.getItem('token');
     events.value = await vendorAdminApi.getActivitiesByUserId(userId, token);
     await loadEventImages()
   } catch (e) {
@@ -141,7 +141,6 @@ const fetchEvents = async () => {
 const loadEventImages = async () => {
   for (let event of events.value) {
     try {
-      const token = localStorage.getItem('token')
       const imageIds = await vendorAdminApi.getActivityPhotos(event.id, token)
 
       if (imageIds.length > 0) {
@@ -159,7 +158,6 @@ const loadEventImages = async () => {
 // API prefix is different
 const getImageBlob = async (photoId) => {
   try {
-    const token = localStorage.getItem('token')
     const res = await vendorAdminApi.getActivityPhotoById(photoId, token)
     return URL.createObjectURL(res)
   } catch (e) {

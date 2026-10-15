@@ -4,15 +4,15 @@ const API_PREFIX = '/api/vendor_admin'
 
 export const vendorAdminApi = {
   getActivityReviews(activityId) {
-    return apiClient.get(`${API_PREFIX}/activityreviews`, {
+    return apiClient.get(`${API_PREFIX}/activity-reviews`, {
       params: {
-        vendorActivityId: activityId,
+        activityId,
       },
     })
   },
 
   deleteActivityReview(activityId, reviewId) {
-    return apiClient.delete(`${API_PREFIX}/activityreviews/delete/${reviewId}`)
+    return apiClient.delete(`${API_PREFIX}/activity-reviews/${reviewId}`)
   },
 
   getTop5Activities() {
@@ -74,8 +74,10 @@ export const vendorAdminApi = {
 
   // API 需要修改
   notifyMember(memberId, activityId, title, content, token) {
-    return apiClient.post(`${API_PREFIX}/registration/notification/${memberId}/${activityId}`, {
+    return apiClient.post(`${API_PREFIX}/registration/notification`, {
       params: {
+        memberId,
+        activityId,
         title,
         content,
       },

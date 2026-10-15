@@ -1,7 +1,6 @@
 <template>
   <section id="cart" class="container my-5">
     <div class="row">
-
       <!-- 購物車 -->
       <h3 class="mb-4">購物車</h3>
 
@@ -63,7 +62,7 @@
                 </span>
                 <span :style="{ color: cart.product.discountPrice ? 'red' : '' }"> &nbsp;${{
                   cart.product.discountPrice ? cart.product.discountPrice : cart.product.unitPrice
-                }}</span>
+                  }}</span>
               </div>
 
               <!-- 數量控制 -->
