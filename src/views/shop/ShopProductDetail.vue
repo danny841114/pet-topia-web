@@ -286,15 +286,10 @@ const messages = ref("");
 
 // #region 初始化 & 監聽 =================================================
 
-onMounted(async () => {
-  getProductDetail();
-})
-
 // 加載商品詳情
-async function getProductDetail() {
+const getProductDetail = async () => {
   try {
     const res = await shopApi.getProductDetail(productDetailId);
-    console.log(response.data);
 
     productList.value = res.productList;
     sizeList.value = res.sizeList;
@@ -307,6 +302,10 @@ async function getProductDetail() {
     console.log('獲取商品詳細資訊失敗', e)
   }
 }
+
+onMounted(async () => {
+  getProductDetail();
+})
 
 watchEffect(() => {
   // console.log("選中的尺寸:", selectedSizeRadio.value);

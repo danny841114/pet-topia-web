@@ -62,7 +62,7 @@
                 </span>
                 <span :style="{ color: cart.product.discountPrice ? 'red' : '' }"> &nbsp;${{
                   cart.product.discountPrice ? cart.product.discountPrice : cart.product.unitPrice
-                  }}</span>
+                }}</span>
               </div>
 
               <!-- 數量控制 -->

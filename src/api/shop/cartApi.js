@@ -19,9 +19,13 @@ export const cartApi = {
     return apiClient.post('', null, { params: { memberId } })
   },
 
-  // 改為 PUT
+  // 方法改為 PUT, 參數改為 Request Body
   updateCart(memberId, productId, quantity) {
-    return apiClient.post('/api/updateCartProductQuantity', { memberId, productId, quantity })
+    return apiClient.post(
+      '/api/updateCartProductQuantity',
+      {},
+      { params: { memberId, productId, quantity } }
+    )
   },
 
   // 改為 DELETE
