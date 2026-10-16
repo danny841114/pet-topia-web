@@ -30,8 +30,4 @@ export const adminApi = {
       responseType: 'blob',
     })
   },
-
-  getCertifications() {
-    return apiClient.get(`/api/certification_type/all`)
-  },
 }

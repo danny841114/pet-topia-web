@@ -264,4 +264,8 @@ export const vendorAdminApi = {
       responseType: 'blob',
     })
   },
+
+  getVendorTags() {
+    return apiClient.get(`${API_PREFIX}/tags`)
+  },
 }

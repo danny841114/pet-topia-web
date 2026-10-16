@@ -5,16 +5,14 @@
         <div class="container">
           <!-- 認證申請表單 -->
           <h2>申請認證</h2>
-          <form @submit.prevent="submitForm" id="certification_form">
+          <form @submit.prevent="submitForm">
             <div class="form-row">
               <div class="form-group">
                 <label>選擇認證標語:</label>
                 <select name="certification_tag_id" class="form-control" id="certification_tag_id"
                   v-model="certificationTagId" required>
                   <option value="" disabled selected>請選擇認證標語</option>
-                  <!-- 透過 v-for 動態生成認證標語選項 -->
-                  <option v-for="tag in certificationTags" :key="tag.id" :value="tag.id">
-                    {{ tag.tagName }}</option>
+                  <option v-for="tag in certificationTags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
                 </select>
               </div>
 
@@ -22,7 +20,7 @@
             </div>
 
             <div style="text-align: right;">
-              <button type="submit" class="btn btn-outline-primary" id="sendBtn">提交申請</button>
+              <button type="submit" class="btn btn-outline-primary">提交申請</button>
             </div>
           </form>
           <hr>
@@ -73,16 +71,15 @@
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth'
 import { vendorAdminApi } from '@/api/vendor/vendorAdminApi';
-import { adminApi } from '@/api/vendor/adminApi';
 import Swal from 'sweetalert2'
 
 const authStore = useAuthStore()
 const userId = authStore.userId
-const vendorId = ref(userId);  // 假設登入者的 vendor_id 是 1
+const vendorId = ref(userId);
 const certificationTagId = ref('');
 const certificationTags = ref([]);
 const certificationRecords = ref([]);
-const filterStatus = ref('已認證');  // 默认为申請中
+const filterStatus = ref('已認證');
 
 const checkIfCertificationExisitng = async (vendorId, tagId) => {
   try {
@@ -149,7 +146,7 @@ const deleteCertification = async (recordId) => {
       confirmButtonText: 'OK'
     })
 
-    fetchCertification()
+    fetchCertifications()
   } catch (e) {
     console.error("取消申請成功失敗：", e)
 
@@ -163,7 +160,7 @@ const deleteCertification = async (recordId) => {
 }
 
 // 獲取申請紀錄
-const fetchCertification = () => {
+const fetchCertifications = () => {
   try {
     const res = vendorAdminApi.getCertificationsByVendorId(vendorId)
     console.log(res);
@@ -190,18 +187,17 @@ const filteredRecords = computed(() => {
 });
 
 // 獲取認證標語列表
-const getCertifications = async () => {
+const getVendorTags = async () => {
   try {
-    certificationTags.value = await adminApi.getCertifications();
-    console.log(certificationTags.value);
-  } catch (e) {
-    console.error("獲取認證標語失敗：", e);
+    certificationTags.value = await vendorAdminApi.getVendorTags();
+  } catch (error) {
+    console.error("Get vendor tags failed: ", error);
   }
 }
 
 onMounted(() => {
-  getCertifications()
-  fetchCertification()
+  getVendorTags()
+  fetchCertifications()
 });
 </script>
 
