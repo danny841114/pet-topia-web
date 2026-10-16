@@ -207,24 +207,20 @@ export const vendorAdminApi = {
     return apiClient.delete(`${API_PREFIX}/calendar/delete/${eventId}`)
   },
 
-  getCertificationByVendorId(vendorId) {
-    return apiClient.get(`${API_PREFIX}/certification/${vendorId}`)
+  getCertificationsByVendorId(vendorId) {
+    return apiClient.get(`${API_PREFIX}/vendors/${vendorId}/certifications`)
   },
 
-  isCertificationExisiting(vendorId, tagId) {
-    return apiClient.get(`${API_PREFIX}/certification/exists/${vendorId}/${tagId}`)
+  getCertification(vendorId, tagId) {
+    return apiClient.get(`${API_PREFIX}/vendors/${vendorId}/tags/${tagId}`)
   },
 
   addCertification(vendorId, tagId) {
-    const formData = new FormData()
-    formData.append('vendorId', vendorId)
-    formData.append('tagId', tagId)
-
-    return apiClient.post(`${API_PREFIX}/certification/add`, formData)
+    return apiClient.post(`${API_PREFIX}/certifications`, { vendorId, tagId })
   },
 
-  deleteCertification(recordId) {
-    return apiClient.delete(`${API_PREFIX}/certification/delete/${recordId}`)
+  deleteCertification(certificationId) {
+    return apiClient.delete(`${API_PREFIX}/certifications/${certificationId}`)
   },
 
   getProfile(vendorId, token) {

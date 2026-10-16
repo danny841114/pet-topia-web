@@ -84,13 +84,22 @@ const certificationTags = ref([]);
 const certificationRecords = ref([]);
 const filterStatus = ref('已認證');  // 默认为申請中
 
+const checkIfCertificationExisitng = async (vendorId, tagId) => {
+  try {
+    await vendorAdminApi.getCertification(vendorId, tagId)
+    return true
+  } catch (error) {
+    console.error(`Certification with vendor ID '${vendorId}' and tag ID '${tagId}' not found: `, error)
+    return false
+  }
+}
+
 // 提交表單
 const submitForm = async () => {
-  // 检查该店家是否已经申请过该认证标语
   try {
-    const res = await vendorAdminApi.isCertificationExisiting(vendorId.value, certificationTagId.value)
+    const isExisting = await checkIfCertificationExisitng(vendorId.value, certificationTagId.value)
 
-    if (res) {
+    if (isExisting) {
       await Swal.fire({
         icon: 'info',
         title: '您已經申請過囉',
@@ -108,12 +117,12 @@ const submitForm = async () => {
 
       window.location.reload();
     }
-  } catch (e) {
-    console.error("檢查重複申請失敗：", e);
+  } catch (error) {
+    console.error("Add certification failed: ", error);
 
     await Swal.fire({
       icon: 'error',
-      title: '檢查重複申請失敗',
+      title: '申請認證失敗',
       text: '請稍後再試。',
       confirmButtonText: 'OK'
     });
@@ -156,7 +165,7 @@ const deleteCertification = async (recordId) => {
 // 獲取申請紀錄
 const fetchCertification = () => {
   try {
-    const res = vendorAdminApi.getCertificationByVendorId(vendorId)
+    const res = vendorAdminApi.getCertificationsByVendorId(vendorId)
     console.log(res);
 
     certificationRecords.value = res.map(record => ({
