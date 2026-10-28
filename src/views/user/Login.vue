@@ -214,7 +214,8 @@ const checkTokenValidity = async () => {
 
   try {
     // 發送請求到後端驗證 token
-    await authApi.getStatus(authStore.token)
+    const res = await authApi.getStatus(authStore.token)
+    console.log('User status: ', res)
   } catch (error) {
     authStore.clearToken();
     console.error('Token 驗證錯誤:', error);
@@ -223,18 +224,18 @@ const checkTokenValidity = async () => {
 
 // 處理本地登入
 const handleLogin = async () => {
+  // 清除之前的錯誤和成功消息
+  error.value = null;
+  success.value = null;
+  showLocalPasswordSetup.value = false;
+
+  // 基本驗證
+  if (!email.value || !password.value) {
+    error.value = '請填寫所有必填欄位';
+    return;
+  }
+
   try {
-    // 清除之前的錯誤和成功消息
-    error.value = null;
-    success.value = null;
-    showLocalPasswordSetup.value = false;
-
-    // 基本驗證
-    if (!email.value || !password.value) {
-      error.value = '請填寫所有必填欄位';
-      return;
-    }
-
     const data = await authApi.login(email.value.trim(), password.value)
 
     // 使用 Pinia store 存儲 token 和用戶信息
@@ -249,13 +250,13 @@ const handleLogin = async () => {
     );
 
     // 當檢測到是第三方帳號時
-    if (data.isThirdPartyAccount && data.provider) {
-      showLocalPasswordSetup.value = true;
-      provider.value = data.provider;
-      userEmail.value = data.email;
-      console.log("第三方帳號", provider.value, userEmail.value);
-      return;
-    }
+    // if (data.isThirdPartyAccount && data.provider) {
+    //   showLocalPasswordSetup.value = true;
+    //   provider.value = data.provider;
+    //   userEmail.value = data.email;
+    //   console.log("第三方帳號", provider.value, userEmail.value);
+    //   return;
+    // }
 
     // 顯示 loading 動畫和成功提示
     loadingMessage.value = '登入成功！';

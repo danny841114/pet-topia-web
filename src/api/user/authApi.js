@@ -60,10 +60,6 @@ export const authApi = {
     })
   },
 
-  checkToken(token) {
-    return apiClient.get(`${API_PREFIX}/status`, { headers: { Authorization: `Bearer ${token}` } })
-  },
-
   login(email, password) {
     return apiClient.post(`${API_PREFIX}/login`, {
       email,
