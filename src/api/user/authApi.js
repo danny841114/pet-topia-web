@@ -27,6 +27,17 @@ export const authApi = {
     )
   },
 
+    verifyRegistration(email, code, token) {
+    return apiClient.post(
+      `${API_PREFIX}/verify-registration`,
+      {
+        email,
+        code,
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+  },
+
   // 疑似重複
   localVerifyCode(email, code) {
     return apiClient.post(`${API_PREFIX}/local-password/verify-code`, {

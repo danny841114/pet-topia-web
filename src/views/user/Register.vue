@@ -178,7 +178,7 @@ const handleRegister = async () => {
 const verifyEmail = async () => {
   try {
     // 加入token (原先無)
-    const data = await authApi.verifyCode(
+    const data = await authApi.verifyRegistration(
       email.value,
       verificationCode.value,
       null
