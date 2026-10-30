@@ -83,6 +83,8 @@ const authStore = useAuthStore();
 const isLoading = ref(false);
 const isEmailVerified = ref(false);
 const countdown = ref(0);
+const error = ref('');
+const success = ref(false);
 
 const form = reactive({
   email: authStore.user?.email || '',
@@ -131,17 +133,25 @@ const verifyCode = async () => {
   try {
     isLoading.value = true;
 
-    await authApi.verifyCode(form.email, form.verificationCode, token)
+    const res = await authApi.verifyCode(form.email, form.verificationCode, authStore.token)
 
-    isEmailVerified.value = true;
+    if (res.verified) {
+      isEmailVerified.value = true;
 
-    Swal.fire({
-      icon: 'success',
-      title: '驗證成功',
-      text: '請繼續設置新密碼',
-      timer: 2000,
-      showConfirmButton: false
-    });
+      Swal.fire({
+        icon: 'success',
+        title: '驗證成功',
+        text: '請繼續設置新密碼',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: '驗證失敗',
+        text: '驗證碼驗證失敗'
+      });
+    }
   } catch (error) {
     Swal.fire({
       icon: 'error',
@@ -177,7 +187,7 @@ const handleSubmit = async () => {
   try {
     isLoading.value = true;
 
-    await authApi.changePassword(form.email, form.newPassword, token)
+    await authApi.changePassword(form.email, form.newPassword, authStore.token)
 
     Swal.fire({
       icon: 'success',

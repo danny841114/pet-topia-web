@@ -47,7 +47,7 @@ export const authApi = {
   },
 
   changePassword(email, newPassword, token) {
-    return apiClient.post(
+    return apiClient.put(
       `${API_PREFIX}/change-password`,
       {
         email,
