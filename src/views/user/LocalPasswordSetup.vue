@@ -143,8 +143,7 @@ const checkEmailStatus = async () => {
   try {
     isLoading.value = true;
 
-    const encodedEmail = encodeURIComponent(email.value)
-    const data = await authApi.checkEmailStatus(encodedEmail);
+    const data = await authApi.checkEmailStatus(email.value);
 
     if (data.canSetupLocalPassword) {
       provider.value = data.provider;
@@ -154,7 +153,7 @@ const checkEmailStatus = async () => {
     }
   } catch (e) {
     console.error('檢查電子郵件狀態錯誤:', e);
-    error.value = '無法檢查帳號狀態，請稍後再試';
+    error.value = e.response?.data?.message || '無法檢查帳號狀態，請稍後再試';
   } finally {
     isLoading.value = false;
   }

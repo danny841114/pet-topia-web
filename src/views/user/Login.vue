@@ -40,18 +40,6 @@
               </div>
             </div>
 
-            <div id="messageArea" class="mb-3">
-              <div v-if="param.isThirdPartyAccount" class="alert alert-info">
-                <p>此帳號是使用 <strong>{{ param.provider }}</strong> 註冊的。</p>
-                <p>您可以：</p>
-                <ul>
-                  <li>使用 <strong>{{ param.provider }}</strong> 登入</li>
-                  <li><router-link :to="`/local-password/setup?email=${param.email}`">設置本地密碼</router-link> 以使用電子郵件登入
-                  </li>
-                </ul>
-              </div>
-            </div>
-
             <form @submit.prevent="handleLogin">
               <div class="mb-3">
                 <label for="email" class="form-label">電子郵件</label>
@@ -82,7 +70,7 @@
             </div>
 
             <!-- 當嘗試用密碼登入第三方帳號時顯示提示 -->
-            <div v-if="showLocalPasswordSetup" class="alert alert-warning">
+            <!-- <div v-if="showLocalPasswordSetup" class="alert alert-warning">
               <p><strong>提示：</strong>您的帳號是使用 {{ provider }} 註冊的，還未設置本地密碼。</p>
               <p>您可以選擇：</p>
               <div class="d-flex gap-2 mt-2">
@@ -93,7 +81,7 @@
                   使用 {{ provider }} 登入
                 </button>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -238,6 +226,14 @@ const handleLogin = async () => {
   try {
     const data = await authApi.login(email.value.trim(), password.value)
 
+    if (!data.isLocalEnabled) {
+      showLocalPasswordSetup.value = true;
+      provider.value = data.provider;
+      userEmail.value = data.email;
+      error.value = data.error;
+      return;
+    }
+
     // 使用 Pinia store 存儲 token 和用戶信息
     authStore.setToken(
       data.token,
@@ -248,15 +244,6 @@ const handleLogin = async () => {
         email: data.email
       }
     );
-
-    // 當檢測到是第三方帳號時
-    // if (data.isThirdPartyAccount && data.provider) {
-    //   showLocalPasswordSetup.value = true;
-    //   provider.value = data.provider;
-    //   userEmail.value = data.email;
-    //   console.log("第三方帳號", provider.value, userEmail.value);
-    //   return;
-    // }
 
     // 顯示 loading 動畫和成功提示
     loadingMessage.value = '登入成功！';
