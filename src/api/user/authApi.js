@@ -58,10 +58,10 @@ export const authApi = {
   },
 
   // 疑似重複
-  loclaChangePassword(email, newPassword) {
+  loclaChangePassword(email, password) {
     return apiClient.post(`${API_PREFIX}/local-password/set-password`, {
       email,
-      newPassword,
+      password,
     })
   },
 
