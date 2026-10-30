@@ -134,9 +134,9 @@
       <div class="row py-4 pb-0 pb-sm-4 align-items-center">
         <div class="col-sm-4 col-lg-3 text-center text-sm-start">
           <div class="main-logo">
-            <a href="/">
+            <router-link to="/">
               <img src="/user_static/images/logo.png" alt="logo" class="img-fluid" />
-            </a>
+            </router-link>
           </div>
         </div>
 
@@ -153,13 +153,15 @@
               <template v-if="!isAuthenticated">
                 <li>
                   <router-link to="/login" class="mx-3">
-                    <Icon icon="mdi:login" class="fs-5"></Icon> <span class="fs-5">登入</span>
+                    <Icon icon="mdi:login" class="fs-5"></Icon>
+                    <span class="fs-5">登入</span>
                   </router-link>
                 </li>
                 <li>
-                  <a href="/register" class="mx-3">
-                    <Icon icon="mdi:user-plus" class="fs-5"></Icon> <span class="fs-5">註冊</span>
-                  </a>
+                  <router-link to="/register" class="mx-3">
+                    <Icon icon="mdi:user-plus" class="fs-5"></Icon>
+                    <span class="fs-5">註冊</span>
+                  </router-link>
                 </li>
               </template>
               <template v-else>
@@ -194,14 +196,14 @@
                         <Icon icon="mdi:heart" class="me-2"></Icon>我的收藏
                       </router-link>
                       <div class="dropdown-divider"></div>
-                      <a href="#" v-if="showBecomeVendorButton" class="dropdown-item vendor-item"
-                        @click.prevent="handleBecomeVendor">
+                      <button type="button" v-if="showBecomeVendorButton" class="dropdown-item vendor-item"
+                        @click="handleBecomeVendor">
                         <Icon icon="mdi:store" class="me-2"></Icon>店家專區
-                      </a>
+                      </button>
                       <div class="dropdown-divider" v-if="showBecomeVendorButton"></div>
-                      <a href="#" class="dropdown-item logout-item" @click.prevent="handleLogout">
+                      <button type="button" class="dropdown-item logout-item" @click="handleLogout">
                         <Icon icon="mdi:logout" class="me-2"></Icon>登出
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </li>
@@ -227,16 +229,16 @@
             </li>
 
             <li>
-              <a href="account.html" class="mx-3">
+              <router-link to="/register" class="mx-3">
                 <Icon icon="mdi:user-plus" class="fs-4"></Icon>註冊
-              </a>
+              </router-link>
             </li>
 
             <li>
-              <a href="#" class="mx-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSearch"
+              <button type="button" class="mx-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSearch"
                 aria-controls="offcanvasSearch">
                 <Icon icon="tabler:search" class="fs-4"></Icon>搜尋
-              </a>
+              </button>
             </li>
           </ul>
         </div>

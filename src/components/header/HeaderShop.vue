@@ -173,20 +173,23 @@
               <template v-if="!isAuthenticated">
                 <li>
                   <router-link to="/login" class="mx-3">
-                    <Icon icon="mdi:login" class="fs-5"></Icon> <span class="fs-5">登入</span>
+                    <Icon icon="mdi:login" class="fs-5"></Icon>
+                    <span class="fs-5">登入</span>
                   </router-link>
                 </li>
                 <li>
-                  <a href="/register" class="mx-3">
-                    <Icon icon="mdi:user-plus" class="fs-5"></Icon> <span class="fs-5">註冊</span>
-                  </a>
+                  <router-link to="/register" class="mx-3">
+                    <Icon icon="mdi:user-plus" class="fs-5"></Icon>
+                    <span class="fs-5">註冊</span>
+                  </router-link>
                 </li>
               </template>
               <template v-else>
                 <li>
-                  <a href="http://localhost:5173/vendor" class="mx-3 vendor-link">
-                    <Icon icon="mdi:store-search" class="fs-5"></Icon> <span class="fs-5">搜尋友善店家</span>
-                  </a>
+                  <router-link to="/vendor" class="mx-3 vendor-link">
+                    <Icon icon="mdi:store-search" class="fs-5"></Icon>
+                    <span class="fs-5">搜尋友善店家</span>
+                  </router-link>
                 </li>
                 <li class="user-dropdown-container">
                   <div class="user-profile-btn" @click="toggleUserMenu">
@@ -219,14 +222,14 @@
                         <Icon icon="mdi:heart" class="me-2"></Icon>我的收藏
                       </router-link>
                       <div class="dropdown-divider"></div>
-                      <a href="#" v-if="showBecomeVendorButton" class="dropdown-item vendor-item"
-                        @click.prevent="handleBecomeVendor">
+                      <button type="button" v-if="showBecomeVendorButton" class="dropdown-item vendor-item"
+                        @click="handleBecomeVendor">
                         <Icon icon="mdi:store" class="me-2"></Icon>店家專區
-                      </a>
+                      </button>
                       <div class="dropdown-divider" v-if="showBecomeVendorButton"></div>
-                      <a href="#" class="dropdown-item logout-item" @click.prevent="handleLogout">
+                      <button type="button" class="dropdown-item logout-item" @click="handleLogout">
                         <Icon icon="mdi:logout" class="me-2"></Icon>登出
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </li>
@@ -249,14 +252,14 @@
         <div class="d-flex d-lg-none align-items-end mt-3">
           <ul class="d-flex justify-content-end list-unstyled m-0">
             <li>
-              <a href="account.html" class="mx-3">
+              <router-link to="account.html" class="mx-3">
                 <Icon icon="healthicons:person" class="fs-4"></Icon>
-              </a>
+              </router-link>
             </li>
             <li>
-              <a href="wishlist.html" class="mx-3">
+              <router-link to="wishlist.html" class="mx-3">
                 <Icon icon="mdi:heart" class="fs-4"></Icon>
-              </a>
+              </router-link>
             </li>
 
             <li>
@@ -280,11 +283,10 @@
             </li>
 
             <li>
-              <a href="#" class="mx-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSearch"
+              <button type="button" class="mx-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSearch"
                 aria-controls="offcanvasSearch">
                 <Icon icon="tabler:search" class="fs-4"></Icon>
-
-              </a>
+              </button>
             </li>
           </ul>
 
@@ -334,21 +336,19 @@
             <div class="d-none d-lg-flex align-items">
               <ul class="d-flex justify-content-end list-unstyled m-0">
                 <li>
-                  <a href="index.html" class="mx-3">
+                  <router-link to="/" class="mx-3">
                     <Icon icon="healthicons:person" class="fs-4"></Icon>
-                  </a>
+                  </router-link>
                 </li>
+
                 <li>
-                  <a href="index.html" class="mx-3">
+                  <router-link to="/" class="mx-3">
                     <Icon icon="mdi:heart" class="fs-4"></Icon>
-                  </a>
+                  </router-link>
                 </li>
 
                 <!-- 購物車連結 -->
                 <li>
-                  <!-- <a href="index.html" class="mx-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart"
-                    aria-controls="offcanvasCart"> -->
-
                   <!-- 當 cartCount > 0 時，顯示正常的購物車鏈接 -->
                   <router-link v-if="cartCount > 0" to="/shop/cart" class="nav-link">
                     <Icon icon="mdi:cart" class="fs-4 position-relative" style="margin-left: 10px;"></Icon>
@@ -365,8 +365,6 @@
                       0
                     </span>
                   </div>
-
-                  <!-- </a> -->
                 </li>
               </ul>
             </div>

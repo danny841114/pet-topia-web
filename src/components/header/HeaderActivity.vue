@@ -73,12 +73,14 @@
       <div class="offcanvas-header justify-content-center">
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
+
       <div class="offcanvas-body">
         <div class="order-md-last">
           <h4 class="d-flex justify-content-between align-items-center mb-3">
             <span class="text-primary">Your cart</span>
             <span class="badge bg-primary rounded-circle pt-2">3</span>
           </h4>
+
           <ul class="list-group mb-3">
             <li class="list-group-item d-flex justify-content-between lh-sm">
               <div>
@@ -87,6 +89,7 @@
               </div>
               <span class="text-body-secondary">$12</span>
             </li>
+
             <li class="list-group-item d-flex justify-content-between lh-sm">
               <div>
                 <h6 class="my-0">Dog Food</h6>
@@ -94,6 +97,7 @@
               </div>
               <span class="text-body-secondary">$8</span>
             </li>
+
             <li class="list-group-item d-flex justify-content-between lh-sm">
               <div>
                 <h6 class="my-0">Soft Toy</h6>
@@ -101,6 +105,7 @@
               </div>
               <span class="text-body-secondary">$5</span>
             </li>
+
             <li class="list-group-item d-flex justify-content-between">
               <span class="fw-bold">Total (USD)</span>
               <strong>$20</strong>
@@ -117,6 +122,7 @@
       <div class="offcanvas-header justify-content-center">
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
+
       <div class="offcanvas-body">
         <div class="order-md-last">
           <h4 class="text-primary text-uppercase mb-3">Search</h4>
@@ -134,16 +140,15 @@
       <div class="row py-4 pb-0 pb-sm-4 align-items-center">
         <div class="col-sm-4 col-lg-3 text-center text-sm-start">
           <div class="main-logo">
-            <a href="/">
+            <router-link to="/">
               <img src="/user_static/images/logo.png" alt="logo" class="img-fluid" />
-            </a>
+            </router-link>
           </div>
         </div>
 
         <div class="col-sm-6 offset-sm-2 offset-md-0 col-lg-5 d-none d-lg-block">
           <div class="search-bar border rounded-2 px-3 border-dark-subtle">
             <!-- 搜尋列 -->
-
             <div class="text-center d-flex align-items-center">
               <input v-model="keyword" type="text" class="form-control border-0 bg-transparent" placeholder="搜尋活動"
                 @keyup.enter="searchActivity" />
@@ -153,7 +158,6 @@
                   d="M21.71 20.29L18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 7-7a7 7 0 0 1-7 7Z" />
               </svg>
             </div>
-
             <!-- 搜尋列 -->
           </div>
         </div>
@@ -175,14 +179,16 @@
               <h6 class="dropdown-header">通知中心</h6>
               <div v-if="notifications.length === 0" class="text-center p-2">沒有新通知</div>
               <div v-else>
-                <a v-for="(notification, index) in notifications" :key="index" href="#"
+                <button v-for="(notification, index) in notifications" :key="index" type="button"
                   class="dropdown-item d-flex align-items-center mb-2"
                   @click="handleNotificationClick(index, notification)" :class="{ read: notification.isRead }">
                   <i class="bi bi-circle-fill text-primary me-2" v-if="!notification.isRead"></i>
+
                   <i class="bi bi-check-circle-fill text-secondary me-2" v-else></i>
+
                   <div>
                     <strong class="notification-text">{{ notification.notificationTitle }}</strong>
-                    <!-- 显示标题 -->
+
                     <div class="text-muted notification-text" style="font-size: 0.8em">
                       {{ notification.notificationContent }}
                     </div>
@@ -190,13 +196,12 @@
                     <div class="text-muted notification-text" style="font-size: 0.8em">
                       {{ notification.sentTime }}
                     </div>
-                    <!-- 显示时间 -->
                   </div>
-
-                  <!-- 通知内容 -->
-                </a>
+                </button>
               </div>
+
               <div class="dropdown-divider"></div>
+
               <button class="dropdown-item text-center" @click="clearNotifications">
                 清除所有通知
               </button>
@@ -210,6 +215,7 @@
                     <h5 class="modal-title">通知內容</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
+
                   <div class="modal-body">
                     <h5>{{ selectedNotificationTitle }}</h5>
                     <div>{{ selectedNotificationContent }}</div>
@@ -217,6 +223,7 @@
                       {{ selectedNotificationSedTime }}
                     </div>
                   </div>
+
                   <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                       關閉
@@ -226,40 +233,48 @@
               </div>
             </div>
           </div>
+
           <!-- 會員專區-->
           <div class="d-none d-xl-block">
             <ul class="d-flex list-unstyled m-0 gap-3">
               <template v-if="!isAuthenticated">
                 <li>
                   <router-link to="/login" class="mx-3">
-                    <Icon icon="mdi:login" class="fs-5"></Icon> <span class="fs-5">登入</span>
+                    <Icon icon="mdi:login" class="fs-5"></Icon>
+                    <span class="fs-5">登入</span>
                   </router-link>
                 </li>
+
                 <li>
-                  <a href="/register" class="mx-3">
-                    <Icon icon="mdi:user-plus" class="fs-5"></Icon> <span class="fs-5">註冊</span>
-                  </a>
+                  <router-link to="/register" class="mx-3">
+                    <Icon icon="mdi:user-plus" class="fs-5"></Icon>
+                    <span class="fs-5">註冊</span>
+                  </router-link>
                 </li>
               </template>
+
               <template v-else>
                 <li>
-                  <a href="http://localhost:5173/shop" class="shop-link">
+                  <router-link to="/shop" class="shop-link">
                     <Icon icon="mdi:store" class="fs-5"></Icon>
                     <span class="fs-5">前往購物</span>
-                  </a>
+                  </router-link>
                 </li>
+
                 <li class="user-dropdown-container">
                   <div class="user-profile-btn" @click="toggleUserMenu">
                     <div class="d-flex align-items-center">
                       <div class="avatar-container me-2">
                         <img :src="userAvatar" :alt="userName" class="avatar" @error="handleAvatarError" />
                       </div>
+
                       <div class="user-info">
                         <span class="user-name">{{ userName }}</span>
                         <Icon icon="mdi:chevron-down" class="ms-1 dropdown-icon"></Icon>
                       </div>
                     </div>
                   </div>
+
                   <div class="user-dropdown-menu" v-show="showUserMenu">
                     <div class="user-dropdown-header">
                       <img :src="userAvatar" :alt="userName" class="dropdown-avatar" @error="handleAvatarError" />
@@ -268,25 +283,32 @@
                         <span class="dropdown-user-email">{{ userEmail }}</span>
                       </div>
                     </div>
+
                     <div class="user-dropdown-items">
                       <router-link to="/profile" class="dropdown-item">
                         <Icon icon="mdi:account" class="me-2"></Icon>會員中心
                       </router-link>
+
                       <router-link to="/shop/orderHistory" class="dropdown-item">
                         <Icon icon="mdi:package" class="me-2"></Icon>歷史訂單
                       </router-link>
+
                       <router-link to="/profile/management/activity" class="dropdown-item">
                         <Icon icon="mdi:heart" class="me-2"></Icon>我的收藏
                       </router-link>
+
                       <div class="dropdown-divider"></div>
-                      <a href="#" v-if="showBecomeVendorButton" class="dropdown-item vendor-item"
-                        @click.prevent="handleBecomeVendor">
+
+                      <button type="button" v-if="showBecomeVendorButton" class="dropdown-item vendor-item"
+                        @click="handleBecomeVendor">
                         <Icon icon="mdi:store" class="me-2"></Icon>店家專區
-                      </a>
+                      </button>
+
                       <div class="dropdown-divider" v-if="showBecomeVendorButton"></div>
-                      <a href="#" class="dropdown-item logout-item" @click.prevent="handleLogout">
+
+                      <button type="button" class="dropdown-item logout-item" @click="handleLogout">
                         <Icon icon="mdi:logout" class="me-2"></Icon>登出
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </li>
@@ -310,24 +332,29 @@
 
     <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #f9f3ec">
       <div class="container d-flex flex-column align-items-center">
-        <a class="navbar-brand text-center" href="#">店家專區</a>
+        <span class="navbar-brand text-center" href="#">店家專區</span>
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
           aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link" href="/vendor">首頁</a>
+              <router-link class="nav-link" to="/vendor">首頁</router-link>
             </li>
+
             <li class="nav-item">
-              <a class="nav-link" href="/vendor/index">店家</a>
+              <router-link class="nav-link" to="/vendor/index">店家</router-link>
             </li>
+
             <li class="nav-item">
-              <a class="nav-link" href="/activity/index">活動</a>
+              <router-link class="nav-link" to="/activity/index">活動</router-link>
             </li>
+
             <li class="nav-item">
-              <a class="nav-link" href="/profile/management/vendor">個人</a>
+              <router-link class="nav-link" to="/profile/management/vendor">個人</router-link>
             </li>
           </ul>
         </div>

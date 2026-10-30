@@ -134,9 +134,9 @@
       <div class="row py-4 pb-0 pb-sm-4 align-items-center">
         <div class="col-sm-4 col-lg-3 text-center text-sm-start">
           <div class="main-logo">
-            <a href="/">
+            <router-link to="/">
               <img src="/user_static/images/logo.png" alt="logo" class="img-fluid" />
-            </a>
+            </router-link>
           </div>
         </div>
 
@@ -174,7 +174,7 @@
               <h6 class="dropdown-header">通知中心</h6>
               <div v-if="notifications.length === 0" class="text-center p-2">沒有新通知</div>
               <div v-else>
-                <a v-for="(notification, index) in notifications" :key="index" href="#"
+                <button v-for="(notification, index) in notifications" :key="index" type="button"
                   class="dropdown-item d-flex align-items-center mb-2"
                   @click="handleNotificationClick(index, notification)" :class="{ read: notification.isRead }">
                   <i class="bi bi-circle-fill text-primary me-2" v-if="!notification.isRead"></i>
@@ -193,7 +193,7 @@
                   </div>
 
                   <!-- 通知内容 -->
-                </a>
+                </button>
               </div>
               <div class="dropdown-divider"></div>
               <button class="dropdown-item text-center" @click="clearNotifications">
@@ -231,20 +231,23 @@
               <template v-if="!authStore.isAuthenticated">
                 <li>
                   <router-link to="/login" class="mx-3">
-                    <Icon icon="mdi:login" class="fs-5"></Icon> <span class="fs-5">登入</span>
+                    <Icon icon="mdi:login" class="fs-5"></Icon>
+                    <span class="fs-5">登入</span>
                   </router-link>
                 </li>
                 <li>
-                  <a href="/register" class="mx-3">
-                    <Icon icon="mdi:user-plus" class="fs-5"></Icon> <span class="fs-5">註冊</span>
-                  </a>
+                  <router-link to="/register" class="mx-3">
+                    <Icon icon="mdi:user-plus" class="fs-5"></Icon>
+                    <span class="fs-5">註冊</span>
+                  </router-link>
                 </li>
               </template>
               <template v-else>
                 <li>
-                  <a href="http://localhost:5173/shop" class="mx-3 shop-link">
-                    <Icon icon="mdi:shopping" class="fs-5"></Icon> <span class="fs-5">前往購物</span>
-                  </a>
+                  <router-link to="/shop" class="mx-3 shop-link">
+                    <Icon icon="mdi:shopping" class="fs-5"></Icon>
+                    <span class="fs-5">前往購物</span>
+                  </router-link>
                 </li>
                 <li class="user-dropdown-container">
                   <div class="user-profile-btn" @click="toggleUserMenu">
@@ -277,14 +280,14 @@
                         <Icon icon="mdi:heart" class="me-2"></Icon>我的收藏
                       </router-link>
                       <div class="dropdown-divider"></div>
-                      <a href="#" v-if="showBecomeVendorButton" class="dropdown-item vendor-item"
-                        @click.prevent="handleBecomeVendor">
+                      <button type="button" v-if="showBecomeVendorButton" class="dropdown-item vendor-item"
+                        @click="handleBecomeVendor">
                         <Icon icon="mdi:store" class="me-2"></Icon>店家專區
-                      </a>
+                      </button>
                       <div class="dropdown-divider" v-if="showBecomeVendorButton"></div>
-                      <a href="#" class="dropdown-item logout-item" @click.prevent="handleLogout">
+                      <button type="button" class="dropdown-item logout-item" @click="handleLogout">
                         <Icon icon="mdi:logout" class="me-2"></Icon>登出
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </li>
@@ -308,7 +311,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #f9f3ec">
       <div class="container d-flex flex-column align-items-center">
-        <a class="navbar-brand text-center" href="#">店家專區</a>
+        <span class="navbar-brand text-center" href="#">店家專區</span>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
           aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
@@ -316,16 +319,16 @@
         <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link" href="/vendor">首頁</a>
+              <router-link class="nav-link" to="/vendor">首頁</router-link>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/vendor/index">店家</a>
+              <router-link class="nav-link" to="/vendor/index">店家</router-link>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/activity/index">活動</a>
+              <router-link class="nav-link" to="/activity/index">活動</router-link>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/profile/management/vendor">個人</a>
+              <router-link class="nav-link" to="/profile/management/vendor">個人</router-link>
             </li>
           </ul>
         </div>

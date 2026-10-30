@@ -1,6 +1,5 @@
 <template>
   <header>
-
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
       <defs>
         <symbol xmlns="http://www.w3.org/2000/svg" id="link" viewBox="0 0 24 24">
@@ -76,12 +75,14 @@
       <div class="offcanvas-header justify-content-center">
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
+
       <div class="offcanvas-body">
         <div class="order-md-last">
           <h4 class="d-flex justify-content-between align-items-center mb-3">
             <span class="text-primary">Your cart</span>
             <span class="badge bg-primary rounded-circle pt-2">3</span>
           </h4>
+
           <ul class="list-group mb-3">
             <li class="list-group-item d-flex justify-content-between lh-sm">
               <div>
@@ -90,6 +91,7 @@
               </div>
               <span class="text-body-secondary">$12</span>
             </li>
+
             <li class="list-group-item d-flex justify-content-between lh-sm">
               <div>
                 <h6 class="my-0">Dog Food</h6>
@@ -97,6 +99,7 @@
               </div>
               <span class="text-body-secondary">$8</span>
             </li>
+
             <li class="list-group-item d-flex justify-content-between lh-sm">
               <div>
                 <h6 class="my-0">Soft Toy</h6>
@@ -104,6 +107,7 @@
               </div>
               <span class="text-body-secondary">$5</span>
             </li>
+
             <li class="list-group-item d-flex justify-content-between">
               <span class="fw-bold">Total (USD)</span>
               <strong>$20</strong>
@@ -120,12 +124,13 @@
       <div class="offcanvas-header justify-content-center">
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
-      <div class="offcanvas-body">
 
+      <div class="offcanvas-body">
         <div class="order-md-last">
           <h4 class="text-primary text-uppercase mb-3">
             Search
           </h4>
+
           <div class="border rounded-2 border-dark-subtle">
             <form id="search-form" class="text-center d-flex align-items-center" action="" method="">
               <input type="text" class="form-control border-0 bg-transparent" placeholder="Search Here" />
@@ -136,21 +141,18 @@
       </div>
     </div>
 
-
     <div class="container py-2">
       <div class="row py-4 pb-0 pb-sm-4 align-items-center ">
-
         <div class="col-sm-4 col-lg-3 text-center text-sm-start">
           <div class="main-logo">
-            <a href="index.html">
+            <router-link to="/">
               <img src="/user_static/images/logo.png" alt="logo" class="img-fluid">
-            </a>
+            </router-link>
           </div>
         </div>
 
         <div class="col-sm-6 offset-sm-2 offset-md-0 col-lg-5 d-none d-lg-block">
           <div class=" rounded-2 px-3">
-
           </div>
         </div>
 
@@ -163,25 +165,29 @@
                   <Icon icon="mdi:login" class="fs-5"></Icon> <span class="fs-5">登入</span>
                 </router-link>
               </li>
+
               <li v-if="!authStore.isAuthenticated">
-                <a href="account.html" class="mx-3">
+                <router-link href="/register" class="mx-3">
                   <Icon icon="mdi:user-plus" class="fs-5"></Icon> <span class="fs-5">註冊</span>
-                </a>
+                </router-link>
               </li>
+
               <li v-if="authStore.isAuthenticated && authStore.userRole === 'VENDOR'">
-                <a href="#" class="mx-3" @click.prevent="switchBackToMember">
-                  <Icon icon="mdi:account-switch" class="fs-5"></Icon> <span class="fs-5">切換回會員</span>
-                </a>
+                <button type="button" class="mx-3" @click="switchBackToMember">
+                  <Icon icon="mdi:account-switch" class="fs-5"></Icon>
+                  <span class="fs-5">切換回會員</span>
+                </button>
               </li>
+
               <li v-if="authStore.isAuthenticated">
-                <a href="#" class="mx-3" @click.prevent="handleLogout">
-                  <Icon icon="mdi:logout" class="fs-5"></Icon> <span class="fs-5">登出</span>
-                </a>
+                <button type="button" class="mx-3" @click="handleLogout">
+                  <Icon icon="mdi:logout" class="fs-5"></Icon>
+                  <span class="fs-5">登出</span>
+                </button>
               </li>
             </ul>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -191,7 +197,6 @@
 
     <div class="container">
       <nav class="main-menu d-flex navbar navbar-expand-lg ">
-
         <div class="d-flex d-lg-none align-items-end mt-3">
           <ul class="d-flex justify-content-end list-unstyled m-0">
             <li v-if="!authStore.isAuthenticated">
@@ -199,37 +204,36 @@
                 <Icon icon="mdi:login" class="fs-4"></Icon>登入
               </router-link>
             </li>
+
             <li v-if="!authStore.isAuthenticated">
-              <a href="account.html" class="mx-3">
+              <router-link to="account.html" class="mx-3">
                 <Icon icon="mdi:user-plus" class="fs-4"></Icon>註冊
-              </a>
+              </router-link>
             </li>
+
             <li v-if="authStore.isAuthenticated && authStore.userRole === 'VENDOR'">
-              <a href="#" class="mx-3" @click.prevent="switchBackToMember">
+              <button type="button" class="mx-3" @click.prevent="switchBackToMember">
                 <Icon icon="mdi:account-switch" class="fs-4"></Icon>切換回會員
-              </a>
+              </button>
             </li>
+
             <li v-if="authStore.isAuthenticated">
-              <a href="#" class="mx-3" @click.prevent="handleLogout">
+              <button type="button" class="mx-3" @click.prevent="handleLogout">
                 <Icon icon="mdi:logout" class="fs-4"></Icon>登出
-              </a>
+              </button>
             </li>
+
             <li>
-              <a href="#" class="mx-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSearch"
+              <button type="button" class="mx-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSearch"
                 aria-controls="offcanvasSearch">
                 <Icon icon="tabler:search" class="fs-4"></Icon>搜尋
-              </a>
+              </button>
             </li>
           </ul>
-
         </div>
-
       </nav>
-
     </div>
-
   </header>
-
 </template>
 <script setup>
 import { Icon } from '@iconify/vue';
