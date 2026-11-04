@@ -105,14 +105,15 @@ import { useRouter, useRoute } from 'vue-router'
 import { authApi } from '@/api/user/authApi';
 import { oauth2Api } from '@/api/user/oauth2Api';
 
+const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
-const authStore = useAuthStore()
+const query = route.query
+
 const email = ref('')
 const password = ref('')
 const success = ref(null)
 const error = ref(null)
-
 const showLocalPasswordSetup = ref(false)
 const provider = ref('')
 const userEmail = ref('')
@@ -122,15 +123,7 @@ const countdownSeconds = ref(2)
 const countdownTimer = ref(null)
 const oauthLoginSuccess = ref(false)
 
-const urlParams = new URLSearchParams(window.location.search);
-const param = ref({
-  oauth2Success: urlParams.get('oauth2Success') === 'true',
-  isThirdPartyAccount: urlParams.get('isThirdPartyAccount') === 'true',
-  provider: urlParams.get('provider'),
-  email: urlParams.get('email'),
-  message: urlParams.get('message'),
-  error: urlParams.get('error')
-})
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
 // 檢查是否是郵箱格式
 const isEmailFormat = (text) => {
@@ -226,7 +219,7 @@ const handleLogin = async () => {
   try {
     const data = await authApi.login(email.value.trim(), password.value)
 
-    if (!data.isLocalEnabled) {
+    if (data.isLocalEnabled === false) {
       showLocalPasswordSetup.value = true;
       provider.value = data.provider;
       userEmail.value = data.email;
@@ -259,9 +252,8 @@ const handleLogin = async () => {
 const handleOAuth2Callback = async () => {
   try {
     // 獲取 URL 參數
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    const err = urlParams.get('error');
+    const code = query.code;
+    const err = query.error;
 
     // 檢查是否有錯誤
     if (err) {
@@ -405,33 +397,31 @@ const handleOAuth2Callback = async () => {
 }
 
 // 存儲OAuth2相關信息，用於回調處理
-const storeOAuth2Info = (provider) => {
-  // 存儲當前時間戳，用於驗證會話有效期
-  localStorage.setItem('oauth2_timestamp', Date.now().toString());
-  // 存儲提供者信息
-  localStorage.setItem('oauth2_provider', provider);
-  // 如果有用戶輸入的郵箱，也可以存儲
-  if (email.value) {
-    localStorage.setItem('oauth2_email', email.value);
-  }
-  console.log(`準備使用 ${provider} 登入...`);
-}
-// 跳轉到設置本地密碼頁面
-const redirectToLocalPasswordSetup = () => {
-  if (!userEmail.value) return;
+// const storeOAuth2Info = (provider) => {
+//   localStorage.setItem('oauth2_timestamp', Date.now().toString());
+//   localStorage.setItem('oauth2_provider', provider);
+//   if (email.value) {
+//     localStorage.setItem('oauth2_email', email.value);
+//   }
+//   console.log(`準備使用 ${provider} 登入...`);
+// }
 
-  router.push({
-    path: '/local-password/setup',
-    query: { email: userEmail.value }
-  });
-}
+// 跳轉到設置本地密碼頁面
+// const redirectToLocalPasswordSetup = () => {
+//   if (!userEmail.value) return;
+
+//   router.push({
+//     path: '/local-password/setup',
+//     query: { email: userEmail.value }
+//   });
+// }
+
 // 使用第三方提供商登入
-const loginWithProvider = () => {
-  if (provider.value === 'GOOGLE') {
-    window.location.href = '/oauth2/authorization/google';
-  }
-  // 添加其他提供商的處理邏輯（如有需要）
-}
+// const loginWithProvider = () => {
+//   if (provider.value === 'GOOGLE') {
+//     window.location.href = '/oauth2/authorization/google';
+//   }
+// }
 
 // 新增開始倒數計時的方法
 const startCountdown = () => {
@@ -446,9 +436,9 @@ const startCountdown = () => {
     } else {
       clearInterval(countdownTimer.value);
       // 檢查是否從商家專區來的
-      const fromVendorArea = route.query.from === 'vendor';
+      const fromVendorArea = query.from === 'vendor';
       // 檢查是否正在切換到商家角色
-      const switchingToVendor = route.query.switch === 'vendor';
+      const switchingToVendor = query.switch === 'vendor';
 
       if (fromVendorArea || switchingToVendor) {
         // 如果是從商家專區來的或正在切換到商家角色，導向到商家管理頁面
@@ -463,11 +453,64 @@ const startCountdown = () => {
           // 如果是一般會員要切換到商家角色，添加 switch=vendor 參數
           router.push('/login?switch=vendor');
         } else {
-          router.push(route.query.redirect || '/');
+          router.push(query.redirect || '/');
         }
       }
     }
   }, 1000);
+}
+
+const loginAfterOAuth = async () => {
+  // 從 URL 參數中獲取用戶數據
+  const userData = {
+    name: query.name || query.memberName,
+    email: query.email,
+    provider: query.provider,
+    userId: query.userId,
+    userRole: query.role
+  };
+
+  console.log('從 URL 參數獲取的詳細用戶數據:', userData);
+
+  // 如果是第三方登入，檢查並使用已存在的用戶名稱
+  // if (isOAuth2Login) {
+  //   const userId = urlParams.get('userId');
+  //   const savedName = localStorage.getItem(`db_name_${userId}`);
+  //   if (savedName && savedName !== 'null' && savedName !== 'undefined') {
+  //     console.log('使用已保存的用戶名稱:', savedName);
+  //     userData.name = savedName;
+  //   }
+  // }
+
+  // 存儲 token 和用戶數據
+  authStore.setToken(query.token, userData.userId, userData.userRole, userData);
+
+  // 同時保存到 localStorage，確保數據持久化
+  localStorage.setItem('userData', JSON.stringify(userData));
+
+  // 如果有用戶ID和名稱，保存到專用緩存
+  if (query.userId && query.name) {
+    localStorage.setItem(`db_name_${query.userId}`, query.name);
+    console.log('保存用戶名稱到緩存:', query.name);
+  }
+
+  // 發送全局事件通知其他組件用戶信息已更新
+  window.dispatchEvent(new CustomEvent('user-login', {
+    detail: {
+      user: userData,
+      isNewLogin: true,
+      isOAuth2Login: true
+    }
+  }));
+
+  // 顯示 loading 動畫和成功提示
+  loadingMessage.value = '登入成功！';
+  showLoading.value = true;
+  startCountdown();
+
+  await sleep(1500)
+
+  router.push("/");
 }
 
 onUnmounted(() => {
@@ -476,103 +519,27 @@ onUnmounted(() => {
   }
 });
 
-onMounted(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-
-  if (window.location.search.includes('code=')) {
-    handleOAuth2Callback();
+onMounted(async () => {
+  if (query.code) {
+    await handleOAuth2Callback();
   }
 
-  console.log('Login組件掛載，檢查URL參數...');
-
   // 檢查是否有令牌返回
-  const token = urlParams.get('token');
-  if (token) {
-    console.log('檢測到令牌，進行登入處理...');
-
-    // 檢查是否是第三方登入
-    const isOAuth2Login = urlParams.get('oauth2Success') === 'true';
-
-    // 從 URL 參數中獲取用戶數據
-    const userData = {
-      name: urlParams.get('name') || urlParams.get('memberName'),
-      memberName: urlParams.get('memberName') || urlParams.get('name'),
-      email: urlParams.get('email'),
-      avatar: urlParams.get('avatar'),
-      picture: urlParams.get('picture'),
-      provider: urlParams.get('provider'),
-      userId: urlParams.get('userId'),
-      userRole: urlParams.get('role')
-    };
-
-    console.log('從 URL 參數獲取的詳細用戶數據:', userData);
-
-    // 如果是第三方登入，檢查並使用已存在的用戶名稱
-    if (isOAuth2Login) {
-      const userId = urlParams.get('userId');
-      // 檢查是否有已保存的用戶名稱
-      const savedName = localStorage.getItem(`db_name_${userId}`);
-      if (savedName && savedName !== 'null' && savedName !== 'undefined') {
-        console.log('使用已保存的用戶名稱:', savedName);
-        userData.name = savedName;
-        userData.memberName = savedName;
-      }
-    }
-
-    // 存儲 token 和用戶數據
-    authStore.setToken(token, userData.userId, userData.userRole, userData);
-
-    // 同時保存到 localStorage，確保數據持久化
-    localStorage.setItem('userData', JSON.stringify(userData));
-
-    // 如果有用戶ID和名稱，保存到專用緩存
-    if (userData.userId && userData.name) {
-      localStorage.setItem(`db_name_${userData.userId}`, userData.name);
-      console.log('保存用戶名稱到緩存:', userData.name);
-    }
-
-    // 發送全局事件通知其他組件用戶信息已更新
-    window.dispatchEvent(new CustomEvent('user-login', {
-      detail: {
-        user: userData,
-        isNewLogin: true,
-        isOAuth2Login
-      }
-    }));
-
-    // 顯示 loading 動畫和成功提示
-    loadingMessage.value = '登入成功！';
-    showLoading.value = true;
-    startCountdown();
-
-    // 統一使用 Vue Router 進行導航
-    setTimeout(() => {
-      router.push({
-        path: '/',
-        query: {
-          oauth_success: isOAuth2Login ? 'true' : undefined,
-          user_new_login: isOAuth2Login ? 'true' : undefined
-        }
-      });
-    }, 1500);
+  if (query.token) {
+    await loginAfterOAuth()
   }
 
   // 檢查既有的 token 是否有效
   checkTokenValidity();
 
   // 處理 URL 參數中的訊息
-  if (urlParams.get('registered') === 'true') {
-    success.value = decodeURIComponent(urlParams.get('message') || '註冊成功，請登入');
-  }
-
-  if (urlParams.get('logout') === 'true') {
-    // 登出時清除所有儲存的資訊
+  if (query.registered === 'true') {
+    success.value = decodeURIComponent(query.message || '註冊成功，請登入');
+  } else if (query.logout === 'true') {
     authStore.clearToken();
     success.value = '登出成功';
-  }
-
-  if (urlParams.has('error')) {
-    error.value = decodeURIComponent(urlParams.get('message') || '登入失敗');
+  } else if (query.error) {
+    error.value = decodeURIComponent(query.message || '登入失敗');
   }
 })
 </script>
