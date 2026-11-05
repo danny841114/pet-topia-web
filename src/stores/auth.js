@@ -1,4 +1,3 @@
-import { memberApi } from '@/api/user/memberApi'
 import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', {
@@ -6,48 +5,39 @@ export const useAuthStore = defineStore('auth', {
     token: localStorage.getItem('token') || null,
     userId: localStorage.getItem('userId') || null,
     userRole: localStorage.getItem('userRole') || null,
+    username: localStorage.getItem('username') || null,
+    userEmail: localStorage.getItem('userEmail') || null,
     user: JSON.parse(localStorage.getItem('user') || 'null'),
-    avatarUrl: null, // 新增：存儲頭像 URL
+    avatarUrl: null,
   }),
 
   getters: {
-    // 新增 getter 來獲取 member id
     memberId: (state) => {
-      // 如果是商家角色，從 user 物件中獲取 memberId
       if (state.userRole === 'VENDOR' && state.user && state.user.memberId) {
         return state.user.memberId
       }
-      // 如果不是商家角色，直接返回 userId
       return state.userId
     },
 
-    // 檢查是否已登入
     isAuthenticated: (state) => !!state.token && !!state.userId,
-
-    // 獲取完整的用戶資訊
-    userInfo: (state) => state.user,
   },
 
   actions: {
     setToken(token, userId, userRole, userData) {
-      // 先清除舊的資料
       this.clearToken()
 
-      // 驗證必要資料
       if (!token || !userId) {
         console.error('缺少必要的認證資料')
         return
       }
 
-      // 設置新的認證資料
       this.token = token
-      this.userId = userId // 這就是 member id
+      this.userId = userId
       this.userRole = userRole
 
-      // 確保用戶資料包含 member id
       const completeUserData = {
         ...userData,
-        userId: userId, // 確保 userId 同步
+        userId: userId,
         userRole: userRole,
       }
 
@@ -58,62 +48,25 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem('userId', userId)
       localStorage.setItem('userRole', userRole)
       localStorage.setItem('user', JSON.stringify(completeUserData))
-
-      // 發送事件通知用戶資料已更新
-      window.dispatchEvent(
-        new CustomEvent('user-info-updated', {
-          detail: { user: completeUserData },
-        })
-      )
-
-      console.log('用戶資料已更新:', {
-        token: this.token,
-        memberId: this.userId,
-        userRole: this.userRole,
-        user: this.user,
-      })
     },
 
-    // 清除認證資料
     clearToken() {
       this.token = null
       this.userId = null
       this.userRole = null
+      this.username = null
+      this.userEmail = null
       this.user = null
+
       localStorage.removeItem('token')
       localStorage.removeItem('userId')
       localStorage.removeItem('userRole')
+      localStorage.removeItem('username')
+      localStorage.removeItem('userEmail')
       localStorage.removeItem('user')
-
-      // 發送事件通知用戶已登出
-      window.dispatchEvent(new CustomEvent('user-logout'))
-
-      // 發送事件通知用戶資料已更新
-      window.dispatchEvent(
-        new CustomEvent('user-info-updated', {
-          detail: { user: null },
-        })
-      )
-    },
-
-    // 初始化用戶資料
-    async initialize() {
-      const token = localStorage.getItem('token')
-      if (!token) return
-
-      try {
-        const userData = await memberApi.getProfile(token)
-        this.setToken(token, userData.userId, userData.userRole, userData)
-      } catch (error) {
-        console.error('初始化用戶資料失敗:', error)
-        this.clearToken()
-      }
     },
 
     setUser(userData) {
-      console.log('更新用戶資訊:', userData)
-
-      // 讀取當前本地存儲的用戶信息，檢查是否有已更新的姓名
       let currentStoredUser = null
       try {
         const storedUserStr = localStorage.getItem('user')
@@ -147,9 +100,7 @@ export const useAuthStore = defineStore('auth', {
           本地存儲名稱: currentStoredUser?.name,
         })
 
-        // 情況1: 傳入的 userData 名稱與郵箱相同
         if (updatedUserData.name === updatedUserData.email || !updatedUserData.name) {
-          // 檢查本地存儲是否有用戶更新過的名稱
           if (
             currentStoredUser &&
             currentStoredUser.name &&
@@ -163,15 +114,13 @@ export const useAuthStore = defineStore('auth', {
           }
         }
 
-        // 打印最終決定使用的名稱
-        console.log('最終使用的用戶名稱:', {
-          name: updatedUserData.name,
-          memberName: updatedUserData.memberName,
-          來源: updatedUserData.name !== updatedUserData.email ? '非郵箱名稱' : '郵箱作為名稱',
-        })
+        // console.log('最終使用的用戶名稱:', {
+        //   name: updatedUserData.name,
+        //   memberName: updatedUserData.memberName,
+        //   來源: updatedUserData.name !== updatedUserData.email ? '非郵箱名稱' : '郵箱作為名稱',
+        // })
       }
 
-      // 確保 name 和 memberName 包含有效值
       if (!updatedUserData.memberName && updatedUserData.name) {
         updatedUserData.memberName = updatedUserData.name
       }
@@ -192,30 +141,26 @@ export const useAuthStore = defineStore('auth', {
       console.log('用戶資訊已更新:', this.user)
     },
 
-    // 完全清除所有資料（包括名稱緩存）的方法，慎用
-    clearAllData() {
-      console.log('清除全部資料，包括名稱緩存')
-
-      // 獲取所有 localStorage 鍵
-      const keys = Object.keys(localStorage)
-
-      // 清除所有與名稱緩存相關的資料
-      const nameCacheKeys = keys.filter((key) => key.startsWith('db_name_'))
-      nameCacheKeys.forEach((key) => {
-        console.log(`清除名稱緩存: ${key}`)
-        localStorage.removeItem(key)
-      })
-
-      // 調用常規清除方法
-      this.clearToken()
-
-      console.log('已完全清除所有資料')
-    },
     setAvatarUrl(url) {
       this.avatarUrl = url
     },
-    clearAvatarUrl() {
-      this.avatarUrl = null
+
+    setUserInfo(token, userId, userRole, username, userEmail) {
+      this.clearToken()
+
+      if (!token || !userId) return
+
+      this.token = token
+      this.userId = userId
+      this.userRole = userRole
+      this.username = username
+      this.userEmail = userEmail
+
+      localStorage.setItem('token', token)
+      localStorage.setItem('userId', userId)
+      localStorage.setItem('userRole', userRole)
+      localStorage.setItem('username', username)
+      localStorage.setItem('userEmail', userEmail)
     },
   },
 })

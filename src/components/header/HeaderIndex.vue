@@ -91,7 +91,7 @@
           class="col-sm-8 col-lg-4 d-flex justify-content-end align-items-center gap-3 mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
           <div class="d-none d-xl-block">
             <ul class="d-flex list-unstyled m-0 gap-3">
-              <template v-if="!isAuthenticated">
+              <template v-if="!authStore.isAuthenticated">
                 <li>
                   <router-link to="/login" class="mx-3">
                     <Icon icon="mdi:login" class="fs-5"></Icon>
@@ -203,25 +203,27 @@
 import { Icon } from '@iconify/vue'
 import { useAuthStore } from '@/stores/auth'
 import { computed, onMounted, ref, watch, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import { memberApi } from '@/api/user/memberApi'
 import { authApi } from '@/api/user/authApi'
 import { vendorApi } from '@/api/vendor/vendorApi'
 
 const authStore = useAuthStore()
-const isAuthenticated = computed(() => authStore.isAuthenticated)
+const route = useRoute()
+const router = useRouter()
+const query = route.query
+
+// 檢查字符串是否為郵箱格式
+const isEmailFormat = (text, email) => {
+  if (!text || !email) return false
+  if (text.toLowerCase() === email.toLowerCase()) return true
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(text)
+}
 
 // 修改 userName 計算屬性
 const userName = computed(() => {
-  // 檢查字符串是否為郵箱格式
-  const isEmailFormat = (text, email) => {
-    if (!text || !email) return false
-    if (text.toLowerCase() === email.toLowerCase()) return true
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(text)
-  }
-
   // 從 authStore 和 localStorage 獲取最新資料
   const userData = JSON.parse(localStorage.getItem('userData') || '{}')
   const user = authStore.user || userData
@@ -284,14 +286,6 @@ const fetchNameFromDatabase = async (forceRefresh = false) => {
   }
 
   console.log('開始從資料庫獲取用戶名稱')
-
-  // 檢查是否是郵箱格式的函數
-  const isEmailFormat = (text, email) => {
-    if (!text || !email) return false
-    if (text === email) return true
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(text)
-  }
 
   try {
     // 同時嘗試多個 API 端點以確保能獲取到最新名稱
@@ -551,38 +545,27 @@ const syncUserFromLocalStorage = () => {
 
 // 在組件掛載時
 onMounted(() => {
-  console.log('HeaderIndex 組件已掛載')
-
   // 檢查是否有新的登入標誌
-  const params = new URLSearchParams(window.location.search)
-  const newLogin = params.get('user_new_login') === 'true'
-  const oauthSuccess = params.get('oauth_success') === 'true'
+  const newLogin = query.user_new_login === 'true'
+  const oauthSuccess = query.oauth_success === 'true'
 
   // 獲取用戶信息
   const userData = JSON.parse(localStorage.getItem('userData') || '{}')
   const user = authStore.user || userData
 
-  console.log('檢測到用戶信息:', {
-    isAuthenticated: authStore.isAuthenticated,
-    hasAvatar: !!avatarUrl.value,
-    newLogin,
-    oauthSuccess,
-    user: user
-      ? {
-        provider: user.provider,
-        name: user.name,
-        email: user.email,
-      }
-      : null,
-  })
-
-  // 添加判斷郵箱函數
-  const isEmailFormat = (text, email) => {
-    if (!text || !email) return false
-    if (text.toLowerCase() === email.toLowerCase()) return true
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(text)
-  }
+  // console.log('檢測到用戶信息:', {
+  //   isAuthenticated: authStore.isAuthenticated,
+  //   hasAvatar: !!avatarUrl.value,
+  //   newLogin,
+  //   oauthSuccess,
+  //   user: user
+  //     ? {
+  //       provider: user.provider,
+  //       name: user.name,
+  //       email: user.email,
+  //     }
+  //     : null,
+  // })
 
   // 如果用戶已登入
   if (authStore.isAuthenticated) {
@@ -597,11 +580,10 @@ onMounted(() => {
       const currentName = user.name || ''
 
       // 判斷是否需要從資料庫獲取名稱
-      const needsFetch =
-        isEmailFormat(currentName, userEmail) ||
-        newLogin ||
-        oauthSuccess ||
-        !localStorage.getItem(`db_name_${authStore.userId}`)
+      const needsFetch = isEmailFormat(currentName, userEmail)
+        || newLogin
+        || oauthSuccess
+        || !localStorage.getItem(`db_name_${authStore.userId}`)
 
       if (needsFetch) {
         console.log('檢測到第三方登入可能需要更新名稱，立即從資料庫獲取')
@@ -679,8 +661,6 @@ window.addEventListener('storage', (event) => {
     syncUserFromLocalStorage()
   }
 })
-
-const router = useRouter()
 
 const handleLogout = async () => {
   try {
@@ -766,14 +746,6 @@ const handleUserLogin = (event) => {
     // 如果是第三方登入，需要檢查名稱
     if (event.detail.user.provider) {
       console.log('登入事件檢測到第三方用戶，立即獲取名稱')
-
-      // 判斷名稱是否是郵箱格式
-      const isEmailFormat = (text, email) => {
-        if (!text || !email) return false
-        if (text.toLowerCase() === email.toLowerCase()) return true
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        return emailRegex.test(text)
-      }
 
       const userEmail = event.detail.user.email || ''
       const userName = event.detail.user.name || ''

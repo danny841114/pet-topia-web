@@ -228,15 +228,16 @@ const handleLogin = async () => {
     }
 
     // 使用 Pinia store 存儲 token 和用戶信息
-    authStore.setToken(
-      data.token,
-      data.userId,
-      data.role,
-      {
-        name: data.name,
-        email: data.email
-      }
-    );
+    // authStore.setToken(
+    //   data.token,
+    //   data.userId,
+    //   data.role,
+    //   {
+    //     name: data.name,
+    //     email: data.email
+    //   }
+    // );
+    authStore.setUserInfo(data.token, data.userId, data.role, data.name, data.email);
 
     // 顯示 loading 動畫和成功提示
     loadingMessage.value = '登入成功！';
@@ -366,7 +367,8 @@ const handleOAuth2Callback = async () => {
       }
 
       // 保存令牌和用戶數據
-      authStore.setToken(data.token, data.userId, data.userRole, data);
+      // authStore.setToken(data.token, data.userId, data.userRole, data);
+      authStore.setUserInfo(data.token, data.userId, data.userRole, userInfo.name, userInfo.email);
 
       // 設置登入成功標誌
       oauthLoginSuccess.value = true;
@@ -483,25 +485,26 @@ const loginAfterOAuth = async () => {
   // }
 
   // 存儲 token 和用戶數據
-  authStore.setToken(query.token, userData.userId, userData.userRole, userData);
+  // authStore.setToken(query.token, userData.userId, userData.userRole, userData);
+  authStore.setUserInfo(query.token, query.userId, query.role, query.email, query.email);
 
   // 同時保存到 localStorage，確保數據持久化
   localStorage.setItem('userData', JSON.stringify(userData));
 
   // 如果有用戶ID和名稱，保存到專用緩存
-  if (query.userId && query.name) {
-    localStorage.setItem(`db_name_${query.userId}`, query.name);
-    console.log('保存用戶名稱到緩存:', query.name);
-  }
+  // if (query.userId && query.name) {
+  //   localStorage.setItem(`db_name_${query.userId}`, query.name);
+  //   console.log('保存用戶名稱到緩存:', query.name);
+  // }
 
   // 發送全局事件通知其他組件用戶信息已更新
-  window.dispatchEvent(new CustomEvent('user-login', {
-    detail: {
-      user: userData,
-      isNewLogin: true,
-      isOAuth2Login: true
-    }
-  }));
+  // window.dispatchEvent(new CustomEvent('user-login', {
+  //   detail: {
+  //     user: userData,
+  //     isNewLogin: true,
+  //     isOAuth2Login: true
+  //   }
+  // }));
 
   // 顯示 loading 動畫和成功提示
   loadingMessage.value = '登入成功！';
