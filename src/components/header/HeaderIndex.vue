@@ -127,7 +127,7 @@
                       <img :src="userAvatar" :alt="userName" class="dropdown-avatar" @error="handleAvatarError" />
                       <div class="dropdown-user-info">
                         <span class="dropdown-user-name">{{ userName }}</span>
-                        <span class="dropdown-user-email">{{ userEmail }}</span>
+                        <span class="dropdown-user-email">{{ authStore.userEmail }}</span>
                       </div>
                     </div>
 
@@ -146,12 +146,12 @@
 
                       <div class="dropdown-divider"></div>
 
-                      <button type="button" v-if="showBecomeVendorButton" class="dropdown-item vendor-item"
+                      <button type="button" v-if="authStore.canBecomeVendor" class="dropdown-item vendor-item"
                         @click="handleBecomeVendor">
                         <Icon icon="mdi:store" class="me-2"></Icon>店家專區
                       </button>
 
-                      <div class="dropdown-divider" v-if="showBecomeVendorButton"></div>
+                      <div class="dropdown-divider" v-if="authStore.canBecomeVendor"></div>
 
                       <button type="button" class="dropdown-item logout-item" @click="handleLogout">
                         <Icon icon="mdi:logout" class="me-2"></Icon>登出
@@ -210,7 +210,7 @@
             </li>
 
             <li>
-              <button type="button" v-if="showBecomeVendorButton" class="dropdown-item vendor-item"
+              <button type="button" v-if="authStore.canBecomeVendor" class="dropdown-item vendor-item"
                 @click="handleBecomeVendor">
                 <Icon icon="mdi:store" class="me-2"></Icon>店家專區
               </button>
@@ -243,6 +243,10 @@ const route = useRoute()
 const router = useRouter()
 const query = route.query
 
+const isLoading = ref(false)
+const avatarUrl = ref(null)
+const userName = computed(() => authStore.displayName)
+
 // 檢查字符串是否為郵箱格式
 const isEmailFormat = (text, email) => {
   if (!text || !email) return false
@@ -250,47 +254,6 @@ const isEmailFormat = (text, email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(text)
 }
-
-// 修改 userName 計算屬性
-const userName = computed(() => {
-  // 從 authStore 和 localStorage 獲取最新資料
-  const userData = JSON.parse(localStorage.getItem('userData') || '{}')
-  const user = authStore.user || userData
-  const userEmail = user?.email || ''
-
-  // 優先使用資料庫緩存的名稱
-  if (authStore.userId) {
-    const cachedName = localStorage.getItem(`db_name_${authStore.userId}`)
-    if (cachedName && cachedName !== 'null' && cachedName !== 'undefined') {
-      return cachedName
-    }
-  }
-
-  // 如果有用戶資料，按優先順序使用名稱
-  if (user) {
-    // 優先使用 name
-    if (user.name && user.name !== 'null' && user.name !== 'undefined' && !isEmailFormat(user.name, userEmail)) {
-      return user.name
-    }
-
-    // 其次使用 memberName
-    if (user.memberName && user.memberName !== 'null' && user.memberName !== 'undefined' && !isEmailFormat(user.memberName, userEmail)) {
-      return user.memberName
-    }
-
-    // 再次使用 given_name（針對第三方登入）
-    if (user.given_name && user.given_name !== 'null' && user.given_name !== 'undefined') {
-      return user.given_name
-    }
-
-    // 最後使用郵箱名稱部分
-    if (userEmail) {
-      return userEmail.split('@')[0]
-    }
-  }
-
-  return '用戶'
-})
 
 // 添加一個新方法，強制從資料庫獲取最新名稱
 const fetchNameFromDatabase = async () => {
@@ -342,10 +305,6 @@ const fetchNameFromDatabase = async () => {
     return null
   }
 }
-
-// 添加状态管理
-const isLoading = ref(false)
-const avatarUrl = ref(null)
 
 const userAvatar = computed(() => {
   // 如果沒有用戶信息，使用默認頭像
@@ -420,7 +379,7 @@ const syncUserFromLocalStorage = () => {
   try {
     // 從 localStorage 獲取用戶數據
     const userData = JSON.parse(localStorage.getItem('userData') || '{}')
-    const storedUser = JSON.parse(localStorage.getItem('user') || 'null')
+    // const storedUser = JSON.parse(localStorage.getItem('user') || 'null')
 
     // console.log('本地存儲中的用戶數據:', {
     //   userData,
@@ -659,11 +618,6 @@ const handleLogout = async () => {
   }
 }
 
-const userEmail = computed(() => {
-  if (!authStore.user) return ''
-  return authStore.user.email || ''
-})
-
 const showUserMenu = ref(false)
 
 const toggleUserMenu = () => {
@@ -722,11 +676,11 @@ const handleUserLogin = (event) => {
             )
 
             // 發出全局事件通知其他組件重新獲取用戶信息
-            window.dispatchEvent(
-              new CustomEvent('user-info-updated', {
-                detail: { user: { ...event.detail.user, name: dbName } },
-              })
-            )
+            // window.dispatchEvent(
+            //   new CustomEvent('user-info-updated', {
+            //     detail: { user: { ...event.detail.user, name: dbName } },
+            //   })
+            // )
           }
         })
       }
@@ -759,12 +713,6 @@ const handleUserInfoUpdated = (event) => {
     }
   }
 }
-
-const showBecomeVendorButton = computed(() => {
-  // 只有當用戶是會員（MEMBER）角色時才顯示
-  if (!authStore.isAuthenticated) return false
-  return authStore.user?.role === 'MEMBER' || !authStore.user?.role
-})
 
 // 處理成為商家點擊事件
 const handleBecomeVendor = async () => {

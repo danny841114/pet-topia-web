@@ -1,6 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+// 檢查字符串是否為郵箱格式
+const isEmailFormat = (text, email) => {
+  if (!text || !email) return false
+  if (text.toLowerCase() === email.toLowerCase()) return true
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(text)
+}
+
 export const useAuthStore = defineStore('auth', () => {
   // ============ State (ref) ============
   const token = ref(localStorage.getItem('token') || null)
@@ -20,6 +28,53 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   const isAuthenticated = computed(() => !!token.value && !!userId.value)
+
+  const displayName = computed(() => {
+    if (!user.value) return '用戶'
+
+    const email = user.value.email || ''
+
+    // 1. 優先使用非郵箱的 name
+    if (
+      user.value.name &&
+      user.value.name !== 'null' &&
+      user.value.name !== 'undefined' &&
+      !isEmailFormat(user.value.name, email)
+    ) {
+      return user.value.name
+    }
+
+    // 2. 其次 memberName
+    if (
+      user.value.memberName &&
+      user.value.memberName !== 'null' &&
+      user.value.memberName !== 'undefined' &&
+      !isEmailFormat(user.value.memberName, email)
+    ) {
+      return user.value.memberName
+    }
+
+    // 3. 第三方登入 given_name
+    if (
+      user.value.given_name &&
+      user.value.given_name !== 'null' &&
+      user.value.given_name !== 'undefined'
+    ) {
+      return user.value.given_name
+    }
+
+    // 4. 最後郵箱前綴
+    if (email) {
+      return email.split('@')[0]
+    }
+
+    return '用戶'
+  })
+
+  const canBecomeVendor = computed(() => {
+    if (!isAuthenticated.value) return false
+    return user.value?.userRole === 'MEMBER'
+  })
 
   // ============ Actions (functions) ============
   function setToken(tokenVal, userIdVal, userRoleVal, userData) {
@@ -169,6 +224,8 @@ export const useAuthStore = defineStore('auth', () => {
     // Getters
     memberId,
     isAuthenticated,
+    displayName,
+    canBecomeVendor,
     // Actions
     setToken,
     clearToken,
