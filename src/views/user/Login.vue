@@ -104,6 +104,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { authApi } from '@/api/user/authApi';
 import { oauth2Api } from '@/api/user/oauth2Api';
+import { memberApi } from '@/api/user/memberApi';
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -134,59 +135,24 @@ const isEmailFormat = (text) => {
 
 // 從 API 獲取最新用戶名稱的方法
 const fetchLatestNameFromApi = async (token, userId) => {
-  console.log(`嘗試從 API 獲取用戶 ID ${userId} 的最新名稱，令牌: ${token ? token.substring(0, 10) + '...' : 'undefined'}`);
-
   if (!token || !userId) {
-    console.warn('缺少令牌或用戶 ID，無法獲取用戶名稱');
+    console.error('Failed to get username: Token or userId not found');
     return null;
   }
 
-  // 定義要嘗試的 API 端點
-  const apiEndpoints = [
-    '/api/member/profile',
-    `/api/member/${userId}`,
-    '/api/member/userInfo'
-  ];
+  try {
+    const data = await memberApi.getProfile(token);
+    console.log('User data: ', data);
 
-
-  // 嘗試從每個 API 獲取名稱
-  for (const endpoint of apiEndpoints) {
-    try {
-      console.log(`嘗試從 ${endpoint} 獲取用戶名稱`);
-
-      const response = await fetch(endpoint, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!response.ok) {
-        console.warn(`API ${endpoint} 返回狀態碼 ${response.status}`);
-        continue;
-      }
-
-      const data = await response.json();
-      console.log(`從 ${endpoint} 獲取的資料:`, data);
-
-      // 檢查資料是否有效
-      if (data && data.name &&
-        data.name !== 'null' &&
-        data.name !== 'undefined' &&
-        !isEmailFormat(data.name)) {
-
-        console.log(`找到有效的用戶名稱: ${data.name}`);
-
-        // 緩存此用戶 ID 的名稱
-        localStorage.setItem(`db_name_${userId}`, data.name);
-        console.log(`已緩存用戶 ${userId} 的名稱: ${data.name}`);
-
-        return data.name;
-      }
-    } catch (error) {
-      console.error(`從 ${endpoint} 獲取用戶名稱失敗:`, error);
+    // 檢查資料是否有效
+    if (data && data.name && data.name !== 'null' && data.name !== 'undefined' && !isEmailFormat(data.name)) {
+      console.log('Username: ', data.name);
+      localStorage.setItem(`db_name_${userId}`, data.name);
+      return data.name;
     }
+  } catch (error) {
+    console.error('Get username failed: ', error);
   }
-
-  console.warn('所有 API 嘗試都未能獲取有效的用戶名稱');
-  return null;
 }
 
 // 檢查 token 是否有效
@@ -471,8 +437,6 @@ const loginAfterOAuth = async () => {
     userId: query.userId,
     userRole: query.role
   };
-
-  console.log('從 URL 參數獲取的詳細用戶數據:', userData);
 
   // 如果是第三方登入，檢查並使用已存在的用戶名稱
   // if (isOAuth2Login) {

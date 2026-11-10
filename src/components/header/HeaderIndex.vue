@@ -170,9 +170,10 @@
       <hr class="m-0" />
     </div>
 
+    <!-- 縮排時顯示之導覽列 -->
     <div class="container">
       <nav class="main-menu d-flex navbar navbar-expand-lg">
-        <div class="d-flex d-lg-none align-items-end mt-3">
+        <div v-if="!authStore.isAuthenticated" class="d-flex d-lg-none align-items-end mt-3">
           <ul class="d-flex justify-content-end list-unstyled m-0">
             <li>
               <router-link to="/login" class="mx-3">
@@ -185,11 +186,39 @@
                 <Icon icon="mdi:user-plus" class="fs-4"></Icon>註冊
               </router-link>
             </li>
+          </ul>
+        </div>
+
+        <div v-else class="d-flex d-lg-none align-items-end mt-3">
+          <ul class="d-flex justify-content-end list-unstyled m-0">
+            <li>
+              <router-link to="/profile" class="dropdown-item">
+                <Icon icon="mdi:account" class="me-2"></Icon>會員中心
+              </router-link>
+            </li>
 
             <li>
-              <button type="button" class="mx-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSearch"
-                aria-controls="offcanvasSearch">
-                <Icon icon="tabler:search" class="fs-4"></Icon>搜尋
+              <router-link to="/shop/orderHistory" class="dropdown-item">
+                <Icon icon="mdi:package" class="me-2"></Icon>歷史訂單
+              </router-link>
+            </li>
+
+            <li>
+              <router-link to="/profile/management/activity" class="dropdown-item">
+                <Icon icon="mdi:heart" class="me-2"></Icon>我的收藏
+              </router-link>
+            </li>
+
+            <li>
+              <button type="button" v-if="showBecomeVendorButton" class="dropdown-item vendor-item"
+                @click="handleBecomeVendor">
+                <Icon icon="mdi:store" class="me-2"></Icon>店家專區
+              </button>
+            </li>
+
+            <li>
+              <button type="button" class="dropdown-item logout-item" @click="handleLogout">
+                <Icon icon="mdi:logout" class="me-2"></Icon>登出
               </button>
             </li>
           </ul>
@@ -240,22 +269,12 @@ const userName = computed(() => {
   // 如果有用戶資料，按優先順序使用名稱
   if (user) {
     // 優先使用 name
-    if (
-      user.name &&
-      user.name !== 'null' &&
-      user.name !== 'undefined' &&
-      !isEmailFormat(user.name, userEmail)
-    ) {
+    if (user.name && user.name !== 'null' && user.name !== 'undefined' && !isEmailFormat(user.name, userEmail)) {
       return user.name
     }
 
     // 其次使用 memberName
-    if (
-      user.memberName &&
-      user.memberName !== 'null' &&
-      user.memberName !== 'undefined' &&
-      !isEmailFormat(user.memberName, userEmail)
-    ) {
+    if (user.memberName && user.memberName !== 'null' && user.memberName !== 'undefined' && !isEmailFormat(user.memberName, userEmail)) {
       return user.memberName
     }
 
@@ -274,7 +293,7 @@ const userName = computed(() => {
 })
 
 // 添加一個新方法，強制從資料庫獲取最新名稱
-const fetchNameFromDatabase = async (forceRefresh = false) => {
+const fetchNameFromDatabase = async () => {
   if (!authStore.token || !authStore.userId) {
     await new Promise(resolve => setTimeout(resolve, 2000))
     if (!authStore.token || !authStore.userId) {
@@ -284,58 +303,16 @@ const fetchNameFromDatabase = async (forceRefresh = false) => {
   }
 
   try {
-    // 同時嘗試多個 API 端點以確保能獲取到最新名稱
-    const apis = [
-      '/api/member/profile', // 優先使用profile API，因為它返回Member表中的name
-      '/api/auth/status', // 狀態API也應該包含資料庫中的name
-      `/api/member/${authStore.userId}`,
-      '/api/member/userInfo',
-    ]
+    const userEmail = authStore.email || ''
 
-    // 獲取用戶郵箱以檢查名稱是否是郵箱格式
-    const userEmail = authStore.user?.email || ''
+    const data = await memberApi.getProfile(authStore.token)
+    const name = data.name || (data.member ? data.member.name : null)
 
-    // 使用 Promise.all 同時發起多個請求
-    const responses = await Promise.all(
-      apis.map((api) =>
-        fetch(api, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-            'Cache-Control': forceRefresh ? 'no-cache' : 'default'
-          },
-        })
-          .then((res) => {
-            if (!res.ok) {
-              if (res.status === 401) {
-                console.error(`API ${api} 需要重新認證，等待重試...`)
-                return null
-              }
-              throw new Error(`API ${api} failed with status ${res.status}`)
-            }
-            return res.json()
-          })
-          .catch((err) => {
-            console.warn(`API ${api} 請求失敗:`, err)
-            return null
-          })
-      )
-    )
-
-    // 尋找第一個包含有效名稱的響應
     let validName = null
-
-    for (const data of responses) {
-      if (!data) continue
-
-      const name = data.name || (data.member ? data.member.name : null)
-
-      if (name && name !== 'null' && name !== 'undefined' && !isEmailFormat(name, userEmail)) {
-        validName = name
-        break
-      }
+    if (name && name !== 'null' && name !== 'undefined' && !isEmailFormat(name, userEmail)) {
+      validName = name
     }
 
-    // 如果找到有效名稱，立即更新
     if (validName) {
       if (authStore.userId) {
         localStorage.setItem(`db_name_${authStore.userId}`, validName)
@@ -347,6 +324,7 @@ const fetchNameFromDatabase = async (forceRefresh = false) => {
         ...userData,
         name: validName,
       }
+
       localStorage.setItem('userData', JSON.stringify(updatedUserData))
 
       authStore.setUser({
@@ -354,21 +332,15 @@ const fetchNameFromDatabase = async (forceRefresh = false) => {
         name: validName,
       })
 
-      window.dispatchEvent(
-        new CustomEvent('user-info-updated', {
-          detail: { user: { ...authStore.user, name: validName } },
-        })
-      )
-
       return validName
     } else {
       console.warn('未能從任何 API 獲取有效的用戶名稱')
+      return null
     }
   } catch (error) {
     console.error('從資料庫獲取用戶名稱失敗:', error)
+    return null
   }
-
-  return null
 }
 
 // 添加状态管理
@@ -818,7 +790,7 @@ const handleBecomeVendor = async () => {
         text: '您已有商家帳號，是否切換到商家模式？',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: '確認切換',
+        confirmButtonText: '確認',
         cancelButtonText: '取消',
         confirmButtonColor: '#2b4f76',
         cancelButtonColor: '#6c757d'
@@ -831,10 +803,10 @@ const handleBecomeVendor = async () => {
       // 如果沒有商家帳號，詢問是否創建
       const result = await Swal.fire({
         title: '轉換為商家',
-        text: '轉換為商家將創建一個新的商家帳號，請確認是否繼續？',
+        text: '需創建一個新的商家帳號，是否繼續？',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: '確認轉換',
+        confirmButtonText: '確認',
         cancelButtonText: '取消',
         confirmButtonColor: '#2b4f76',
         cancelButtonColor: '#6c757d'
@@ -914,7 +886,7 @@ const switchToVendor = async () => {
     await Swal.fire({
       icon: 'success',
       title: '切換成功',
-      text: '已成功切換到商家帳號',
+      text: '已轉成商家帳號',
       confirmButtonColor: '#2b4f76'
     });
 
@@ -925,7 +897,7 @@ const switchToVendor = async () => {
     Swal.fire({
       icon: 'error',
       title: '切換失敗',
-      text: '切換商家帳號時發生錯誤，請稍後再試',
+      text: '轉換成商家帳號時發生錯誤',
       confirmButtonColor: '#2b4f76'
     });
   }
