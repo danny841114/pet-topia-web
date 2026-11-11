@@ -77,20 +77,7 @@
         </div>
 
         <div class="col-sm-6 offset-sm-2 offset-md-0 col-lg-5 d-none d-lg-block">
-          <div class="search-bar border rounded-2 px-3 border-dark-subtle">
-            <!-- 搜尋列 -->
-
-            <form class="text-center d-flex align-items-center" @submit.prevent="searchVendor">
-              <input v-model="keyword" type="text" class="form-control border-0 bg-transparent" placeholder="搜尋友善店家" />
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                @click="searchVendor()">
-                <path fill="currentColor"
-                  d="M21.71 20.29L18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 7-7a7 7 0 0 1-7 7Z" />
-              </svg>
-            </form>
-
-            <!-- 搜尋列 -->
-          </div>
+          <HeaderVendorSearch />
         </div>
 
         <div
@@ -281,31 +268,11 @@ import { Icon } from '@iconify/vue'
 import { useAuthStore } from '@/stores/auth'
 import { vendorApi } from '@/api/vendor/vendorApi'
 import Swal from 'sweetalert2'
+import HeaderVendorSearch from './components/HeaderVendorSearch.vue'
 
 const authStore = useAuthStore()
 const userId = authStore.userId
-const keyword = ref('')
-const vendorList = ref([]) // 儲存結果傳至搜尋頁面
 const router = useRouter()
-
-const searchVendor = async () => {
-  if (!keyword.value) {
-    alert('請輸入關鍵字!') // use sweet alert
-    return
-  }
-
-  try {
-    vendorList.value = await vendorApi.searchVendor(keyword.value)
-
-    router.replace({
-      path: '/vendor/search',
-      query: { keyword: keyword.value }, // 只會更新當前URL，不會新增歷史紀錄，即按上一頁不會回到上個搜尋結果
-    })
-  } catch (e) {
-    console.error('提交失敗:', e)
-    alert('提交失敗，請重試！')
-  }
-}
 
 const showNotifications = ref(false)
 const notifications = ref([])
