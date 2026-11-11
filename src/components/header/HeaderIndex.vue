@@ -62,10 +62,10 @@ import { useRouter } from 'vue-router'
 import { authApi } from '@/api/user/authApi'
 import { vendorApi } from '@/api/vendor/vendorApi'
 import Swal from 'sweetalert2'
-import HeaderSearch from './HeaderSearch.vue'
-import HeaderCart from './HeaderCart.vue'
-import HeaderUserMenu from './HeaderUserMenu.vue'
-import HeaderMobileMenu from './HeaderMobileMenu.vue'
+import HeaderSearch from './components/HeaderSearch.vue'
+import HeaderCart from './components/HeaderCart.vue'
+import HeaderUserMenu from './components/HeaderUserMenu.vue'
+import HeaderMobileMenu from './components/HeaderMobileMenu.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
