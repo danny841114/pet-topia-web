@@ -1,15 +1,15 @@
 <template>
   <nav class="main-menu d-flex navbar navbar-expand-lg">
     <div class="d-flex d-lg-none align-items-end mt-3">
-      <ul class="d-flex justify-content-end list-unstyled m-0">
+      <ul class="d-flex justify-content-end list-unstyled m-0 gap-5">
         <li v-if="!authStore.isAuthenticated">
-          <router-link to="/login" class="mx-3">
+          <router-link to="/login" class="dropdown-item mx-0">
             <Icon icon="mdi:login" class="fs-4"></Icon>登入
           </router-link>
         </li>
 
         <li v-if="!authStore.isAuthenticated">
-          <router-link to="/register" class="mx-3">
+          <router-link to="/register" class="dropdown-item mx-0">
             <Icon icon="mdi:user-plus" class="fs-4"></Icon>註冊
           </router-link>
         </li>
@@ -68,5 +68,20 @@ const handleLogout = () => {
 </script>
 
 <style scoped>
-/* 行動選單樣式已由 Bootstrap 提供 */
+/* 行動選單按鈕統一樣式：滑鼠懸停時字體變色 */
+.dropdown-item:hover {
+  background-color: transparent;
+  color: #2b4f76;
+}
+
+.vendor-item,
+.logout-item {
+  color: #333;
+}
+
+.vendor-item:hover,
+.logout-item:hover {
+  background-color: transparent;
+  color: #2b4f76;
+}
 </style>

@@ -441,13 +441,14 @@ onUnmounted(() => {
   color: #333;
   border: none;
   background: none;
-  padding: 5px 10px;
+  padding: 8px 16px;
   border-radius: 4px;
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
+  gap: 6px;
 }
 
 .login-item:hover,
