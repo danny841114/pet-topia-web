@@ -73,7 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const canBecomeVendor = computed(() => {
     if (!isAuthenticated.value) return false
-    return user.value?.userRole === 'MEMBER'
+    return userRole.value === 'MEMBER' || user.value.userRole === 'MEMBER'
   })
 
   // ============ Actions (functions) ============
