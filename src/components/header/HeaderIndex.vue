@@ -22,21 +22,21 @@
         </div>
 
         <div
-          class="col-sm-8 col-lg-4 d-flex justify-content-end align-items-center gap-3 mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
-          <div class="d-none d-xl-block">
-            <HeaderUserMenu @logout="handleLogout" @become-vendor="handleBecomeVendor" />
-          </div>
-
-          <div class="d-block d-xl-none">
-            <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSearch"
+          class="col-sm-8 col-lg-4 d-flex justify-content-end align-items-center gap-4 mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
+          <div class="d-flex align-items-center gap-4">
+            <!-- <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSearch"
               aria-controls="offcanvasSearch">
               <Icon icon="tabler:search" class="fs-4"></Icon>
-            </button>
+            </button> -->
 
-            <button class="btn btn-primary position-relative" type="button" data-bs-toggle="offcanvas"
+            <!-- <button class="btn btn-primary position-relative" type="button" data-bs-toggle="offcanvas"
               data-bs-target="#offcanvasCart" aria-controls="offcanvasCart">
               <Icon icon="mdi:cart" class="fs-4"></Icon>
-            </button>
+            </button> -->
+
+            <div class="d-none d-xl-block">
+              <HeaderUserMenu @logout="handleLogout" @become-vendor="handleBecomeVendor" />
+            </div>
           </div>
         </div>
       </div>
@@ -46,7 +46,7 @@
       <hr class="m-0" />
     </div>
 
-    <!-- 縮排時顯示之導覽列 -->
+    <!-- 視窗變窄時顯示之導覽列 -->
     <div class="container">
       <nav class="main-menu d-flex navbar navbar-expand-lg">
         <HeaderMobileMenu @logout="handleLogout" @become-vendor="handleBecomeVendor" />
@@ -56,7 +56,7 @@
 </template>
 
 <script setup>
-import { Icon } from '@iconify/vue'
+// import { Icon } from '@iconify/vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/api/user/authApi'
